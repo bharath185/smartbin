@@ -1,7 +1,7 @@
-﻿import sys, os
+import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 from app.database import SessionLocal, engine, Base
-from app.models import Dustbin, Employee, UnloadLog, RewardTransaction
+from app.models import Dustbin, Employee, UnloadLog, RewardTransaction, User
 import bcrypt
 from datetime import datetime, timedelta
 import random
@@ -29,7 +29,7 @@ for bid, loc, fill, st in bins:
                        qr_code=f"SMARTBIN:{bid}:demo"))
         print(f"  + Dustbin {bid}")
 
-# Seed employees
+# Seed employees (Municipality admin & officers)
 emps = [
     ("EMP001", "Alice Johnson",  "alice@smartbin.com",  "9876543210", "admin"),
     ("EMP002", "Bob Kumar",      "bob@smartbin.com",    "9876543211", "employee"),
@@ -43,6 +43,21 @@ for eid, name, email, phone, role in emps:
                         hashed_password=_hash("password123"), role=role,
                         reward_points=random.randint(20, 150)))
         print(f"  + Employee {name}")
+
+# Seed Users (Demo Drivers and Customers)
+users_seed = [
+    ("driver", "Demo Driver", "9876543220", "driver@demo.com", "demo1234", "active", "Route North", "TRUCK-01", "Truck", "DL-9876543210"),
+    ("customer", "Demo Customer", "9876543221", "customer@demo.com", "demo1234", "active", None, None, None, None),
+]
+for role, name, phone, email, pw, status, route, vnum, vtype, lic in users_seed:
+    if not db.query(User).filter(User.email == email).first():
+        db.add(User(
+            role=role, full_name=name, mobile=phone, email=email,
+            hashed_password=_hash(pw), status=status,
+            assigned_route=route, vehicle_number=vnum, vehicle_type=vtype,
+            license_number=lic, driving_license=lic
+        ))
+        print(f"  + User {name} ({role})")
 
 db.commit()
 

@@ -98,21 +98,56 @@
     }
 
     async function login(identifier, password, persist) {
-        const data = await fetchJson('/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ identifier, password }),
-        });
-        const session = {
-            token: data.access_token,
-            role: data.role,
-            name: data.name,
-            email: data.email,
-            status: data.status,
-            panel: data.panel || data.role,
-        };
-        save(session, persist);
-        return session;
+        try {
+            const data = await fetchJson('/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier, password }),
+            });
+            const session = {
+                token: data.access_token,
+                role: data.role,
+                name: data.name,
+                email: data.email,
+                status: data.status,
+                panel: data.panel || data.role,
+            };
+            save(session, persist);
+            return session;
+        } catch (err) {
+            const isNetErr = !err.status && (
+                (err.message || '').indexOf('fetch') !== -1 ||
+                (err.message || '').indexOf('Failed') !== -1 ||
+                (err.message || '').indexOf('NetworkError') !== -1 ||
+                (err.message || '').indexOf('timed out') !== -1
+            );
+            if (isNetErr) {
+                const idNorm = (identifier || '').trim().toLowerCase();
+                const demoUsers = {
+                    'alice@smartbin.com': { role: 'municipality', name: 'Alice Johnson (Admin)', panel: 'municipality', pw: 'password123' },
+                    'admin@smartbin.com': { role: 'municipality', name: 'Admin', panel: 'municipality', pw: 'password123' },
+                    'driver@demo.com': { role: 'driver', name: 'Demo Driver', panel: 'driver', pw: 'demo1234' },
+                    'customer@demo.com': { role: 'customer', name: 'Demo Customer', panel: 'customer', pw: 'demo1234' },
+                };
+                const demo = demoUsers[idNorm];
+                if (demo && demo.pw === password) {
+                    const session = {
+                        token: 'demo-token-' + Date.now(),
+                        role: demo.role,
+                        name: demo.name,
+                        email: idNorm,
+                        status: 'active',
+                        panel: demo.panel,
+                        isDemo: true,
+                    };
+                    save(session, persist);
+                    toast('Backend offline — signed in via Demo Mode', 'info');
+                    return session;
+                }
+                throw new Error('Backend server is offline (' + (window.API_BASE || 'port 8000') + '). For cloud preview, please use the Demo Login credentials.');
+            }
+            throw err;
+        }
     }
 
     function setRemember(on) {
