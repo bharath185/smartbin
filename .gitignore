@@ -24,11 +24,16 @@ Thumbs.db
 # Local env & secrets
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 
 # Scratch artifacts
 *.bak
+
+# Stray 0-byte files from mistyped shell redirects
+/80
+/=
 
 # Stray zero-byte files from malformed shell redirects
 /80
