@@ -374,6 +374,45 @@
         modal.classList.add('active');
         playSiren();
 
+        // Plot directly on Leaflet Map if present on page
+        try {
+            const mapObj = window.map || (window.L && document.querySelector('.leaflet-container')?._leaflet_map);
+            if (mapObj && window.L) {
+                const fireMarker = window.L.marker([lat, lng], {
+                    icon: window.L.divIcon({
+                        className: 'fire-leaflet-marker',
+                        html: '<div style="font-size:36px; filter: drop-shadow(0 0 12px #ef4444); cursor:pointer;">🔥</div>',
+                        iconSize: [42, 42],
+                        iconAnchor: [21, 21]
+                    }),
+                    zIndexOffset: 10000
+                }).addTo(mapObj);
+
+                window.L.circle([lat, lng], {
+                    radius: 70,
+                    color: '#ef4444',
+                    fillColor: '#ef4444',
+                    fillOpacity: 0.38,
+                    weight: 3
+                }).addTo(mapObj);
+
+                fireMarker.bindPopup(`
+                    <div style="font-family:system-ui,sans-serif;color:#0f172a;min-width:180px;">
+                        <div style="display:flex;align-items:center;gap:6px;font-weight:800;color:#dc2626;font-size:13px;margin-bottom:4px;">
+                            <span>🚨</span><span>FIRE EMERGENCY</span>
+                        </div>
+                        <div style="font-size:12px;font-weight:700;">Dustbin: ${dustbinId}</div>
+                        <div style="font-size:11px;color:#475569;">${location}</div>
+                        <div style="margin-top:6px;font-family:monospace;font-size:11px;color:#dc2626;font-weight:700;">${lat}, ${lng}</div>
+                    </div>
+                `).openPopup();
+
+                mapObj.flyTo([lat, lng], 16, { duration: 1.2 });
+            }
+        } catch (mapErr) {
+            console.warn('[IoT Alerts] Map marker auto-plot note:', mapErr);
+        }
+
         // Also trigger desktop browser notification if permitted
         if ('Notification' in window && Notification.permission === 'granted') {
             new Notification('🚨 FIRE ALERT: ' + dustbinId, {
@@ -404,15 +443,21 @@
             badge.textContent = 'FULL';
             badge.className = 'badge badge-filled';
         }
+
+        if (typeof window.loadDashboard === 'function') {
+            window.loadDashboard();
+        }
     }
 
     // Connect WebSocket
     function connect() {
         const url = getWsUrl();
+        const statusEl = document.getElementById('iotWsStatusText');
         try {
             ws = new WebSocket(url);
             ws.onopen = function () {
                 console.log('[IoT Alerts] WebSocket connected to:', url);
+                if (statusEl) statusEl.innerHTML = '<span style="color:#4ade80">● Live IoT Connected</span>';
                 if (reconnectTimer) clearTimeout(reconnectTimer);
             };
             ws.onmessage = function (event) {
@@ -424,19 +469,24 @@
                         showFireAlert(data);
                     } else if (data.type === 'BIN_FULL_ALERT') {
                         showBinFullAlert(data);
+                    } else if (data.type === 'TELEMETRY_UPDATE') {
+                        if (typeof window.loadDashboard === 'function') {
+                            window.loadDashboard();
+                        }
                     }
                 } catch (err) {
                     console.error('[IoT Alerts] Parse error:', err);
                 }
             };
             ws.onclose = function () {
-                // Exponential reconnect after 5s
+                if (statusEl) statusEl.innerHTML = '<span style="color:#fbbf24">● Offline / Demo Sim</span>';
                 reconnectTimer = setTimeout(connect, 5000);
             };
             ws.onerror = function () {
                 ws.close();
             };
         } catch (e) {
+            if (statusEl) statusEl.innerHTML = '<span style="color:#fbbf24">● Demo Mode Sim</span>';
             console.warn('[IoT Alerts] WebSocket initialization notice:', e);
         }
     }
@@ -448,7 +498,7 @@
         pill.id = 'iotSimPill';
         pill.className = 'iot-sim-pill';
         pill.innerHTML = `
-            <span style="font-size:11px;font-weight:700;color:#9ca3af;display:flex;align-items:center;padding-left:4px;">IoT Tester:</span>
+            <span id="iotWsStatusText" style="font-size:11px;font-weight:700;display:flex;align-items:center;padding:0 6px;"><span style="color:#4ade80">● IoT Live</span></span>
             <button class="iot-sim-btn fire" id="testFireBtn" type="button">🔥 Test Fire Alert</button>
             <button class="iot-sim-btn bin" id="testBinBtn" type="button">🗑️ Test Bin Full</button>
         `;
