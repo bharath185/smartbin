@@ -1,11 +1,10 @@
-﻿import os
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "sqlite:///./smartbin.db"
-)
+# When running in serverless cloud environments (like Vercel), the filesystem is read-only except /tmp
+default_db = "sqlite:////tmp/smartbin.db" if (os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME")) else "sqlite:///./smartbin.db"
+DATABASE_URL = os.getenv("DATABASE_URL", default_db)
 
 engine = create_engine(
     DATABASE_URL,

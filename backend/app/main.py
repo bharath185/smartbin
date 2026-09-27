@@ -52,6 +52,35 @@ def _migrate():
 
 _migrate()
 
+def _auto_seed():
+    try:
+        from .database import SessionLocal
+        from .models import Dustbin, Employee, User
+        import bcrypt
+        with SessionLocal() as db:
+            if db.query(Employee).count() == 0:
+                def _h(pw): return bcrypt.hashpw(pw.encode(), bcrypt.gensalt()).decode()
+                db.add(Employee(employee_id="EMP001", name="Alice Johnson", email="alice@smartbin.com", phone="9876543210", hashed_password=_h("password123"), role="admin"))
+                db.add(User(role="driver", full_name="Demo Driver", email="driver@demo.com", mobile="9876543220", hashed_password=_h("demo1234"), status="active", vehicle_number="KA-01-AB-1234", vehicle_type="Truck", assigned_route="Route North"))
+                db.add(User(role="customer", full_name="Demo Customer", email="customer@demo.com", mobile="9876543221", hashed_password=_h("demo1234"), status="active"))
+                bins = [
+                    ("DB001", "Main Lobby", 45.0, "EMPTY", 12.9716, 77.5946),
+                    ("DB002", "Cafeteria", 92.0, "FILLED", 12.9720, 77.5950),
+                    ("DB003", "Parking Lot A", 15.0, "EMPTY", 12.9710, 77.5930),
+                    ("DB004", "Office Floor 2", 88.0, "FILLED", 12.9730, 77.5960),
+                    ("DB005", "Library", 5.0, "EMPTY", 12.9715, 77.5955),
+                    ("DB006", "Gym", 78.0, "READY", 12.9725, 77.5940),
+                    ("DB007", "Reception", 95.0, "READY", 12.9705, 77.5945),
+                    ("DB008", "Workshop", 30.0, "EMPTY", 12.9735, 77.5935),
+                ]
+                for bid, loc, fill, st, lat, lng in bins:
+                    db.add(Dustbin(dustbin_id=bid, location=loc, fill_level=fill, status=st, latitude=lat, longitude=lng))
+                db.commit()
+    except Exception as e:
+        pass
+
+_auto_seed()
+
 app = FastAPI(title="Smart Dustbin Management", version="1.0.0")
 
 app.add_middleware(
@@ -73,6 +102,20 @@ app.include_router(locations.router,    prefix="/drivers",     tags=["Driver Loc
 app.include_router(tasks.router,        prefix="/tasks",       tags=["Collection Tasks"])
 app.include_router(iot.router,          prefix="/iot",         tags=["IoT Devices & Telemetry"])
 
+# Also mount under /api prefix for Vercel serverless functions
+app.include_router(auth.router,        prefix="/api/auth",        include_in_schema=False)
+app.include_router(dashboard.router,    prefix="/api/dashboard",   include_in_schema=False)
+app.include_router(dustbins.router,     prefix="/api/dustbins",    include_in_schema=False)
+app.include_router(employees.router,    prefix="/api/employees",   include_in_schema=False)
+app.include_router(leaderboard.router,  prefix="/api/leaderboard", include_in_schema=False)
+app.include_router(complaints.router,   prefix="/api/complaints",  include_in_schema=False)
+app.include_router(collections.router,  prefix="/api/collections", include_in_schema=False)
+app.include_router(locations.router,    prefix="/api/drivers",     include_in_schema=False)
+app.include_router(tasks.router,        prefix="/api/tasks",       include_in_schema=False)
+app.include_router(iot.router,          prefix="/api/iot",         include_in_schema=False)
+
 @app.get("/")
+@app.get("/api")
+@app.get("/api/")
 def health_check():
-    return {"message": "Smart Dustbin API is running"}
+    return {"message": "Smart Dustbin API is running on Vercel", "status": "online"}
