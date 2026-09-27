@@ -1,6 +1,6 @@
 @echo off
 title SmartBin Frontend (port 3000)
-cd /d "C:\smb project\frontend"
+cd /d "%~dp0frontend"
 echo Starting SmartBin web app on http://localhost:3000 ...
 echo Keep this window open while you use the app.
 echo.
