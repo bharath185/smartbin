@@ -479,15 +479,49 @@
                 }
             };
             ws.onclose = function () {
-                if (statusEl) statusEl.innerHTML = '<span style="color:#fbbf24">● Offline / Demo Sim</span>';
-                reconnectTimer = setTimeout(connect, 5000);
+                if (statusEl) statusEl.innerHTML = '<span style="color:#4ade80">● Cloud Sync Active</span>';
+                startPolling();
+                reconnectTimer = setTimeout(connect, 10000);
             };
             ws.onerror = function () {
+                startPolling();
                 ws.close();
             };
         } catch (e) {
-            if (statusEl) statusEl.innerHTML = '<span style="color:#fbbf24">● Demo Mode Sim</span>';
-            console.warn('[IoT Alerts] WebSocket initialization notice:', e);
+            startPolling();
+            if (statusEl) statusEl.innerHTML = '<span style="color:#4ade80">● Cloud Sync Active</span>';
+            console.warn('[IoT Alerts] WebSocket notice:', e);
+        }
+    }
+
+    let pollTimer = null;
+    let lastEventTime = (Date.now() / 1000) - 10;
+
+    async function pollEvents() {
+        try {
+            const resp = await fetch(`/iot/events?since=${lastEventTime}`, { cache: 'no-store' });
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.events && data.events.length) {
+                    for (const ev of data.events) {
+                        if (ev._created_at && ev._created_at > lastEventTime) {
+                            lastEventTime = ev._created_at;
+                        }
+                        if (ev.type === 'FIRE_ALERT') showFireAlert(ev);
+                        else if (ev.type === 'BIN_FULL_ALERT') showBinFullAlert(ev);
+                        else if (ev.type === 'TELEMETRY_UPDATE' && typeof window.loadDashboard === 'function') {
+                            window.loadDashboard();
+                        }
+                    }
+                }
+            }
+        } catch (e) {}
+    }
+
+    function startPolling() {
+        if (!pollTimer) {
+            pollTimer = setInterval(pollEvents, 2000);
+            pollEvents();
         }
     }
 

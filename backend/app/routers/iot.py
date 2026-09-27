@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+import time
 
 from ..database import get_db
 from ..models import Dustbin
@@ -10,6 +11,9 @@ from ..websocket_manager import ws_manager
 from .tasks import ensure_task_for_dustbin, FULL_THRESHOLD
 
 router = APIRouter()
+
+# In-memory buffer for real-time alerts across serverless requests
+LIVE_EVENTS = []
 
 # -------------------------------------------------------------
 # PYDANTIC SCHEMAS FOR IOT PAYLOADS
@@ -86,8 +90,11 @@ async def receive_iot_telemetry(payload: IoTTelemetryPayload, db: Session = Depe
             "temperature": payload.temperature,
             "smoke_ppm": payload.smoke_ppm,
             "timestamp": ts,
-            "action_required": "Immediate fire extinguishing / municipal dispatch needed"
+            "action_required": "Immediate fire extinguishing / municipal dispatch needed",
+            "_created_at": time.time()
         }
+        LIVE_EVENTS.append(fire_alert_event)
+        if len(LIVE_EVENTS) > 50: LIVE_EVENTS.pop(0)
         await ws_manager.broadcast(fire_alert_event)
         alerts_triggered.append(fire_alert_event)
 
@@ -108,8 +115,11 @@ async def receive_iot_telemetry(payload: IoTTelemetryPayload, db: Session = Depe
                 "status": "FULL",
                 "latitude": dustbin.latitude,
                 "longitude": dustbin.longitude,
-                "timestamp": ts
+                "timestamp": ts,
+                "_created_at": time.time()
             }
+            LIVE_EVENTS.append(bin_full_event)
+            if len(LIVE_EVENTS) > 50: LIVE_EVENTS.pop(0)
             await ws_manager.broadcast(bin_full_event)
             alerts_triggered.append(bin_full_event)
         elif payload.fill_level >= 80:
@@ -176,8 +186,11 @@ async def trigger_fire_emergency(payload: IoTFireEmergencyPayload, db: Session =
         "smoke_ppm": payload.smoke_ppm,
         "details": payload.details,
         "timestamp": ts,
-        "maps_url": f"https://www.google.com/maps/search/?api=1&query={payload.latitude},{payload.longitude}"
+        "maps_url": f"https://www.google.com/maps/search/?api=1&query={payload.latitude},{payload.longitude}",
+        "_created_at": time.time()
     }
+    LIVE_EVENTS.append(event)
+    if len(LIVE_EVENTS) > 50: LIVE_EVENTS.pop(0)
 
     # Broadcast immediately to all connected browsers/dashboards
     await ws_manager.broadcast(event)
@@ -186,6 +199,16 @@ async def trigger_fire_emergency(payload: IoTFireEmergencyPayload, db: Session =
         "status": "emergency_broadcasted",
         "event": event
     }
+
+
+@router.get("/events")
+def get_live_events(since: Optional[float] = None):
+    """
+    Real-time event stream fallback for cloud platforms (like Vercel) that do not support persistent WebSockets.
+    """
+    if since is None:
+        return {"events": LIVE_EVENTS[-5:]}
+    return {"events": [e for e in LIVE_EVENTS if e.get("_created_at", 0) > since]}
 
 
 # -------------------------------------------------------------
