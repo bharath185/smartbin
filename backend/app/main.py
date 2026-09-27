@@ -1,9 +1,9 @@
-﻿from fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import inspect, text
 
 from .database import engine, Base
-from .routers import auth, dashboard, dustbins, employees, leaderboard, complaints, collections, locations, tasks
+from .routers import auth, dashboard, dustbins, employees, leaderboard, complaints, collections, locations, tasks, iot
 
 # Create all tables on startup
 Base.metadata.create_all(bind=engine)
@@ -71,6 +71,7 @@ app.include_router(complaints.router,   prefix="/complaints",  tags=["Complaints
 app.include_router(collections.router,  prefix="/collections", tags=["Collections"])
 app.include_router(locations.router,    prefix="/drivers",     tags=["Driver Location"])
 app.include_router(tasks.router,        prefix="/tasks",       tags=["Collection Tasks"])
+app.include_router(iot.router,          prefix="/iot",         tags=["IoT Devices & Telemetry"])
 
 @app.get("/")
 def health_check():
