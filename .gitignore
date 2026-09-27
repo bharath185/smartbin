@@ -38,3 +38,4 @@ Thumbs.db
 # Stray zero-byte files from malformed shell redirects
 /80
 /=
+.vercel
