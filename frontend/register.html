@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" data-lg-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Create Account | SmartBin — Smart Waste Management</title>
+  <meta name="description" content="Create your SmartBin account as a customer, driver or municipality.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/auth.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+  <link rel="stylesheet" href="assets/css/login.css">
+</head>
+<body class="lg-body">
+  <div class="lg-bg">
+    <div class="lg-grid"></div>
+    <div class="lg-orb o1"></div>
+    <div class="lg-orb o2"></div>
+  </div>
+
+  <button class="lg-theme" id="themeToggle" type="button" aria-label="Toggle dark mode" data-tip="Toggle theme">
+    <svg id="themeIcon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+  </button>
+
+  <main class="lg-shell">
+    <!-- LEFT · branding -->
+    <section class="lg-brand">
+      <div class="lg-brand-top" data-ws-reveal>
+        <span class="lg-logo">
+          <svg width="24" height="24" viewBox="0 0 32 32" fill="none"><rect x="6" y="12" width="20" height="14" rx="2.5" fill="#fff" opacity=".95"/><rect x="3" y="6" width="26" height="5" rx="2.5" fill="#fff" opacity=".35"/><circle cx="11" cy="19" r="1.6" fill="#2563eb"/></svg>
+        </span>
+        <div class="lg-brand-name"><strong>SmartBin</strong><span>Smart Waste Management System</span></div>
+      </div>
+
+      <div data-ws-reveal>
+        <h1>Join the <em>smart</em> city network.</h1>
+        <p class="lg-tag">Register as a citizen, collection driver or municipal authority. Every role gets a tailored dashboard built for the Smart Waste Management System.</p>
+      </div>
+
+      <div class="lg-brand-foot" data-ws-reveal>
+        <span>Role-specific dashboards</span>
+        <span>Secure &amp; verified</span>
+        <span>One Smart City</span>
+      </div>
+    </section>
+
+    <!-- RIGHT · register card -->
+    <section class="lg-card-wrap">
+      <div class="lg-card" id="authCard">
+        <a class="lg-back" href="login.html">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+          Back to sign in
+        </a>
+
+        <div class="lg-card-head">
+          <span class="lg-step">Get started</span>
+          <h2>Create Account</h2>
+          <p>Choose your role — we will tailor your experience.</p>
+        </div>
+
+        <div class="lg-roles" id="rolePicker" role="radiogroup" aria-label="Choose your role">
+          <label class="lg-role" for="roleCustomer">
+            <input type="radio" name="authRole" id="roleCustomer" value="customer" checked>
+            <span class="rc"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg></span>
+            <b>Customer</b><small>Manage waste requests</small>
+          </label>
+          <label class="lg-role" for="roleDriver">
+            <input type="radio" name="authRole" id="roleDriver" value="driver">
+            <span class="rc"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l2-7h11l4 7M5 17h14v3H5zM6 14h2"/></svg></span>
+            <b>Driver</b><small>Assigned collections</small>
+          </label>
+          <label class="lg-role" for="roleMunicipality">
+            <input type="radio" name="authRole" id="roleMunicipality" value="municipality">
+            <span class="rc"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V8l7-5 7 5v13M10 21v-4h4v4"/></svg></span>
+            <b>Municipality</b><small>Manage the system</small>
+          </label>
+        </div>
+
+        <div class="lg-form-err" id="lgFormErr"></div>
+
+        <!-- common fields -->
+        <div class="lg-field">
+          <label for="regName" data-name="Full Name|Officer Name">Full Name</label>
+          <div class="lg-control">
+            <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg></span>
+            <input type="text" id="regName" placeholder="Enter your full name" autocomplete="name" spellcheck="false">
+          </div>
+          <div class="lg-err"></div>
+        </div>
+
+        <div class="lg-field">
+          <label for="regMobile">Mobile Number</label>
+          <div class="lg-control">
+            <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg></span>
+            <input type="tel" id="regMobile" placeholder="10-digit mobile number" autocomplete="tel" spellcheck="false">
+          </div>
+          <div class="lg-err"></div>
+        </div>
+
+        <div class="lg-field">
+          <label for="regEmail">Email Address</label>
+          <div class="lg-control">
+            <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg></span>
+            <input type="email" id="regEmail" placeholder="name@example.com" autocomplete="email" spellcheck="false">
+          </div>
+          <div class="lg-err"></div>
+        </div>
+
+        <!-- CUSTOMER fields -->
+        <div class="lg-inner open" id="custFields">
+          <div class="lg-section-label">Citizen details</div>
+          <div class="lg-field">
+            <label for="regAddress">Address</label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.5-7-11a7 7 0 0114 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+              <input type="text" id="regAddress" placeholder="e.g. Sector 12, Green City" autocomplete="street-address">
+            </div>
+            <div class="lg-err"></div>
+          </div>
+        </div>
+
+        <!-- DRIVER fields -->
+        <div class="lg-inner" id="driverFields">
+          <div class="lg-section-label">Personal details</div>
+          <div class="lg-field">
+            <label for="regDriverAddress">Address</label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.5-7-11a7 7 0 0114 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+              <input type="text" id="regDriverAddress" placeholder="House, street, locality" autocomplete="street-address" spellcheck="false">
+            </div>
+            <div class="lg-err"></div>
+          </div>
+          <div class="lg-field">
+            <label for="regDriverCityArea">City / Area <span style="color:var(--lg-ink-3);font-weight:500">(optional)</span></label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V8l7-5 7 5v13M10 21v-4h4v4"/></svg></span>
+              <input type="text" id="regDriverCityArea" placeholder="e.g. Green City, Sector 12">
+            </div>
+            <div class="lg-err"></div>
+          </div>
+          <div class="lg-section-label">Driver &amp; vehicle details</div>
+          <div class="lg-field">
+            <label for="regLicense">Driver License Number</label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h6M6 12h4M15 13h3M15 16h3"/></svg></span>
+              <input type="text" id="regLicense" placeholder="License number" spellcheck="false">
+            </div>
+            <div class="lg-err"></div>
+          </div>
+          <div class="lg-field">
+            <label for="regVehicle">Vehicle Number</label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l2-8h14l2 8M5 17h14v3H5z"/></svg></span>
+              <input type="text" id="regVehicle" placeholder="e.g. MH-12-AB-1234" spellcheck="false">
+            </div>
+            <div class="lg-err"></div>
+          </div>
+          <div class="lg-field">
+            <label for="regVehType">Vehicle Type <span style="color:var(--lg-ink-3);font-weight:500">(optional)</span></label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13l2-5h12l3 5v5h-2M5 18H3v-5zM17 18h-4"/><circle cx="7" cy="18" r="2.2"/><circle cx="17" cy="18" r="2.2"/></svg></span>
+              <select id="regVehType" style="background:transparent;border:none;color:inherit;flex:1;font:inherit;outline:none;appearance:none">
+                <option value="">Select vehicle type</option>
+                <option value="Dumper">Dumper</option>
+                <option value="Truck">Truck</option>
+                <option value="Mini Truck">Mini Truck</option>
+                <option value="Auto">Auto / Three-wheeler</option>
+                <option value="Tata Ace">Tata Ace</option>
+                <option value="Ashok Leyland">Ashok Leyland</option>
+                <option value="Two-wheeler">Two-wheeler</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="lg-err"></div>
+          </div>
+          <div class="lg-field">
+            <label for="regDriverArea">Assigned Area <span style="color:var(--lg-ink-3);font-weight:500">(optional)</span></label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0"/></svg></span>
+              <input type="text" id="regDriverArea" placeholder="Sectors you will cover">
+            </div>
+            <div class="lg-err"></div>
+          </div>
+          <div class="lg-field">
+            <label for="regPhoto">
+              Profile Photo <span style="color:var(--lg-ink-3);font-weight:500">(optional)</span>
+              <input type="file" id="regPhoto" accept="image/*" style="display:none">
+            </label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+              <input type="text" id="regPhotoName" placeholder="Click to choose an image" readonly spellcheck="false">
+              <button type="button" class="lg-eye" id="regPhotoPick" tabindex="-1" style="position:relative">Choose</button>
+            </div>
+            <div class="lg-err"></div>
+          </div>
+          <div class="lg-note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            <span>Driver accounts require municipality approval before you can sign in.</span>
+          </div>
+        </div>
+
+        <!-- MUNICIPALITY fields -->
+        <div class="lg-inner" id="munFields">
+          <div class="lg-section-label">Municipality details</div>
+          <div class="lg-field">
+            <label for="regMunName">Municipality / Department Name</label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5"/></svg></span>
+              <input type="text" id="regMunName" placeholder="e.g. Green City Municipal Corporation">
+            </div>
+            <div class="lg-err"></div>
+          </div>
+          <div class="lg-field">
+            <label for="regEmpNo">Employee / Officer ID</label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 12h6"/></svg></span>
+              <input type="text" id="regEmpNo" placeholder="e.g. MUN-003" spellcheck="false">
+            </div>
+            <div class="lg-err"></div>
+          </div>
+          <div class="lg-field">
+            <label for="regDept">Department</label>
+            <div class="lg-control">
+              <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V4h8v3"/></svg></span>
+              <input type="text" id="regDept" placeholder="e.g. Environment / Sanitation">
+            </div>
+            <div class="lg-err"></div>
+          </div>
+          <div class="lg-note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            <span>Municipality accounts require administrator approval before login.</span>
+          </div>
+        </div>
+
+        <div class="lg-section-label">Security</div>
+        <div class="lg-field">
+          <label for="regPw">Password</label>
+          <div class="lg-control">
+            <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+            <input type="password" id="regPw" placeholder="At least 8 characters" autocomplete="new-password">
+            <button type="button" class="lg-eye" id="togglePw" aria-label="Show or hide password" tabindex="-1">
+              <svg id="regEyeIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="lg-meter" id="pwMeter"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="lg-err"></div>
+        </div>
+
+        <div class="lg-field">
+          <label for="regPw2">Confirm Password</label>
+          <div class="lg-control">
+            <span class="f-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>
+            <input type="password" id="regPw2" placeholder="Repeat your password" autocomplete="new-password">
+          </div>
+          <div class="lg-err"></div>
+        </div>
+
+        <button class="lg-btn" id="regBtn" type="button">
+          <span class="lg-spin"></span>
+          <span>Create Account</span>
+          <span class="lg-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </button>
+
+        <p class="lg-alt">Already have an account? <a href="login.html">Sign in</a></p>
+
+        <!-- confirmation panel (shown after pending-role submission) -->
+        <div class="lg-confirm" id="regConfirm" hidden>
+          <div class="lg-confirm-icon">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <h3>Registration submitted successfully.</h3>
+          <p id="regConfirmMsg">Your account is waiting for municipality approval.</p>
+          <button class="lg-btn" type="button" onclick="window.location.href='login.html'"><span>Go to Sign In</span></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/auth-page.js"></script>
+  <script src="assets/js/ws-init.js"></script>
+  <script>
+  (function () {
+    // ---- theme ----
+    function applyTheme(t) {
+      document.documentElement.setAttribute('data-lg-theme', t);
+      try { localStorage.setItem('lg-theme', t); } catch (e) {}
+      document.getElementById('themeIcon').innerHTML = t === 'dark'
+        ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'
+        : '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+    }
+    var saved = null; try { saved = localStorage.getItem('lg-theme'); } catch (e) {}
+    applyTheme(saved || 'dark');
+    document.getElementById('themeToggle').addEventListener('click', function () {
+      var cur = document.documentElement.getAttribute('data-lg-theme') || 'light';
+      applyTheme(cur === 'dark' ? 'light' : 'dark');
+    });
+
+    // ---- role picker ----
+    var roleLabels = document.querySelectorAll('.lg-role');
+    var roleInputs = document.querySelectorAll('.lg-role input');
+    function currentRole() {
+      var c = document.querySelector('.lg-role input:checked');
+      return c ? c.value : 'customer';
+    }
+    function setRole(r) {
+      roleInputs.forEach(function (i) { i.checked = (i.value === r); });
+      syncRoles();
+      ["custFields", "driverFields", "munFields"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.toggle('open', (id === 'custFields' && r === 'customer') || (id === 'driverFields' && r === 'driver') || (id === 'munFields' && r === 'municipality'));
+      });
+      var nameLbl = document.querySelector('label[data-name]');
+      if (nameLbl) {
+        var parts = nameLbl.getAttribute('data-name').split('|');
+        nameLbl.textContent = r === 'municipality' ? parts[1] : parts[0];
+      }
+    }
+    function syncRoles() { roleLabels.forEach(function (l) { l.classList.toggle('on', l.querySelector('input').checked); }); }
+    roleLabels.forEach(function (lbl) {
+      lbl.addEventListener('click', function () { setRole(lbl.querySelector('input').value); });
+    });
+    syncRoles();
+
+    // ---- pw toggle ----
+    document.getElementById('togglePw').addEventListener('click', function () {
+      var i = document.getElementById('regPw');
+      var show = i.type === 'password';
+      i.type = show ? 'text' : 'password';
+      document.getElementById('regEyeIcon').innerHTML = show
+        ? '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M14.12 14.12a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>';
+    });
+
+    // ---- pw meter ----
+    document.getElementById('regPw').addEventListener('input', function () {
+      var on = AuthPage.passwordStrength(this.value);
+      [].forEach.call(document.querySelectorAll('#pwMeter i'), function (b, i) { b.classList.toggle('on', i < on); });
+    });
+
+    // ---- validation ----
+    var errBox = document.getElementById('lgFormErr');
+    var nameEl = document.getElementById('regName');
+    var mobileEl = document.getElementById('regMobile');
+    var emailEl = document.getElementById('regEmail');
+    var pwEl = document.getElementById('regPw');
+    var pw2El = document.getElementById('regPw2');
+    var addrEl = document.getElementById('regAddress');
+    var drvAddrEl = document.getElementById('regDriverAddress');
+    var drvCityEl = document.getElementById('regDriverCityArea');
+    var licEl = document.getElementById('regLicense');
+    var vehEl = document.getElementById('regVehicle');
+    var vehTypeEl = document.getElementById('regVehType');
+    var photoEl = document.getElementById('regPhoto');
+    var photoNameEl = document.getElementById('regPhotoName');
+    var munEl = document.getElementById('regMunName');
+    var empEl = document.getElementById('regEmpNo');
+    function showErrBox(m) {
+      if (!m) { errBox.classList.remove('show'); errBox.textContent = ''; return; }
+      errBox.textContent = m; errBox.classList.add('show');
+    }
+    AuthPage.liveClear([nameEl, mobileEl, emailEl, pwEl, pw2El, addrEl, licEl, vehEl, munEl, empEl, drvAddrEl, drvCityEl]);
+    [nameEl, mobileEl, emailEl, pwEl, pw2El, addrEl, licEl, vehEl, munEl, empEl, drvAddrEl, drvCityEl].forEach(function (i) {
+      if (i) i.addEventListener('input', function () { showErrBox(''); });
+    });
+
+    // ---- profile photo picker ----
+    function pickPhoto() { if (photoEl) photoEl.click(); }
+    document.getElementById('regPhotoPick').addEventListener('click', pickPhoto);
+    photoNameEl.addEventListener('click', pickPhoto);
+    var chosenPhoto = null;
+    photoEl.addEventListener('change', function () {
+      var f = photoEl.files && photoEl.files[0];
+      if (!f) { photoNameEl.value = ''; chosenPhoto = null; return; }
+      if (f.size > 3 * 1024 * 1024) { showErrBox('Photo must be under 3 MB.'); photoEl.value = ''; chosenPhoto = null; photoNameEl.value = ''; return; }
+      photoNameEl.value = f.name;
+      var reader = new FileReader();
+      reader.onload = function () { chosenPhoto = reader.result; };
+      reader.readAsDataURL(f);
+    });
+
+    async function submit() {
+      var role = currentRole();
+      var name = nameEl.value.trim(), mobile = mobileEl.value.trim(), email = emailEl.value.trim().toLowerCase();
+      var pw = pwEl.value, pw2 = pw2El.value;
+      var ok = true;
+      function bad(el, m) { AuthPage.setFieldError(el, m); ok = false; }
+
+      if (!name) bad(nameEl, 'Enter your ' + (role === 'municipality' ? 'officer name.' : 'full name.'));
+      else AuthPage.setFieldError(nameEl, '');
+      if (mobile && !AuthPage.REGEX_MOBILE.test(mobile)) bad(mobileEl, 'Enter a valid 10-digit mobile number.');
+      else AuthPage.setFieldError(mobileEl, '');
+      if (!email) bad(emailEl, 'Enter your email address.');
+      else if (!AuthPage.REGEX_EMAIL.test(email)) bad(emailEl, 'Enter a valid email address.');
+      else AuthPage.setFieldError(emailEl, '');
+
+      if (role === 'customer') {
+        if (!addrEl.value.trim()) bad(addrEl, 'Enter your address / area.');
+        else AuthPage.setFieldError(addrEl, '');
+      } else if (role === 'driver') {
+        if (!licEl.value.trim()) bad(licEl, 'Enter your driver license number.');
+        else AuthPage.setFieldError(licEl, '');
+        if (!vehEl.value.trim()) bad(vehEl, 'Enter your vehicle number.');
+        else if (!AuthPage.REGEX_VEHICLE.test(vehEl.value.trim())) bad(vehEl, 'Use a valid format, e.g. MH-12-AB-1234.');
+        else AuthPage.setFieldError(vehEl, '');
+      } else {
+        if (!munEl.value.trim()) bad(munEl, 'Enter your municipality / department name.');
+        else AuthPage.setFieldError(munEl, '');
+        if (!empEl.value.trim()) bad(empEl, 'Enter your employee / officer ID.');
+        else AuthPage.setFieldError(empEl, '');
+      }
+
+      if (!pw) bad(pwEl, 'Enter a password.');
+      else if (pw.length < 8) bad(pwEl, 'At least 8 characters.');
+      else if (!/[0-9]/.test(pw) || !/[a-zA-Z]/.test(pw)) bad(pwEl, 'Include letters and numbers.');
+      else AuthPage.setFieldError(pwEl, '');
+      if (!pw2) bad(pw2El, 'Confirm your password.');
+      else if (pw !== pw2) bad(pw2El, 'Passwords do not match.');
+      else AuthPage.setFieldError(pw2El, '');
+
+      if (!ok) { showErrBox('Please fix the highlighted fields.'); return; }
+      showErrBox('');
+
+      var payload = {
+        role: role,
+        full_name: name,
+        mobile: mobile || null,
+        email: email,
+        password: pw,
+        confirm_password: pw2,
+        city_or_area: role === 'customer' ? (addrEl.value.trim() || null) : null
+      };
+      if (role === 'driver') {
+        payload.driving_license = licEl.value.trim() || null;
+        payload.vehicle_number = vehEl.value.trim() || null;
+        payload.address = drvAddrEl.value.trim() || null;
+        payload.city_or_area = drvCityEl.value.trim() || null;
+        payload.vehicle_type = vehTypeEl.value || null;
+        payload.assigned_area = document.getElementById('regDriverArea').value.trim() || null;
+        payload.profile_photo = chosenPhoto || null;
+      }
+      if (role === 'municipality') {
+        payload.municipality_name = munEl.value.trim() || null;
+        payload.employee_id = empEl.value.trim() || null;
+        payload.department = document.getElementById('regDept').value.trim() || null;
+      }
+
+      var btn = document.getElementById('regBtn');
+      btn.classList.add('loading'); btn.disabled = true;
+      try {
+        await Auth.register(payload);
+        if (role === 'customer') {
+          showToast('Account created! Signing you in...', 'success');
+          var s = await Auth.login(email, pw, false);
+          setTimeout(function () { window.location.href = Auth.redirectFor(s.panel); }, 900);
+          return;
+        }
+        showToast('Registration submitted successfully.', 'success');
+        document.getElementById('regConfirmMsg').textContent = role === 'driver'
+          ? 'Your account is waiting for municipality approval.'
+          : 'Your municipality account awaits admin approval.';
+        var formHost = document.getElementById('authCard');
+        [].forEach.call(formHost.querySelectorAll('.lg-roles, .lg-form-err, .lg-field, .lg-meta, .lg-btn, .lg-alt, .lg-step'), function (el) {
+          if (el && el.id && (el.id === 'regConfirm' || el.parentElement.id === 'regConfirm')) return;
+          if (el && el.id === 'regConfirm') return;
+          if (el && el.classList && !el.classList.contains('lg-confirm')) el.style.display = 'none';
+        });
+        document.getElementById('regConfirm').hidden = false;
+        document.getElementById('regConfirm').style.display = 'block';
+        btn.classList.remove('loading'); btn.disabled = false;
+        document.getElementById('authCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (e) {
+        showErrBox(e.message || 'Registration failed.');
+        btn.classList.remove('loading'); btn.disabled = false;
+      }
+    }
+
+    document.getElementById('regBtn').addEventListener('click', submit);
+
+    // Enter in any field (not just the password field) submits the form
+    document.getElementById('authCard').addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var t = e.target;
+      if (!t || !t.tagName) return;
+      if (t.tagName === 'INPUT' || t.tagName === 'SELECT') {
+        if (t.type === 'submit' || t.type === 'button') return;
+        e.preventDefault();
+        submit();
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,699 @@
+/* ============================================================
+   SmartBin Auth — premium dark SaaS design system
+   (login / register / forgot). Loaded LAST so it overrides the
+   underlying skin with a clean, futuristic dark two-column UI.
+
+   Palette
+     Primary        #6366F1  (indigo)
+     Secondary      #8B5CF6  (violet)
+     Eco accent     #22C55E  (green — used sparingly for success)
+     Background     #09090B
+     Card           #111113
+     Input          #18181B
+     Border         #27272A
+     Main text      #F8FAFC
+     Secondary text #94A3B8
+   ============================================================ */
+
+:root {
+  --lg-bg: #09090b;
+  --lg-bg-2: #0b0b0e;
+  --lg-surface: #111113;
+  --lg-surface-2: #18181b;
+  --lg-surface-3: #1e1e22;
+  --lg-border: #27272a;
+  --lg-border-strong: #34343a;
+  --lg-ink: #f8fafc;
+  --lg-ink-2: #c7ced9;
+  --lg-ink-3: #94a3b8;
+  --lg-primary: #6366f1;
+  --lg-primary-hi: #818cf8;
+  --lg-primary-ink: #a5b4fc;
+  --lg-primary-soft: rgba(99, 102, 241, .12);
+  --lg-secondary: #8b5cf6;
+  --lg-green: #22c55e;
+  --lg-green-ink: #4ade80;
+  --lg-green-soft: rgba(34, 197, 94, .12);
+  --lg-danger: #f87171;
+  --lg-danger-soft: rgba(248, 113, 113, .1);
+  --lg-shadow-sm: 0 1px 2px rgba(0, 0, 0, .35);
+  --lg-shadow: 0 10px 30px -12px rgba(0, 0, 0, .5);
+  --lg-shadow-lg: 0 30px 70px -20px rgba(0, 0, 0, .6);
+  --lg-ease: cubic-bezier(.22, .8, .24, 1);
+  --lg-radius: 16px;
+}
+
+/* ============================================================
+   Light theme (auth pages) — [data-lg-theme="light"] on <html>
+   ============================================================ */
+[data-lg-theme="light"] {
+  --lg-bg: #f4f5fb;
+  --lg-bg-2: #eef0f7;
+  --lg-surface: #ffffff;
+  --lg-surface-2: #f8f9fc;
+  --lg-surface-3: #f1f2f8;
+  --lg-border: #e4e6ef;
+  --lg-border-strong: #d4d7e5;
+  --lg-ink: #111827;
+  --lg-ink-2: #374151;
+  --lg-ink-3: #64748b;
+  --lg-primary: #6366f1;
+  --lg-primary-hi: #4f46e5;
+  --lg-primary-ink: #4f46e5;
+  --lg-primary-soft: rgba(99, 102, 241, .1);
+  --lg-secondary: #7c3aed;
+  --lg-green: #16a34a;
+  --lg-green-ink: #15803d;
+  --lg-green-soft: rgba(22, 163, 74, .1);
+  --lg-danger: #dc2626;
+  --lg-danger-soft: rgba(220, 38, 38, .08);
+  --lg-shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+  --lg-shadow: 0 10px 30px -12px rgba(15, 23, 42, .15);
+  --lg-shadow-lg: 0 30px 70px -20px rgba(15, 23, 42, .2);
+}
+
+/* keep the SmartBin illustration coherent in light mode */
+[data-lg-theme="light"] .lg-scene {
+  background:
+    radial-gradient(120% 90% at 30% 0%, rgba(99, 102, 241, .08), transparent 55%),
+    radial-gradient(90% 70% at 100% 100%, rgba(22, 163, 74, .06), transparent 55%),
+    #ffffff;
+}
+[data-lg-theme="light"] .bin-body { background: linear-gradient(180deg, #f1f2f8, #e6e8f2); border-color: #d4d7e5; }
+[data-lg-theme="light"] .bin-lid { background: linear-gradient(180deg, #e6e8f2, #d9dcea); border-color: #c6cae0; }
+[data-lg-theme="light"] .bin-screen { background: #ffffff; border-color: #d4d7e5; }
+[data-lg-theme="light"] .bin-screen i { background: var(--lg-primary-hi); }
+[data-lg-theme="light"] .lg-bin-shadow { background: radial-gradient(ellipse, rgba(15, 23, 42, .28), transparent 70%); }
+[data-lg-theme="light"] .lg-hover-card { background: rgba(255, 255, 255, .97); }
+[data-lg-theme="light"] .skyline::before { opacity: .5; }
+
+/* ============================================================
+   Base
+   ============================================================ */
+body {
+  background: var(--lg-bg);
+  color: var(--lg-ink);
+  font-family: 'Inter', 'Poppins', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- background: subtle grid + soft purple glow ---------- */
+.lg-bg {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden;
+  background: var(--lg-bg);
+}
+.lg-bg .lg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, .07) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 15%, transparent 72%);
+  mask-image: radial-gradient(ellipse at center, #000 15%, transparent 72%);
+}
+.lg-orb {
+  position: absolute; border-radius: 50%; filter: blur(90px); opacity: .4;
+  animation: lgOrb 20s ease-in-out infinite alternate;
+}
+.lg-orb.o1 { width: 420px; height: 420px; background: #4f46e5; top: -140px; right: -80px; opacity: .28; }
+.lg-orb.o2 { width: 360px; height: 360px; background: #7c3aed; bottom: -120px; left: 4%; opacity: .22; animation-delay: -7s; }
+@keyframes lgOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(26px, -20px) scale(1.1); }
+}
+
+/* ---------- shell / two-column ---------- */
+.lg-shell {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: grid; grid-template-columns: 1.05fr 1fr;
+  align-items: stretch;
+  max-width: 1180px; margin: 0 auto; padding: 36px 36px 36px 54px;
+  gap: 60px;
+}
+
+/* ---------- left brand panel ---------- */
+.lg-brand {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 20px 10px;
+  animation: lgFadeUp .7s var(--lg-ease) both;
+}
+.lg-brand-top { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+.lg-logo {
+  width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--lg-primary), var(--lg-secondary));
+  box-shadow: 0 10px 24px -8px rgba(99, 102, 241, .55);
+  color: #fff; position: relative; overflow: hidden;
+}
+.lg-logo::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, .28) 50%, transparent 70%);
+  background-size: 250% 100%; animation: lgShine 4.5s linear infinite;
+}
+@keyframes lgShine { 0% { background-position: 200% 0; } 100% { background-position: -100% 0; } }
+.lg-brand-name { line-height: 1.05; }
+.lg-brand-name strong { display: block; font-size: 1.3rem; font-weight: 800; letter-spacing: -.02em; color: var(--lg-ink); }
+.lg-brand-name span { display: block; font-size: .73rem; color: var(--lg-ink-3); font-weight: 500; margin-top: 3px; letter-spacing: .02em; }
+
+.lg-brand h1 {
+  font-size: clamp(1.9rem, 3.1vw, 2.8rem);
+  line-height: 1.12; font-weight: 800; letter-spacing: -.03em;
+  margin: 0 0 18px; color: var(--lg-ink);
+  white-space: pre-line;
+}
+.lg-brand h1 em { font-style: normal; background: linear-gradient(90deg, var(--lg-primary-hi), var(--lg-secondary)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lg-brand .lg-tag { color: var(--lg-ink-3); font-size: 1rem; line-height: 1.7; max-width: 46ch; }
+
+/* ============================================================
+   Animated SmartBin scene (left side)
+   Smart City + AI + Sustainability, subtle & professional
+   ============================================================ */
+.lg-scene {
+  position: relative; margin: 26px 0 6px; height: 250px;
+  max-width: 460px; width: 100%;
+  border-radius: 18px; overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 30% 0%, rgba(99, 102, 241, .10), transparent 55%),
+    radial-gradient(90% 70% at 100% 100%, rgba(34, 197, 94, .08), transparent 55%),
+    var(--lg-surface);
+  border: 1px solid var(--lg-border);
+  transform: translateZ(0); will-change: transform;
+}
+
+/* city skyline backdrop */
+.lg-skylines { position: absolute; inset: 0; }
+.skyline {
+  position: absolute; left: 0; right: 0;
+  background:
+    linear-gradient(90deg, rgba(148, 163, 184, .10) 1px, transparent 1px),
+    linear-gradient(rgba(148, 163, 184, .10) 1px, transparent 1px);
+  background-size: 22px 22px; opacity: .5;
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 45%, #000 100%);
+  mask-image: linear-gradient(to top, transparent 0%, #000 45%, #000 100%);
+  animation: gridDrift 28s linear infinite;
+}
+.skyline-back { top: 40px; height: 150px; animation-duration: 36s; }
+.skyline-front { top: 18px; height: 190px; background-size: 15px 15px; animation-direction: reverse; }
+.skyline::before {  /* subtle moving building lights */
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    radial-gradient(circle 2px at 15% 30%, rgba(129, 140, 248, .9), transparent 70%),
+    radial-gradient(circle 2px at 38% 55%, rgba(34, 197, 94, .9), transparent 70%),
+    radial-gradient(circle 2px at 62% 25%, rgba(129, 140, 248, .8), transparent 70%),
+    radial-gradient(circle 2px at 82% 60%, rgba(129, 140, 248, .9), transparent 70%),
+    radial-gradient(circle 2px at 22% 70%, rgba(34, 197, 94, .8), transparent 70%),
+    radial-gradient(circle 2px at 70% 75%, rgba(129, 140, 248, .8), transparent 70%);
+  animation: skyLights 6s ease-in-out infinite alternate;
+}
+@keyframes skyLights {
+  0% { opacity: .25; } 50% { opacity: .6; } 100% { opacity: .3; }
+}
+@keyframes gridDrift {
+  0%   { background-position: 0 0, 0 0; }
+  100% { background-position: 44px 0, 0 44px; }
+}
+
+/* IoT connection dots/lines */
+.lg-iot-dots .dot {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--lg-primary-hi); box-shadow: 0 0 8px rgba(99, 102, 241, .8);
+  animation: iotPulse 4s ease-in-out infinite;
+}
+.lg-iot-dots .d1 { top: 42px; left: 26px; animation-delay: 0s; }
+.lg-iot-dots .d2 { top: 62px; right: 30px; animation-delay: 1.35s; }
+.lg-iot-dots .d3 { top: 110px; left: 12px; animation-delay: 2.7s; }
+.lg-iot-dots .link {
+  position: absolute; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(129, 140, 248, .5), transparent);
+  opacity: 0; transform-origin: left;
+  animation: linkDash 4s ease-in-out infinite;
+}
+.lg-iot-dots .l1 { top: 45px; left: 30px; width: 70px; }
+.lg-iot-dots .l2 { top: 64px; right: 36px; width: 60px; animation-delay: 1.35s; }
+.lg-iot-dots .l3 { top: 112px; left: 16px; width: 56px; animation-delay: 2.7s; }
+@keyframes iotPulse {
+  0%, 100% { opacity: .45; transform: scale(.85); }
+  50%      { opacity: 1; transform: scale(1.2); }
+}
+@keyframes linkDash {
+  0%   { opacity: 0; transform: scaleX(.2); }
+  15%  { opacity: .95; }
+  60%  { opacity: .7; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1.02); }
+}
+
+/* floating waste/recycling elements */
+.lg-debris .df {
+  position: absolute; width: 20px; height: 20px; color: rgba(148, 163, 184, .9);
+  animation: floatIn 9s ease-in-out infinite; opacity: 0;
+}
+.lg-debris .df-leaf      { color: #22c55e; left: 8%;  bottom: 34%; animation-delay: 0s; }
+.lg-debris .df-paper     { color: #6366f1; left: 20%; bottom: 14%; animation-delay: 3s; }
+.lg-debris .df-recycle   { color: #8b5cf6; left: 12%; bottom: 50%; animation-delay: 6s; }
+.lg-debris .df svg { width: 100%; height: 100%; display: block; }
+@keyframes floatIn {
+  0%   { transform: translate(0, 0) rotate(0deg);  opacity: 0; }
+  12%  { opacity: .85; }
+  55%  { transform: translate(110px, -20px) rotate(24deg); opacity: .75; }
+  100% { transform: translate(190px, -34px) rotate(48deg); opacity: 0; }
+}
+
+/* scanning line */
+.lg-scanline {
+  position: absolute; left: 8%; right: 8%; height: 2px; z-index: 3;
+  background: linear-gradient(90deg, transparent, rgba(129, 140, 248, .7) 50%, transparent);
+  box-shadow: 0 0 8px rgba(99, 102, 241, .4), 0 10px 22px -8px rgba(99, 102, 241, .45);
+  filter: drop-shadow(0 0 6px rgba(99, 102, 241, .6));
+  top: -10%; opacity: 0;
+  animation: scanMove 6s ease-in-out infinite;
+}
+@keyframes scanMove {
+  0%   { top: 10%; opacity: 0; }
+  8%   { opacity: .85; }
+  40%  { top: 80%; opacity: .85; }
+  52%  { top: 80%; opacity: 0; }
+  100% { top: 80%; opacity: 0; }
+}
+
+/* bin stage */
+.lg-bin-stage { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 4; }
+.lg-bin-glow {
+  position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+  width: 130px; height: 150px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, .3), transparent 70%);
+  filter: blur(14px); pointer-events: none;
+  animation: binGlow 3.5s ease-in-out infinite;
+}
+@keyframes binGlow {
+  0%, 100% { opacity: .45; transform: translateX(-50%) scale(1); }
+  50%      { opacity: 1; transform: translateX(-50%) scale(1.05); }
+}
+.smartbin {
+  position: relative; width: 92px; height: 108px; cursor: pointer;
+  transform-origin: 50% 100%; will-change: transform;
+  transition: transform .5s var(--lg-ease);
+  animation: binActivity 3.5s ease-in-out infinite;
+}
+@keyframes binActivity {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.14); }
+}
+.lg-scene:hover .smartbin { transform: translateY(-4px) scale(1.05); }
+.bin-body {
+  position: absolute; inset: 0; border-radius: 12px 12px 16px 16px;
+  background: linear-gradient(180deg, #1b1b20, #121216);
+  border: 1px solid #2a2a33; overflow: hidden;
+  box-shadow: 0 18px 34px -14px rgba(0, 0, 0, .7);
+}
+.bin-lid {
+  position: absolute; top: -7px; left: -6px; right: -6px; height: 14px; border-radius: 8px;
+  background: linear-gradient(180deg, #26262e, #17171c); border: 1px solid #30303a;
+}
+.bin-screen {
+  position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+  width: 52px; height: 22px; border-radius: 6px;
+  background: #0a0a0c; border: 1px solid #2b2b34; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+}
+.bin-screen i {
+  width: 3px; height: 9px; border-radius: 2px; background: var(--lg-primary-hi);
+  animation: scrBars 2.4s ease-in-out infinite;
+}
+.bin-screen i:nth-child(1) { animation-delay: 0s; }
+.bin-screen i:nth-child(2) { animation-delay: .4s; }
+.bin-screen i:nth-child(3) { animation-delay: .8s; }
+@keyframes scrBars { 0%,100% { height: 4px; } 50% { height: 13px; } }
+.bin-fill {
+  position: absolute; left: 12px; right: 12px; bottom: 10px; height: 44px;
+  border-radius: 7px; background: linear-gradient(180deg, rgba(34, 197, 94, .85), rgba(34, 197, 94, .35));
+  opacity: .5; overflow: hidden;
+  animation: fillChurn 5s ease-in-out infinite;
+}
+.bin-fill::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .25), transparent);
+  animation: fillSheen 5s ease-in-out infinite;
+}
+@keyframes fillChurn {
+  0%, 100% { height: 44px; opacity: .5; }
+  50%      { height: 45px; opacity: .62; }
+}
+@keyframes fillSheen {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+.bin-shine {
+  position: absolute; top: 0; bottom: 0; left: 6px; width: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .12), transparent 60%);
+}
+.lg-bin-shadow {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 108px; height: 12px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, .6), transparent 70%);
+}
+
+/* status indicator */
+.lg-status {
+  position: absolute; bottom: 8px; right: 12px; z-index: 5;
+  font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+  color: var(--lg-green-ink); padding: 5px 11px; border-radius: 20px;
+  background: rgba(34, 197, 94, .08); border: 1px solid rgba(34, 197, 94, .25);
+  white-space: nowrap; transition: color .3s ease, border-color .3s ease, background .3s ease;
+  animation: statusPulse 3s ease-in-out infinite;
+}
+@keyframes statusPulse {
+  0%, 100% { opacity: .85; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  50%      { opacity: 1; box-shadow: 0 0 10px 1px rgba(34, 197, 94, .18); }
+}
+.lg-status.ai {
+  color: var(--lg-primary-hi);
+  border-color: rgba(99, 102, 241, .4);
+  background: rgba(99, 102, 241, .1);
+}
+
+/* hover info card — kept above the bin so the SmartBin stays visible */
+.lg-hover-card {
+  position: absolute; top: 10px; left: 50%; transform: translate(-50%, 6px);
+  width: 190px; z-index: 6; padding: 10px 13px; border-radius: 12px;
+  background: rgba(24, 24, 27, .96); border: 1px solid var(--lg-border-strong);
+  box-shadow: var(--lg-shadow-lg); pointer-events: none;
+  opacity: 0; transition: opacity .3s ease, transform .35s var(--lg-ease);
+}
+.lg-scene:hover .lg-hover-card { opacity: 1; transform: translate(-50%, 0); }
+.lg-hover-card .hc-head {
+  display: flex; align-items: center; gap: 7px; font-weight: 800; font-size: .86rem;
+  color: var(--lg-ink); margin-bottom: 9px;
+}
+.lg-hover-card .hc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lg-green); box-shadow: 0 0 8px rgba(34,197,94,.8); }
+.lg-hover-card .hc-row { display: flex; justify-content: space-between; font-size: .74rem; padding: 3px 0; color: var(--lg-ink-3); }
+.lg-hover-card .hc-row b { font-weight: 700; color: var(--lg-ink-2); }
+.lg-hover-card .hc-row b.ok { color: var(--lg-green-ink); }
+
+/* parallax container */
+.lg-scene.scene-floating { will-change: transform; }
+
+/* ------------------------------------------------------------
+   Parallax handled by JS (subtle) + responsive scene
+   ------------------------------------------------------------ */
+@media (max-width: 960px) {
+  .lg-scene { height: 210px; }
+  .smartbin { transform: scale(.9); }
+  .lg-debris .df { transform-origin: center; }
+}
+@media (max-width: 600px) {
+  .lg-scene { height: 180px; max-width: 100%; }
+  .smartbin { transform: scale(.8); }
+  .lg-debris .df-leaf, .lg-debris .df-recycle { display: none; }
+}
+
+.lg-brand-foot { margin-top: 28px; display: flex; gap: 20px; flex-wrap: wrap; }
+.lg-brand-foot span {
+  display: inline-flex; align-items: center; gap: 8px; font-size: .8rem; color: var(--lg-ink-3);
+}
+.lg-brand-foot span::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--lg-primary-hi); box-shadow: 0 0 8px rgba(99, 102, 241, .5); }
+
+/* ---------- right card ---------- */
+.lg-card-wrap { display: flex; align-items: center; }
+.lg-card {
+  width: 100%; max-width: 470px; margin-left: auto;
+  background: var(--lg-surface);
+  border: 1px solid var(--lg-border);
+  border-radius: var(--lg-radius);
+  box-shadow: var(--lg-shadow-lg);
+  padding: 36px 38px;
+  animation: lgCardIn .8s var(--lg-ease) .08s both;
+  position: relative;
+}
+@keyframes lgCardIn { from { opacity: 0; transform: translateY(26px) scale(.985); } }
+@keyframes lgFadeUp { from { opacity: 0; transform: translateY(22px); } }
+
+.lg-card-head { margin-bottom: 24px; text-align: center; }
+.lg-card-head h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; color: var(--lg-ink); }
+.lg-card-head h2 .wave { display: inline-block; transform-origin: 70% 70%; }
+.lg-card-head p { color: var(--lg-ink-3); font-size: .88rem; margin-top: 6px; }
+
+/* ---------- role cards ---------- */
+.lg-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; }
+.lg-role {
+  position: relative; cursor: pointer; text-align: center;
+  border: 1px solid var(--lg-border); border-radius: 12px;
+  background: var(--lg-surface-2); padding: 13px 6px 11px;
+  transition: all .2s var(--lg-ease);
+  animation: lgFadeUp .5s var(--lg-ease) both;
+}
+.lg-role:nth-child(1) { animation-delay: .1s; }
+.lg-role:nth-child(2) { animation-delay: .16s; }
+.lg-role:nth-child(3) { animation-delay: .22s; }
+.lg-role input { position: absolute; opacity: 0; pointer-events: none; }
+.lg-role:hover { border-color: var(--lg-border-strong); transform: translateY(-2px); }
+.lg-role.on {
+  border-color: var(--lg-primary);
+  background: var(--lg-primary-soft);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, .18);
+}
+.lg-role .rc {
+  width: 40px; height: 40px; margin: 0 auto 8px; border-radius: 11px;
+  display: grid; place-items: center; color: var(--lg-ink-3);
+  background: var(--lg-surface); border: 1px solid var(--lg-border);
+  transition: all .2s var(--lg-ease);
+}
+.lg-role.on .rc { color: var(--lg-primary); background: rgba(99, 102, 241, .14); border-color: rgba(99, 102, 241, .5); transform: scale(1.05); }
+.lg-role b { display: block; font-size: .82rem; font-weight: 700; color: var(--lg-ink); }
+.lg-role small { display: block; color: var(--lg-ink-3); font-size: .64rem; margin-top: 3px; line-height: 1.35; }
+
+/* ---------- fields ---------- */
+.lg-field { margin-bottom: 15px; }
+.lg-field label { display: block; font-size: .78rem; font-weight: 600; color: var(--lg-ink-2); margin-bottom: 7px; }
+.lg-control { position: relative; }
+.lg-control .f-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  color: var(--lg-ink-3); display: grid; place-items: center; pointer-events: none;
+}
+.lg-control input, .lg-control select {
+  width: 100%; min-height: 50px; padding: 0 44px 0 44px;
+  border: 1px solid var(--lg-border); border-radius: 12px;
+  background: var(--lg-surface-2); color: var(--lg-ink);
+  font: inherit; font-size: .92rem;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.lg-control input::placeholder, .lg-control select::placeholder { color: var(--lg-ink-3); }
+.lg-control .lg-eye {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  padding: 8px; border: 0; background: none; color: var(--lg-ink-3); cursor: pointer;
+  border-radius: 8px; display: grid; place-items: center;
+}
+.lg-control .lg-eye:hover { color: var(--lg-primary-ink); background: var(--lg-primary-soft); }
+.lg-control input:focus, .lg-control select:focus {
+  outline: none; border-color: var(--lg-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, .25);
+  background: var(--lg-surface-3);
+}
+.lg-control.invalid input { border-color: var(--lg-danger); box-shadow: 0 0 0 3px rgba(248, 113, 113, .15); }
+.lg-field .lg-err { display: none; color: var(--lg-danger); font-size: .74rem; margin-top: 5px; font-weight: 500; }
+.lg-field.has-err .lg-err { display: block; }
+.lg-field.has-err .lg-control input { border-color: var(--lg-danger); }
+
+.lg-fill { margin-bottom: 16px; }
+.lg-fill .lg-control input { padding: 0 44px; }
+
+/* inner role fields (registration) */
+.lg-inner { display: none; }
+.lg-inner.open { display: block; animation: lgFadeUp .3s var(--lg-ease) both; }
+.lg-section-label {
+  font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--lg-primary-ink); margin: 20px 0 12px; display: flex; align-items: center; gap: 8px;
+}
+.lg-section-label::after { content: ''; flex: 1; height: 1px; background: var(--lg-border); }
+
+/* ---------- options row (remember / forgot) ---------- */
+.lg-meta { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 18px; font-size: .82rem; }
+.lg-remember { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--lg-ink-2); font-weight: 500; user-select: none; }
+.lg-remember input { width: 0; height: 0; opacity: 0; position: absolute; }
+.lg-remember .box {
+  width: 19px; height: 19px; border-radius: 5px; border: 1.6px solid var(--lg-border-strong);
+  background: var(--lg-surface-2); display: grid; place-items: center; transition: all .18s ease; flex: none;
+}
+.lg-remember .box svg { opacity: 0; transform: scale(.4); transition: all .18s var(--lg-ease); color: #fff; }
+.lg-remember input:checked + .box { background: var(--lg-primary); border-color: var(--lg-primary); }
+.lg-remember input:checked + .box svg { opacity: 1; transform: scale(1); }
+.lg-link { color: var(--lg-primary-ink); font-weight: 600; text-decoration: none; }
+.lg-link:hover { color: var(--lg-primary-hi); text-decoration: underline; }
+
+/* ---------- sign in button ---------- */
+.lg-btn {
+  width: 100%; min-height: 50px; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--lg-primary); color: #fff;
+  font: inherit; font-weight: 700; font-size: .96rem; letter-spacing: .01em;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 8px 20px -8px rgba(99, 102, 241, .55);
+  transition: transform .18s var(--lg-ease), background .2s ease, box-shadow .2s ease;
+}
+.lg-btn:hover { background: var(--lg-primary-hi); transform: translateY(-1px); box-shadow: 0 12px 26px -8px rgba(99, 102, 241, .65); }
+.lg-btn:active { transform: translateY(0) scale(.99); }
+.lg-btn:disabled { opacity: .7; cursor: not-allowed; transform: none; }
+.lg-btn .lg-arrow { transition: transform .2s var(--lg-ease); }
+.lg-btn:hover .lg-arrow { transform: translateX(4px); }
+.lg-btn .lg-spin {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, .35); border-top-color: #fff;
+  animation: lgSpin .7s linear infinite; display: none;
+}
+.lg-btn.loading .lg-spin { display: block; }
+@keyframes lgSpin { to { transform: rotate(360deg); } }
+
+.lg-btn--ghost {
+  background: var(--lg-surface-2); border: 1px solid var(--lg-border-strong);
+  color: var(--lg-ink-2); box-shadow: none; font-weight: 600;
+}
+.lg-btn--ghost:hover { box-shadow: var(--lg-shadow-sm); filter: none; color: var(--lg-ink); }
+
+/* ---------- demo login secondary button ---------- */
+.lg-demo-btn {
+  width: 100%; margin-top: 14px; min-height: 44px; border-radius: 11px; cursor: pointer;
+  background: var(--lg-surface-2); border: 1px solid var(--lg-border-strong);
+  color: var(--lg-ink-2); font: inherit; font-weight: 600; font-size: .88rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .18s ease;
+}
+.lg-demo-btn:hover { border-color: var(--lg-secondary); color: var(--lg-primary-ink); background: var(--lg-primary-soft); }
+
+/* ---------- form error / notes ---------- */
+.lg-form-err {
+  background: var(--lg-danger-soft); border: 1px solid rgba(248, 113, 113, .3);
+  color: var(--lg-danger); font-size: .82rem; border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 16px; display: none; text-align: center; font-weight: 500;
+}
+.lg-form-err.show { display: block; animation: lgFadeUp .3s var(--lg-ease) both; }
+
+.lg-meter { display: flex; gap: 5px; margin-top: 8px; }
+.lg-meter i { height: 4px; flex: 1; border-radius: 4px; background: var(--lg-border-strong); transition: background .25s ease; }
+.lg-meter i.on { background: var(--lg-green); }
+
+.lg-note {
+  background: rgba(99, 102, 241, .08); border: 1px solid rgba(99, 102, 241, .3);
+  color: var(--lg-primary-ink); font-size: .8rem; border-radius: 10px; padding: 11px 13px;
+  display: flex; align-items: flex-start; gap: 8px; margin-bottom: 16px; line-height: 1.5;
+}
+.lg-success {
+  background: var(--lg-green-soft); border: 1px solid rgba(34, 197, 94, .35);
+  color: var(--lg-green-ink); font-size: .82rem; border-radius: 10px; padding: 12px 13px;
+  display: flex; align-items: flex-start; gap: 9px; margin-top: 16px; font-weight: 600; line-height: 1.45;
+  animation: lgFadeUp .35s var(--lg-ease) both;
+}
+
+.lg-alt { text-align: center; color: var(--lg-ink-3); font-size: .88rem; margin-top: 20px; }
+.lg-alt a { color: var(--lg-primary-ink); font-weight: 700; text-decoration: none; }
+.lg-alt a:hover { color: var(--lg-primary-hi); text-decoration: underline; }
+
+/* ---------- back button ---------- */
+.lg-back {
+  display: inline-flex; align-items: center; gap: 6px; color: var(--lg-ink-3);
+  font-weight: 600; font-size: .84rem; text-decoration: none; margin-bottom: 16px;
+  transition: color .18s ease;
+}
+.lg-back:hover { color: var(--lg-primary-ink); }
+
+/* ---------- demo modal ---------- */
+.lg-modal-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(3, 3, 5, .7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  display: grid; place-items: center; padding: 20px;
+  opacity: 0; pointer-events: none; transition: opacity .22s ease;
+}
+.lg-modal-overlay.open { opacity: 1; pointer-events: auto; }
+.lg-modal {
+  width: 100%; max-width: 420px; background: var(--lg-surface);
+  border: 1px solid var(--lg-border); border-radius: var(--lg-radius);
+  box-shadow: var(--lg-shadow-lg); padding: 24px 24px 20px;
+  transform: translateY(12px) scale(.97); transition: transform .24s var(--lg-ease);
+}
+.lg-modal-overlay.open .lg-modal { transform: none; }
+.lg-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.lg-modal-head h3 { font-size: 1.05rem; font-weight: 800; color: var(--lg-ink); }
+.lg-modal-close {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--lg-border);
+  background: var(--lg-surface-2); color: var(--lg-ink-3); cursor: pointer;
+  display: grid; place-items: center; transition: all .18s ease;
+}
+.lg-modal-close:hover { color: var(--lg-ink); border-color: var(--lg-border-strong); }
+.lg-demo-row {
+  display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 11px;
+  border: 1px solid var(--lg-border); background: var(--lg-surface-2);
+  margin-bottom: 9px;
+}
+.lg-demo-row .dm { flex: 1; line-height: 1.25; }
+.lg-demo-row .dm b { display: block; font-size: .84rem; font-weight: 700; color: var(--lg-ink); }
+.lg-demo-row .dm small { color: var(--lg-ink-3); font-size: .74rem; }
+.lg-demo-row button {
+  border: 1px solid var(--lg-primary); border-radius: 8px; background: var(--lg-primary-soft);
+  color: var(--lg-primary-ink); font: inherit; font-size: .78rem; font-weight: 700;
+  padding: 7px 14px; cursor: pointer; transition: all .18s ease; flex: none;
+}
+.lg-demo-row button:hover { background: var(--lg-primary); color: #fff; border-color: var(--lg-primary); }
+.lg-demo-row .dc { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font-size: .74rem; font-weight: 800; color: #fff; flex: none; }
+.dc.muni { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.dc.drv { background: linear-gradient(135deg, #f59e0b, #f97316); }
+.dc.cust { background: linear-gradient(135deg, #22c55e, #0ea5e9); }
+
+/* ---------- registration confirmation panel ---------- */
+.lg-confirm {
+  margin-top: 8px; text-align: center; padding: 18px 6px 6px;
+  animation: lgFadeUp .35s var(--lg-ease) both;
+}
+.lg-confirm-icon {
+  width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--lg-green-soft); color: var(--lg-green); border: 1px solid rgba(34, 197, 94, .35);
+}
+.lg-confirm h3 { font-size: 1.1rem; font-weight: 800; color: var(--lg-ink); margin-bottom: 6px; }
+.lg-confirm p { color: var(--lg-ink-3); font-size: .86rem; line-height: 1.55; margin-bottom: 20px; }
+.lg-confirm .lg-btn { margin-top: 4px; }
+.lg-field .lg-control select { cursor: pointer; }
+.lg-field .lg-control select option { color: #0b1220; }
+
+/* ---------- theme toggle (kept minimal, future-proof) ---------- */
+.lg-theme {
+  position: fixed; top: 22px; right: 24px; z-index: 20;
+  width: 40px; height: 40px; border-radius: 11px; cursor: pointer;
+  border: 1px solid var(--lg-border-strong); background: var(--lg-surface);
+  color: var(--lg-ink-2); display: grid; place-items: center;
+  box-shadow: var(--lg-shadow-sm); transition: all .2s ease;
+}
+.lg-theme:hover { transform: translateY(-2px); box-shadow: var(--lg-shadow); color: var(--lg-primary-ink); }
+
+.lg-shell .toast-container { position: fixed; top: 20px; right: 20px; z-index: 60; display: flex; flex-direction: column; gap: 10px; }
+
+/* ============================================================
+   Responsive — tablet
+   ============================================================ */
+@media (max-width: 960px) {
+  .lg-shell { grid-template-columns: 1fr; padding: 24px; gap: 16px; }
+  .lg-brand { text-align: center; align-items: center; padding: 8px 4px 10px; }
+  .lg-brand .lg-tag { margin-inline: auto; }
+  .lg-brand h1 { white-space: normal; }
+  .lg-brand-top { justify-content: center; margin-bottom: 26px; }
+  .lg-scene { margin-inline: auto; }
+  .lg-brand-foot { justify-content: center; }
+  .lg-card-wrap { justify-content: center; }
+  .lg-card { margin: 0 auto; max-width: 470px; box-shadow: var(--lg-shadow); }
+}
+
+/* ============================================================
+   Responsive — mobile
+   ============================================================ */
+@media (max-width: 600px) {
+  .lg-shell { padding: 16px; }
+  .lg-card { padding: 26px 18px; border-radius: 14px; }
+  .lg-roles { gap: 8px; }
+  .lg-role { padding: 11px 3px 9px; }
+  .lg-role small { display: none; }
+  .lg-role .rc { width: 36px; height: 36px; }
+  .lg-brand { display: none; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .lg-card, .lg-brand, .lg-role, .lg-inner.open, .lg-form-err.show { animation: none !important; }
+  .skyline, .lg-scanline, .lg-debris .df, .bin-screen i, .bin-fill, .bin-fill::after, .skyline::before, .lg-bin-glow, .smartbin, .lg-iot-dots .dot, .lg-iot-dots .link, .lg-status { animation: none !important; }
+  .lg-orb, .lg-logo::after { animation: none !important; }
+}

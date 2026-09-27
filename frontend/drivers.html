@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Driver Management | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+</head>
+<body data-page="drivers" data-role="municipality" class="drivers-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="index.html" id="nav-dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Dashboard</span></a>
+      <a href="drivers.html" id="nav-employees" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l2-8h14l2 8M5 17h14v3H5zM6 14h2"/></svg><span>Drivers</span></a>
+      <a href="customers.html" id="nav-customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21a6 6 0 0112 0M16 3.5a4 4 0 010 7M21 21a6 6 0 00-4-5.5"/></svg><span>Customers</span></a>
+      <a href="dustbins.html" id="nav-dustbins"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg><span>Smart Bins</span></a>
+      <a href="complaints.html" id="nav-complaints"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Complaints</span></a>
+      <a href="leaderboard.html" id="nav-leaderboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-4 5h8l-4-5z"/><circle cx="12" cy="9" r="6"/><path d="M9 9l2 2 4-4"/></svg><span>Leaderboard</span></a>
+      <a href="scan.html" id="nav-scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><path d="M20 14v3h-3M20 20h-3"/></svg><span>QR Scan</span></a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="dm-page-title">Driver Management</div>
+        <div class="dm-page-sub">Manage registered drivers, approval requests, assignments and driver activity.</div>
+      </div>
+      <div class="topbar-actions">
+        <div class="topbar-time" id="currentTime"></div>
+        <div class="notif-wrap">
+          <button class="notif-btn" id="notifBtn" title="Driver requests" aria-label="Notifications">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="notif-badge" id="notifBadge">0</span>
+          </button>
+          <div class="notif-pop" id="notifPop"></div>
+        </div>
+        <button class="btn-add-driver" id="addDriverBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Driver
+        </button>
+        <div class="dm-avatar-chip" id="topAvatar" title="Municipality">A</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Stats -->
+      <div class="dm-stats" id="dmStats">
+        <div class="dm-stat">
+          <div class="ds-icon ds-blue"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21a6 6 0 0112 0M16 3.5a4 4 0 010 7M21 21a6 6 0 00-4-5.5"/></svg></div>
+          <div><div class="ds-num" id="stTotal">0</div><div class="ds-label">Total Drivers</div><div class="ds-desc">Registered fleet</div></div>
+        </div>
+        <div class="dm-stat">
+          <div class="ds-icon ds-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <div><div class="ds-num" id="stActive">0</div><div class="ds-label">Active</div><div class="ds-desc">Can log in & collect</div></div>
+        </div>
+        <div class="dm-stat">
+          <div class="ds-icon ds-amber"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div><div class="ds-num" id="stPending">0</div><div class="ds-label">Pending Approval</div><div class="ds-desc">Awaiting review</div></div>
+        </div>
+        <div class="dm-stat">
+          <div class="ds-icon ds-red"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg></div>
+          <div><div class="ds-num" id="stSuspended">0</div><div class="ds-label">Suspended</div><div class="ds-desc">Temporarily blocked</div></div>
+        </div>
+      </div>
+
+      <!-- Pending requests -->
+      <div id="pendingSection">
+        <div class="dm-section-head"><h2>Pending Driver Requests</h2><span class="dm-count" id="pendingCount">0</span></div>
+        <div class="dm-pending" id="pendingList"></div>
+      </div>
+
+      <!-- All drivers panel -->
+      <div class="dm-section-head dm-section-head-tabs"><h2>All Drivers</h2><span class="dm-count" id="tableCount">0</span></div>
+      <div class="dm-filters-tabs" id="dmTabs" role="tablist">
+        <button class="dm-f-tab active" data-ts="all" onclick="setTab('all')">All</button>
+        <button class="dm-f-tab" data-ts="active" onclick="setTab('active')">Active</button>
+        <button class="dm-f-tab" data-ts="pending" onclick="setTab('pending')">Pending</button>
+        <button class="dm-f-tab" data-ts="suspended" onclick="setTab('suspended')">Suspended</button>
+      </div>
+      <div class="dm-table-card">
+        <div class="dm-tbl-head">
+          <h2>Registered Fleet</h2>
+          <span class="dm-count" id="tableShowing">Showing 0 drivers</span>
+        </div>
+        <div class="dm-table-wrap">
+          <div class="dm-toolbar" style="padding:0 20px;margin-top:16px">
+            <div class="dm-search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input id="dmSearch" type="text" placeholder="Search driver by name, email, phone or vehicle...">
+            </div>
+            <div class="dm-filter" id="dmFilterBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+              Filter
+              <span class="dm-filter-badge" id="dmFilterBadge" hidden>0</span>
+              <span class="dm-filterdrop" id="dmFilterDrop" role="dialog" aria-label="Filter drivers">
+                <div class="fd-section">
+                  <div class="fd-label">Status</div>
+                  <div class="fd-opts">
+                    <div class="fd-opt selected" data-f="status" data-v="all">All</div>
+                    <div class="fd-opt" data-f="status" data-v="active">Active</div>
+                    <div class="fd-opt" data-f="status" data-v="pending">Pending</div>
+                    <div class="fd-opt" data-f="status" data-v="suspended">Suspended</div>
+                    <div class="fd-opt" data-f="status" data-v="offline">Offline</div>
+                  </div>
+                </div>
+                <div class="fd-section">
+                  <div class="fd-label">Role</div>
+                  <div class="fd-opts">
+                    <div class="fd-opt selected" data-f="role" data-v="all">All Roles</div>
+                    <div class="fd-opt" data-f="role" data-v="driver">Driver</div>
+                  </div>
+                </div>
+                <div class="fd-section">
+                  <div class="fd-label">Zone</div>
+                  <div class="fd-opts">
+                    <div class="fd-opt selected" data-f="zone" data-v="all">All</div>
+                    <div class="fd-opt" data-f="zone" data-v="A">A</div>
+                    <div class="fd-opt" data-f="zone" data-v="B">B</div>
+                    <div class="fd-opt" data-f="zone" data-v="C">C</div>
+                    <div class="fd-opt" data-f="zone" data-v="D">D</div>
+                  </div>
+                </div>
+                <div class="fd-section">
+                  <div class="fd-label">Sort by</div>
+                  <div class="fd-opts">
+                    <div class="fd-opt selected" data-f="sort" data-v="name-az">Name (A-Z)</div>
+                    <div class="fd-opt" data-f="sort" data-v="name-za">Name (Z-A)</div>
+                    <div class="fd-opt" data-f="sort" data-v="newest">Newest</div>
+                    <div class="fd-opt" data-f="sort" data-v="oldest">Oldest</div>
+                    <div class="fd-opt" data-f="sort" data-v="collections-desc">Most Collections</div>
+                    <div class="fd-opt" data-f="sort" data-v="collections-asc">Least Collections</div>
+                  </div>
+                </div>
+                <div class="fd-row">
+                  <button class="fd-btn fd-btn-reset" id="fdReset" type="button">Reset</button>
+                  <button class="fd-btn fd-btn-apply" id="fdApply" type="button">Apply Filters</button>
+                </div>
+              </span>
+            </div>
+          </div>
+          <table class="dm-table">
+            <thead><tr><th>Driver</th><th>Contact</th><th>Vehicle</th><th>Area</th><th>Status</th><th>Joined</th><th>Last Active</th><th style="text-align:right">Actions</th></tr></thead>
+            <tbody id="dmTbody"><tr><td colspan="8" class="dm-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-9-9"/><path d="M21 3v6h-6"/></svg><b>Loading drivers...</b>Fetching from the live database</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer -->
+  <div class="dm-overlay" id="dmOverlay"></div>
+  <div class="dm-drawer" id="dmDrawer" aria-hidden="true">
+    <div class="dm-drawer-head">
+      <div class="dm-dr-profile" id="ddAvatar">?</div>
+      <div>
+        <div class="dm-dr-name" id="ddName">Driver</div>
+        <div class="dm-dr-id" id="ddId">--</div>
+      </div>
+      <button class="dm-drawer-close" id="ddClose" title="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="dm-drawer-body" id="ddBody"></div>
+    <div class="dm-drawer-foot" id="ddFoot"></div>
+  </div>
+
+  <!-- Confirm modal -->
+  <div class="dm-modal-overlay" id="confirmOverlay">
+    <div class="dm-modal">
+      <h3 id="cfTitle">Confirm</h3>
+      <div class="dm-modal-desc" id="cfDesc">Are you sure?</div>
+      <div class="dm-modal-foot">
+        <button class="dm-btn dm-btn-ghost" id="cfCancel" type="button">Cancel</button>
+        <button class="dm-btn dm-btn-danger" id="cfOk" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reject reason modal -->
+  <div class="dm-modal-overlay" id="rejectOverlay">
+    <div class="dm-modal">
+      <h3>Reject Request</h3>
+      <div class="dm-modal-desc">Provide a reason for rejecting this driver registration. The driver cannot log in.</div>
+      <textarea id="rejectReason" rows="3" placeholder="e.g. Incomplete documentation"></textarea>
+      <div class="dm-modal-foot">
+        <button class="dm-btn dm-btn-ghost" id="rejectCancel" type="button">Cancel</button>
+        <button class="dm-btn dm-btn-danger" id="rejectOk" type="button">Reject Driver</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add driver modal -->
+  <div class="dm-modal-overlay" id="addOverlay">
+    <div class="dm-modal">
+      <h3>Add Driver</h3>
+      <div class="dm-modal-desc">Manually register a driver. The account starts as <b>Pending Approval</b> until you approve it.</div>
+      <div id="addFormHost"></div>
+    </div>
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/animations.js"></script>
+  <script src="assets/js/ws-init.js"></script>
+  <script>
+  (function () {
+    var API = (typeof api !== 'undefined') ? api : {
+      get: function (p) { return fetch('http://127.0.0.1:8000' + p).then(function(r){ if(!r.ok) throw new Error('Request failed'); return r.json(); }); },
+      post: function (p,b){ return fetch('http://127.0.0.1:8000'+p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){ if(!r.ok) return r.json().catch(function(){return {};}).then(function(e){ var er=new Error(e.detail||'Request failed'); er.detail=e.detail; throw er; }); return r.json(); }); },
+      put: function(p,b){ return fetch('http://127.0.0.1:8000'+p,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){ if(!r.ok) throw new Error('Request failed'); return r.json(); }); },
+      del: function(p){ return fetch('http://127.0.0.1:8000'+p,{method:'DELETE'}).then(function(r){ if(!r.ok) throw new Error('Request failed'); return true; }); }
+    };
+
+    var allDrivers = [];
+    var filt = { q: '', status: 'all', role: 'all', zone: 'all', sort: 'name-az' };
+    var collectionsMap = {};
+    var OFFLINE_MS = 15 * 60 * 1000;
+
+    function normStatus(st) {
+      if (st == null) return 'pending';
+      return String(st).toLowerCase().trim();
+    }
+    function driverIsOffline(d) {
+      var last = d.last_active ? new Date(d.last_active).getTime() : 0;
+      return normStatus(d.status) === 'active' && (!last || (Date.now() - last) > OFFLINE_MS);
+    }
+    function driverZone(d) {
+      var area = String(d.assigned_area || d.city_or_area || '').trim().toUpperCase();
+      if (!area) return '';
+      var m = area.match(/\b([A-D])\b/);
+      if (m) return m[1];
+      if (area.indexOf('ZONE A') > -1 || area.indexOf('ZONE-A') > -1 || area === 'A') return 'A';
+      if (area.indexOf('ZONE B') > -1 || area.indexOf('ZONE-B') > -1 || area === 'B') return 'B';
+      if (area.indexOf('ZONE C') > -1 || area.indexOf('ZONE-C') > -1 || area === 'C') return 'C';
+      if (area.indexOf('ZONE D') > -1 || area.indexOf('ZONE-D') > -1 || area === 'D') return 'D';
+      return '';
+    }
+    function driverCollections(d) {
+      var c = collectionsMap[d.id];
+      return (typeof c === 'number' && !isNaN(c)) ? c : 0;
+    }
+    function filterCount() {
+      var n = 0;
+      if (filt.status !== 'all') n++;
+      if (filt.role !== 'all') n++;
+      if (filt.zone !== 'all') n++;
+      if (filt.sort !== 'name-az') n++;
+      return n;
+    }
+    function syncTabFromStatus() {
+      var map = { active: 'active', pending: 'pending', suspended: 'suspended' };
+      var t = map[filt.status] || 'all';
+      document.querySelectorAll('#dmTabs .dm-f-tab').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-ts') === t);
+      });
+    }
+    function syncFilterButton() {
+      var badge = document.getElementById('dmFilterBadge');
+      var n = filterCount();
+      if (!badge) return;
+      badge.textContent = n;
+      badge.hidden = !(n > 0);
+      document.getElementById('dmFilterBtn').classList.toggle('has-active', n > 0);
+    }
+
+    // ---- helpers ----
+    function esc(s) { return window.escapeHtml ? escapeHtml(s) : String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function toast(m, t) { try { showToast(m, t || 'success'); } catch (e) { alert(m); } }
+    function initials(n) { return (n || '?').split(' ').map(function (w) { return w ? w[0] : ''; }).join('').slice(0, 2).toUpperCase(); }
+    function fmtDate(iso) { try { var d = new Date(iso); if (isNaN(d)) return '--'; return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch (e) { return '--'; } }
+    function fmtDateTime(iso) { try { var d = new Date(iso); if (isNaN(d)) return 'Never'; return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }); } catch (e) { return 'Never'; } }
+    function timeAgo(iso) { try { var d = new Date(iso); if (isNaN(d)) return ''; var s = Math.floor((Date.now() - d.getTime()) / 1000); if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s / 60) + ' min ago'; if (s < 86400) return Math.floor(s / 3600) + ' hr ago'; return fmtDate(iso); } catch (e) { return ''; } }
+    function avatarHtml(d, cls) {
+      var ph = d.profile_photo;
+      if (ph) return '<div class="' + cls + '" style="background:none"><img src="' + esc(ph) + '" alt=""></div>';
+      return '<div class="' + cls + '">' + esc(initials(d.full_name)) + '</div>';
+    }
+    function statusPill(st) {
+      var map = { active: ['st-active', 'Active'], pending: ['st-pending', 'Pending'], suspended: ['st-suspended', 'Suspended'], rejected: ['st-rejected', 'Rejected'] };
+      var m = map[normStatus(st)] || ['st-pending', normStatus(st)];
+      return '<span class="dm-status ' + m[0] + '"><span class="dot"></span>' + m[1] + '</span>';
+    }
+    function vehicleOf(d) { return d.vehicle_number ? d.vehicle_number : '--'; }
+    function vehicleTypeOf(d) { return d.vehicle_type ? d.vehicle_type : '--'; }
+    function driverId(d) { return d.employee_id || ('DRV-' + d.id); }
+
+    // ---- status helpers ----
+    function isPending(d) { return normStatus(d.status) === 'pending'; }
+
+    // ---- render stats + pending ----
+    function renderStats() {
+      document.getElementById('stTotal').textContent = allDrivers.length;
+      document.getElementById('stActive').textContent = allDrivers.filter(function (d) { return normStatus(d.status) === 'active'; }).length;
+      document.getElementById('stPending').textContent = allDrivers.filter(isPending).length;
+      document.getElementById('stSuspended').textContent = allDrivers.filter(function (d) { return normStatus(d.status) === 'suspended'; }).length;
+    }
+
+    function renderPending() {
+      var pending = allDrivers.filter(isPending);
+      var sec = document.getElementById('pendingSection');
+      var list = document.getElementById('pendingList');
+      document.getElementById('pendingCount').textContent = pending.length;
+      if (!pending.length) { sec.style.display = 'none'; list.innerHTML = ''; return; }
+      sec.style.display = 'block';
+      list.innerHTML = pending.map(function (d) {
+        return '<div class="dm-pcard">' +
+          '<div class="dm-pcard-top">' + avatarHtml(d, 'dm-pava') +
+            '<div style="min-width:0"><div class="dm-pname">' + esc(d.full_name) + '</div><div class="dm-pemail">' + esc(d.email || '') + '</div></div>' +
+            statusPill('pending') + '</div>' +
+          '<div class="dm-pgrid">' +
+            '<div><div class="k">Mobile</div><div class="v">' + esc(d.mobile || '--') + '</div></div>' +
+            '<div><div class="k">Applied On</div><div class="v">' + fmtDate(d.created_at) + '</div></div>' +
+            '<div><div class="k">Vehicle</div><div class="v">' + esc(vehicleOf(d)) + '</div></div>' +
+            '<div><div class="k">Area</div><div class="v">' + esc(d.assigned_area || d.city_or_area || '--') + '</div></div>' +
+          '</div>' +
+          '<div class="dm-pactions">' +
+            '<button class="dm-btn dm-btn-review" onclick="openDetails(' + d.id + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Review</button>' +
+            '<button class="dm-btn dm-btn-approve" onclick="actionApprove(' + d.id + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Approve</button>' +
+            '<button class="dm-btn dm-btn-reject" onclick="actionReject(' + d.id + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>Reject</button>' +
+          '</div></div>';
+      }).join('');
+    }
+
+    // ---- table (single source of truth pipeline) ----
+    function applyFilters() {
+      var q = filt.q.toLowerCase().trim();
+
+      var search = allDrivers.filter(function (d) {
+        if (!q) return true;
+        var hay = ((d.full_name || '') + ' ' + (d.email || '') + ' ' + (d.mobile || '') + ' ' + (d.vehicle_number || '') + ' ' + (d.employee_id || '') + ' ' + (d.assigned_area || '') + ' ' + (d.status || '') + ' ' + (d.city_or_area || '') + ' ' + (d.vehicle_type || '')).toLowerCase();
+        return hay.indexOf(q) > -1;
+      });
+
+      var byStatus = search.filter(function (d) {
+        if (filt.status === 'all') return true;
+        if (filt.status === 'offline') return driverIsOffline(d);
+        return normStatus(d.status) === filt.status;
+      });
+
+      var byRole = byStatus.filter(function (d) {
+        if (filt.role === 'all') return true;
+        return String(d.role || 'driver').toLowerCase() === filt.role;
+      });
+
+      var byZone = byRole.filter(function (d) {
+        if (filt.zone === 'all') return true;
+        return driverZone(d) === filt.zone;
+      });
+
+      return sortList(byZone, filt.sort).slice();
+    }
+
+    function sortList(list, key) {
+      var arr = list.slice();
+      function s(a, b) {
+        switch (key) {
+          case 'name-az': return String(a.full_name || '').localeCompare(String(b.full_name || ''));
+          case 'name-za': return String(b.full_name || '').localeCompare(String(a.full_name || ''));
+          case 'newest': return (new Date(a.created_at || 0)) - (new Date(b.created_at || 0));
+          case 'oldest': return (new Date(b.created_at || 0)) - (new Date(a.created_at || 0));
+          case 'collections-desc': return driverCollections(b) - driverCollections(a);
+          case 'collections-asc': return driverCollections(a) - driverCollections(b);
+          default: return 0;
+        }
+      }
+      return arr.sort(s);
+    }
+
+    function renderDriverTable() {
+      var list = applyFilters();
+      var tbody = document.getElementById('dmTbody');
+      document.getElementById('tableCount').textContent = list.length;
+      document.getElementById('tableShowing').textContent = 'Showing ' + list.length + ' driver' + (list.length === 1 ? '' : 's');
+      if (!list.length) {
+        var hasFilters = filterCount() > 0 || (filt.q && filt.q.trim());
+        tbody.innerHTML = '<tr><td colspan="8" class="dm-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>' +
+          (hasFilters
+            ? '<b>No drivers match the selected filters.</b>Try adjusting your search or filters' +
+              '<button class="dm-clear-filters" type="button" onclick="clearAllFilters()">Clear Filters</button>'
+            : '<b>No drivers found</b>Try adjusting your search or filters') + '</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(function (d) {
+        var menu = buildMenu(d);
+        return '<tr>' +
+          '<td><div class="dm-driver-cell">' + avatarHtml(d, 'dm-avatar') +
+            '<div style="min-width:0"><div class="dm-dname">' + esc(d.full_name || '--') + '</div><div class="dm-did">' + esc(driverId(d)) + '</div></div></div></td>' +
+          '<td><div class="dm-cell-main">' + esc(d.email || '--') + '</div><div class="dm-cell-sub">' + esc(d.mobile || '--') + '</div></td>' +
+          '<td><div class="dm-cell-main">' + esc(vehicleOf(d)) + '</div><div class="dm-cell-sub">' + esc(vehicleTypeOf(d)) + '</div></td>' +
+          '<td><div class="dm-cell-main">' + esc(d.assigned_area || d.city_or_area || '--') + '</div></td>' +
+          '<td>' + statusPill(d.status) + '</td>' +
+          '<td><div class="dm-cell-main">' + fmtDate(d.created_at) + '</div></td>' +
+          '<td><div class="dm-cell-main">' + fmtDateTime(d.last_active) + '</div></td>' +
+          '<td style="text-align:right"><div style="display:inline-flex;align-items:center;gap:8px;justify-content:flex-end">' +
+            '<button class="dm-view-btn" onclick="openDetails(' + d.id + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>View</button>' +
+            '<div class="dm-3dot-wrap"><button class="dm-3dot" onclick="toggleDotMenu(event,' + d.id + ')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button><div class="dm-3dot-menu" id="dot-' + d.id + '">' + menu + '</div></div>' +
+          '</div></td></tr>';
+      }).join('');
+    }
+
+    function buildMenu(d) {
+      var st = normStatus(d.status);
+      function mi(label, fn, icon, cls) {
+        return '<div class="mi ' + (cls || '') + '" onclick="' + fn + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + icon + '</svg>' + label + '</div>';
+      }
+      var eye = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      var assign = '<path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h6"/><path d="M14 2h6v6M10 14L21 3"/>';
+      var act = '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
+      var pause = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      var power = '<path d="M18.36 6.64a9 9 0 11-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>';
+      var review = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      var delimiter = '<div class="sep"></div>';
+      var out = '';
+      if (st === 'active') {
+        out += mi('View Details', 'openDetails(' + d.id + ')', eye, 'info-ctx');
+        out += mi('Suspend Driver', 'confirmSuspend(' + d.id + ')', pause, 'danger');
+        out += mi('Assign Area', 'openAssign(' + d.id + ')', assign);
+        out += delimiter;
+        out += mi('View Activity', 'openDetailsTab(' + d.id + ',\'activity\')', act);
+      } else if (st === 'suspended') {
+        out += mi('View Details', 'openDetails(' + d.id + ')', eye, 'info-ctx');
+        out += mi('Activate Driver', 'confirmActivate(' + d.id + ')', power);
+        out += mi('Assign Area', 'openAssign(' + d.id + ')', assign);
+        out += delimiter;
+        out += mi('View Activity', 'openDetailsTab(' + d.id + ',\'activity\')', act);
+      } else if (st === 'pending') {
+        out += mi('Review Request', 'openDetails(' + d.id + ')', review, 'info-ctx');
+        out += mi('Approve', 'actionApprove(' + d.id + ')', '<polyline points="20 6 9 17 4 12"/>');
+        out += mi('Reject', 'actionReject(' + d.id + ')', '<path d="M18 6L6 18M6 6l12 12"/>', 'danger');
+      } else { // rejected
+        out += mi('View Details', 'openDetails(' + d.id + ')', eye, 'info-ctx');
+        out += delimiter;
+        out += mi('Delete Request', 'confirmDelete(' + d.id + ')', '<path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/>', 'danger');
+      }
+      return out;
+    }
+
+    function closeAllMenus() { document.querySelectorAll('.dm-3dot-menu.open').forEach(function (m) { m.classList.remove('open'); }); }
+    function toggleDotMenu(ev, id) {
+      ev.stopPropagation();
+      closeAllMenus();
+      var m = document.getElementById('dot-' + id);
+      if (m) m.classList.toggle('open');
+    }
+
+    // ---- filter helpers ----
+    function setTab(status) {
+      filtr = null;
+      filt.status = (status === 'all') ? 'all' : status;
+      syncFilterOptionsInPopup();
+      syncTabFromStatus();
+      syncFilterButton();
+      renderDriverTable();
+    }
+
+    function clearAllFilters() {
+      filtr = null;
+      filt = { q: '', status: 'all', role: 'all', zone: 'all', sort: 'name-az' };
+      var search = document.getElementById('dmSearch');
+      if (search) search.value = '';
+      syncFilterOptionsInPopup();
+      syncTabFromStatus();
+      syncFilterButton();
+      renderDriverTable();
+    }
+
+    function loadCollections() {
+      API.get('/collections').then(function (raw) {
+        var list = Array.isArray(raw) ? raw : (raw.value || []);
+        var map = {};
+        list.forEach(function (c) { if (c && c.driver_id != null) map[c.driver_id] = (map[c.driver_id] || 0) + 1; });
+        collectionsMap = map;
+        renderDriverTable();
+      }).catch(function () {});
+    }
+
+    // ---- notification bell ----
+    function renderNotifications() {
+      var pending = allDrivers.filter(isPending);
+      var badge = document.getElementById('notifBadge');
+      badge.textContent = pending.length;
+      badge.classList.toggle('show', pending.length > 0);
+      var pop = document.getElementById('notifPop');
+      if (!pending.length) {
+        pop.innerHTML = '<div class="notif-head">Driver Requests <small>' + pending.length + '</small></div><div class="notif-empty">No pending driver registration requests.</div>';
+        return;
+      }
+      pop.innerHTML = '<div class="notif-head">Driver Requests <small>' + pending.length + ' pending</small></div>' +
+        pending.slice(0, 8).map(function (d) {
+          return '<div class="notif-item"><div class="ni-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l2-8h14l2 8M5 17h14v3H5z"/></svg></div>' +
+            '<div class="ni-body"><div class="ni-title">New Driver Registration</div><div class="ni-sub">' + esc(d.full_name) + '</div><div class="ni-meta">' + timeAgo(d.created_at) + ' &middot; ' + statusPill('pending') + '</div>' +
+            '<button class="dm-btn dm-btn-approve ni-btn" onclick="notifReview(' + d.id + ')">Review Request</button></div></div>';
+        }).join('');
+    }
+
+    // ---- drawer ----
+    function find(d) {
+      for (var i = 0; i < allDrivers.length; i++) if (allDrivers[i].id === d) return allDrivers[i];
+      return null;
+    }
+    function openDrawer() { document.getElementById('dmDrawer').classList.add('open'); document.getElementById('dmOverlay').classList.add('open'); document.getElementById('dmDrawer').setAttribute('aria-hidden', 'false'); }
+    function closeDrawer() { document.getElementById('dmDrawer').classList.remove('open'); document.getElementById('dmOverlay').classList.remove('open'); document.getElementById('dmDrawer').setAttribute('aria-hidden', 'true'); }
+
+    var highlightedTab = '';
+    function openDetails(id) {
+      highlightedTab = '';
+      var d = find(id);
+      if (!d) return;
+      document.getElementById('ddAvatar').innerHTML = d.profile_photo
+        ? '<img src="' + esc(d.profile_photo) + '" alt="">' : esc(initials(d.full_name));
+      document.getElementById('ddName').textContent = d.full_name || 'Driver';
+      document.getElementById('ddId').textContent = driverId(d);
+      renderDrawerBody(d, 'overview');
+      renderDrawerFoot(d);
+      openDrawer();
+    }
+    function openDetailsTab(id, tab) {
+      highlightedTab = tab;
+      openDetails(id);
+    }
+    function renderDrawerBody(d, tab) {
+      var body = document.getElementById('ddBody');
+      if (tab === 'activity') { fetchActivity(d); return; }
+      body.innerHTML =
+        '<div class="dm-ggroup"><div class="dm-ggroup-title">Account</div><div class="dm-gbox">' +
+          '<div class="dm-kv"><span class="k">Status</span><span class="v" id="ddKVStatus">' + statusPill(d.status) + '</span></div>' +
+          '<div class="dm-kv"><span class="k">Driver ID</span><span class="v">' + esc(driverId(d)) + '</span></div>' +
+          '<div class="dm-kv"><span class="k">Email</span><span class="v">' + esc(d.email || '--') + '</span></div>' +
+          '<div class="dm-kv"><span class="k">Phone</span><span class="v">' + esc(d.mobile || '--') + '</span></div>' +
+          (d.address ? '<div class="dm-kv"><span class="k">Address</span><span class="v">' + esc(d.address) + '</span></div>' : '') +
+          '<div class="dm-kv"><span class="k">License No.</span><span class="v">' + esc(d.license_number || d.driving_license || '--') + '</span></div>' +
+        '</div></div>' +
+        '<div class="dm-ggroup"><div class="dm-ggroup-title">Vehicle</div><div class="dm-gbox">' +
+          '<div class="dm-kv"><span class="k">Vehicle Number</span><span class="v">' + esc(vehicleOf(d)) + '</span></div>' +
+          '<div class="dm-kv"><span class="k">Vehicle Type</span><span class="v">' + esc(vehicleTypeOf(d)) + '</span></div>' +
+        '</div></div>' +
+        '<div class="dm-ggroup"><div class="dm-ggroup-title">Assignment</div><div class="dm-gbox">' +
+          '<div class="dm-kv"><span class="k">Assigned Area</span><span class="v">' + esc(d.assigned_area || '--') + '</span></div>' +
+          '<div class="dm-kv"><span class="k">Assigned Route</span><span class="v">' + esc(d.assigned_route || '--') + '</span></div>' +
+        '</div></div>' +
+        '<div class="dm-ggroup"><div class="dm-ggroup-title">Performance</div><div class="dm-metric">' +
+          '<div class="dm-mc"><div class="lbl">Collections</div><div class="val">' + (d.total_unloads || 0) + '</div></div>' +
+          '<div class="dm-mc"><div class="lbl">On-Time Rate</div><div class="val">98%</div></div>' +
+          '<div class="dm-mc"><div class="lbl">Complaints</div><div class="val">' + (d.complaints_count || 0) + '</div></div>' +
+          '<div class="dm-mc"><div class="lbl">Avg Route</div><div class="val">' + (d.route_pct || '--') + '</div></div>' +
+        '</div></div>' +
+        '<div class="dm-ggroup"><div class="dm-ggroup-title" style="cursor:pointer" onclick="openDetailsTab(' + d.id + ',\'activity\')">Recent Activity &#8250;</div><div class="dm-activity">' +
+          '<li><div class="a-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="a-txt"><div class="a-desc">Loading activity...</div></div></li>' +
+        '</div></div>';
+      fetchActivityInto(d);
+    }
+    function renderDrawerFoot(d) {
+      var foot = document.getElementById('ddFoot');
+      var st = normStatus(d.status);
+      function btn(label, fn, cls, icon) {
+        return '<button class="dm-btn ' + cls + '" onclick="' + fn + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + icon + '</svg>' + label + '</button>';
+      }
+      var assignIc = '<path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h6"/><path d="M14 2h6v6M10 14L21 3"/>';
+      var checkIc = '<polyline points="20 6 9 17 4 12"/>';
+      var xIc = '<path d="M18 6L6 18M6 6l12 12"/>';
+      var pauseIc = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      var actIc = '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
+      var powerIc = '<path d="M18.36 6.64a9 9 0 11-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>';
+      var parts = [btn('Assign', 'openAssign(' + d.id + ')', 'dm-btn-review', assignIc)];
+      if (st === 'active') parts.push(btn('Suspend', 'confirmSuspend(' + d.id + ')', 'dm-btn-reject', pauseIc));
+      if (st === 'suspended') parts.push(btn('Activate', 'confirmActivate(' + d.id + ')', 'dm-btn-approve', powerIc));
+      if (st === 'pending') { parts.push(btn('Approve', 'actionApprove(' + d.id + ')', 'dm-btn-approve', checkIc)); parts.push(btn('Reject', 'actionReject(' + d.id + ')', 'dm-btn-reject', xIc)); }
+      parts.push(btn('Activity', 'openDetailsTab(' + d.id + ',\'activity\')', 'dm-btn-ghost', actIc));
+      foot.innerHTML = parts.join('');
+    }
+
+    function fetchActivity(d) {
+      document.getElementById('ddBody').innerHTML = '<div class="dm-ggroup"><div class="dm-ggroup-title">Recent Activity</div><div class="dm-activity"><li><div class="a-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 11-9-9"/><path d="M21 3v6h-6"/></svg></div><div class="a-txt"><div class="a-desc">Loading activity...</div></div></li></div></div>' +
+        '<div class="dm-ggroup" style="margin-top:20px"><button class="dm-btn dm-btn-ghost" onclick="openDetails(' + d.id + ')">&#8592; Back to overview</button></div>';
+      API.get('/auth/drivers/' + d.id + '/activity').then(function (rows) {
+        var list = Array.isArray(rows) ? rows : (rows.value || []);
+        var icons = { approved: '<polyline points="20 6 9 17 4 12"/>', activated: '<path d="M18.36 6.64a9 9 0 11-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>', suspended: '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>', rejected: '<path d="M18 6L6 18M6 6l12 12"/>', registered: '<path d="M3 17l2-8h14l2 8M5 17h14v3H5z"/>', assigned: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>', logged_in: '<path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/>' };
+        var colorMap = { approved: '#22c55e', activated: '#22c55e', suspended: '#fb923c', rejected: '#f87171', registered: '#3b82f6', assigned: '#60a5fa', logged_in: '#94a3b8' };
+        if (!list.length) {
+          list = [{ action: 'registered', description: 'Driver account registered', created_at: d.created_at }];
+        }
+        document.getElementById('ddBody').innerHTML =
+          '<div class="dm-ggroup"><div class="dm-ggroup-title">Recent Activity</div><div class="dm-activity">' +
+          list.map(function (a) {
+            var color = colorMap[a.action] || '#22c55e';
+            var ic = icons[a.action] || icons.approved;
+            return '<li><div class="a-ic" style="color:' + color + ';background:transparent;border:1px solid rgba(38,53,80,.6)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ic + '</svg></div><div class="a-txt"><div class="a-desc">' + esc(a.description || a.action) + '</div><div class="a-time">' + fmtDateTime(a.created_at) + (a.actor ? ' &middot; ' + esc(a.actor) : '') + '</div></div></li>';
+          }).join('') + '</div></div>' +
+          '<div class="dm-ggroup" style="margin-top:20px"><button class="dm-btn dm-btn-ghost" onclick="openDetails(' + d.id + ')">&#8592; Back to overview</button></div>';
+      }).catch(function () {
+        document.getElementById('ddBody').innerHTML = '<div class="dm-ggroup"><div class="dm-ggroup-title">Recent Activity</div><div class="dm-activity"><li><div class="a-txt"><div class="a-desc">Could not load activity.</div></div></li></div></div>';
+      });
+    }
+    function fetchActivityInto(d) {
+      API.get('/auth/drivers/' + d.id + '/activity').then(function (rows) {
+        var list = Array.isArray(rows) ? rows : (rows.value || []);
+        var dl = document.querySelector('#ddBody .dm-activity');
+        if (!dl) return;
+        var items = (list.length ? list : [{ action: 'registered', description: 'Driver account registered', created_at: d.created_at }]).slice(0, 4);
+        dl.innerHTML = items.map(function (a) {
+          var colorMap = { approved: '#22c55e', activated: '#22c55e', suspended: '#fb923c', rejected: '#f87171', registered: '#3b82f6', assigned: '#60a5fa', logged_in: '#94a3b8' };
+          var icons = { approved: '<polyline points="20 6 9 17 4 12"/>', activated: '<path d="M18.36 6.64a9 9 0 11-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>', suspended: '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>', rejected: '<path d="M18 6L6 18M6 6l12 12"/>', registered: '<path d="M3 17l2-8h14l2 8M5 17h14v3H5z"/>', assigned: '<path d="M21 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h6"/><path d="M14 2h6v6M10 14L21 3"/>', logged_in: '<path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/>' };
+          var color = colorMap[a.action] || '#22c55e';
+          var ic = icons[a.action] || icons.approved;
+          return '<li><div class="a-ic" style="color:' + color + ';background:transparent;border:1px solid rgba(38,53,80,.6)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ic + '</svg></div><div class="a-txt"><div class="a-desc">' + esc(a.description || a.action) + '</div><div class="a-time">' + timeAgo(a.created_at) + '</div></div></li>';
+        }).join('');
+      }).catch(function () {});
+    }
+
+    // ---- actions ----
+    var confirmCb = null;
+    function confirmModal(title, desc, okText, okClass, cb) {
+      document.getElementById('cfTitle').textContent = title;
+      document.getElementById('cfDesc').textContent = desc;
+      var ok = document.getElementById('cfOk');
+      ok.textContent = okText;
+      ok.className = 'dm-btn ' + (okClass || 'dm-btn-danger');
+      confirmCb = cb;
+      document.getElementById('confirmOverlay').classList.add('open');
+    }
+    function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); }
+
+    function notifyReview(id) { closeNotif(); openDetails(id); }
+    function closeNotif() { document.getElementById('notifPop').classList.remove('open'); }
+
+    function confirmSuspend(id) {
+      var d = find(id);
+      confirmModal('Suspend Driver?', d.full_name + ' will be blocked from logging in until reactivated.', 'Suspend', 'dm-btn-reject', function () { doSuspend(id); });
+    }
+    function confirmActivate(id) {
+      var d = find(id);
+      confirmModal('Activate Driver?', d.full_name + ' will be able to log in and collect again.', 'Activate', 'dm-btn-approve', function () { doActivate(id); });
+    }
+    function confirmDelete(id) {
+      var d = find(id);
+      confirmModal('Delete Request?', 'This will permanently delete the rejected request for ' + d.full_name + '.', 'Delete', 'dm-btn-danger', function () { doDelete(id); });
+    }
+    function actionApprove(id) {
+      var d = find(id);
+      confirmModal('Approve Driver?', 'Approve ' + d.full_name + '? They will be moved to Active and can log in.', 'Approve', 'dm-btn-approve', function () { doApprove(id); });
+    }
+    function actionReject(id) {
+      var d = find(id);
+      document.getElementById('rejectReason').value = '';
+      document.getElementById('rejectReason')._id = id;
+      document.getElementById('rejectOverlay').classList.add('open');
+    }
+    function doApprove(id) {
+      API.post('/auth/drivers/' + id + '/approve', {}).then(function () {
+        toast('Driver approved.');
+        loadDrivers();
+      }).catch(function (e) { toast((e && e.detail) || e.message || 'Approval failed.', 'error'); });
+    }
+    function doSuspend(id) {
+      API.post('/auth/drivers/' + id + '/suspend', {}).then(function () {
+        toast('Driver suspended.');
+        closeDrawer(); loadDrivers();
+      }).catch(function (e) { toast((e && e.detail) || e.message || 'Failed.', 'error'); });
+    }
+    function doActivate(id) {
+      API.post('/auth/drivers/' + id + '/activate', {}).then(function () {
+        toast('Driver activated.');
+        closeDrawer(); loadDrivers();
+      }).catch(function (e) { toast((e && e.detail) || e.message || 'Failed.', 'error'); });
+    }
+    function doDelete(id) {
+      API.del('/auth/drivers/' + id).then(function () {
+        toast('Request deleted.');
+        closeDrawer(); loadDrivers();
+      }).catch(function (e) { toast((e && e.detail) || e.message || 'Delete failed.', 'error'); });
+    }
+    function doReject(id, reason) {
+      API.post('/auth/drivers/' + id + '/reject', { rejection_reason: reason }).then(function () {
+        toast('Driver request rejected.');
+        closeDrawer(); loadDrivers();
+      }).catch(function (e) { toast((e && e.detail) || e.message || 'Reject failed.', 'error'); });
+    }
+
+    // ---- assign modal (uses drawer) ----
+    function openAssign(id) {
+      var d = find(id);
+      if (!d) return;
+      openDetails(id);
+      var af = '<div class="dm-ggroup"><div class="dm-ggroup-title">Assign Driver</div><div class="dm-gbox">' +
+        '<div class="dm-assign-form">' +
+          '<div class="af-row"><input id="asArea" placeholder="Assigned area / zone" value="' + esc(d.assigned_area || '') + '"></div>' +
+          '<div class="af-row"><input id="asRoute" placeholder="Assigned route" value="' + esc(d.assigned_route || '') + '"></div>' +
+          '<div class="af-row"><input id="asVehNo" placeholder="Vehicle number" value="' + esc(d.vehicle_number || '') + '"></div>' +
+          '<div class="af-row"><select id="asVehType"><option value="">Vehicle type</option><option>Dumper</option><option>Truck</option><option>Mini Truck</option><option>Auto / Three-wheeler</option><option>Tata Ace</option><option>Ashok Leyland</option><option>Two-wheeler</option><option>Other</option></select></div>' +
+          '<div class="af-row"><button class="dm-btn dm-btn-approve" onclick="doAssign(' + d.id + ')">Save Assignment</button><button class="dm-btn dm-btn-ghost" onclick="openDetails(' + d.id + ')">Cancel</button></div>' +
+        '</div></div></div>';
+      if (d.vehicle_type) {
+        var selEl = document.getElementById('asVehType');
+        setTimeout(function () { if (selEl) selEl.value = d.vehicle_type; }, 0);
+      }
+      document.getElementById('ddBody').innerHTML = af;
+    }
+    function doAssign(id) {
+      var body = {
+        assigned_area: document.getElementById('asArea').value.trim() || null,
+        assigned_route: document.getElementById('asRoute').value.trim() || null,
+        vehicle_number: document.getElementById('asVehNo').value.trim() || null,
+        vehicle_type: document.getElementById('asVehType').value || null
+      };
+      API.put('/auth/drivers/' + id + '/assign', body).then(function () {
+        toast('Assignment updated.');
+        loadDrivers().then(function () { openDetails(id); });
+      }).catch(function (e) { toast((e && e.detail) || e.message || 'Assign failed.', 'error'); });
+    }
+
+    // ---- add driver modal ----
+    function renderAddForm() {
+      document.getElementById('addFormHost').innerHTML =
+        '<div class="dm-assign-form">' +
+          '<div class="af-row"><input id="adName" placeholder="Full name *"></div>' +
+          '<div class="af-row"><input id="adEmail" type="email" placeholder="Email *"></div>' +
+          '<div class="af-row"><input id="adMobile" placeholder="Mobile number *"></div>' +
+          '<div class="af-row"><input id="adPass" type="password" placeholder="Password (min 8, letters+numbers) *"></div>' +
+          '<div class="af-row"><input id="adAddress" placeholder="Address"></div>' +
+          '<div class="af-row"><input id="adCity" placeholder="City / Area"></div>' +
+          '<div class="af-row"><input id="adLicense" placeholder="Driver license number"></div>' +
+          '<div class="af-row"><input id="adVehNo" placeholder="Vehicle number"></div>' +
+          '<div class="af-row"><select id="adVehType"><option value="">Vehicle type (optional)</option><option>Dumper</option><option>Truck</option><option>Mini Truck</option><option>Auto / Three-wheeler</option><option>Tata Ace</option><option>Ashok Leyland</option><option>Two-wheeler</option><option>Other</option></select></div>' +
+          '<div class="af-row"><input id="adArea" placeholder="Assigned area"></div>' +
+          '<div class="af-row"><button class="dm-btn dm-btn-approve" id="adSubmit">Register Driver</button><button class="dm-btn dm-btn-ghost" onclick="closeAddModal()">Cancel</button></div>' +
+        '</div>';
+      document.getElementById('adSubmit').addEventListener('click', submitAdd);
+    }
+    function closeAddModal() { document.getElementById('addOverlay').classList.remove('open'); }
+    function submitAdd() {
+      function v(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+      var name = v('adName'), email = v('adEmail'), mobile = v('adMobile'), pass = v('adPass');
+      if (!name || !email || !mobile || !pass) { toast('Name, email, mobile and password are required.', 'error'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Enter a valid email.', 'error'); return; }
+      API.post('/auth/register', {
+        role: 'driver', full_name: name, email: email.toLowerCase(), mobile: mobile,
+        password: pass, confirm_password: pass,
+        address: v('adAddress') || null, city_or_area: v('adCity') || null,
+        driving_license: v('adLicense') || null, vehicle_number: v('adVehNo') || null,
+        vehicle_type: document.getElementById('adVehType').value || null,
+        assigned_area: v('adArea') || null
+      }).then(function () {
+        toast('Driver registered as pending approval.');
+        closeAddModal(); loadDrivers();
+      }).catch(function (e) { toast((e && e.detail) || e.message || 'Registration failed.', 'error'); });
+    }
+
+    // ---- load ----
+    function loadDrivers() {
+      return API.get('/auth/accounts?role=driver').then(function (raw) {
+        var list = Array.isArray(raw) ? raw : (raw.value || []);
+        allDrivers = list;
+        renderStats();
+        renderPending();
+        renderDriverTable();
+        renderNotifications();
+        return list;
+      }).catch(function () {
+        allDrivers = [];
+        renderStats(); renderPending(); renderDriverTable(); renderNotifications();
+        toast('Could not load drivers.', 'error');
+      });
+    }
+
+    // ---- filter popup (pending selection tracked in `filtr`) ----
+    var filtr = null;
+    function popupDefaults() {
+      return { status: 'all', role: 'all', zone: 'all', sort: 'name-az' };
+    }
+    function resetPopup(defaults) {
+      filtr = { status: 'all', role: 'all', zone: 'all', sort: 'name-az' };
+      if (defaults) {
+        if (defaults.status) filtr.status = defaults.status;
+        if (defaults.role) filtr.role = defaults.role;
+        if (defaults.zone) filtr.zone = defaults.zone;
+        if (defaults.sort) filtr.sort = defaults.sort;
+      }
+      syncFilterOptionsInPopup();
+    }
+    function syncFilterOptionsInPopup() {
+      var src = filtr || filt;
+      document.querySelectorAll('#dmFilterDrop .fd-opt').forEach(function (o) {
+        var f = o.getAttribute('data-f');
+        var v = o.getAttribute('data-v');
+        o.classList.toggle('selected', src[f] === v);
+      });
+    }
+
+    document.getElementById('dmSearch').addEventListener('input', function () { filt.q = this.value; renderDriverTable(); });
+    document.getElementById('dmFilterBtn').addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (!filtr) resetPopup(filt);
+      document.getElementById('dmFilterDrop').classList.toggle('open');
+      syncFilterOptionsInPopup();
+    });
+    document.querySelectorAll('#dmFilterDrop .fd-opt').forEach(function (o) {
+      o.addEventListener('click', function () {
+        if (!filtr) resetPopup(filt);
+        var f = o.getAttribute('data-f');
+        var v = o.getAttribute('data-v');
+        document.querySelectorAll('#dmFilterDrop .fd-opt[data-f="' + f + '"]').forEach(function (x) { x.classList.remove('selected'); });
+        o.classList.add('selected');
+        filtr[f] = v;
+      });
+    });
+    document.getElementById('fdApply').addEventListener('click', function () {
+      if (filtr) {
+        filt.status = filtr.status;
+        filt.role = filtr.role;
+        filt.zone = filtr.zone;
+        filt.sort = filtr.sort;
+      }
+      filtr = null;
+      document.getElementById('dmFilterDrop').classList.remove('open');
+      syncTabFromStatus();
+      syncFilterButton();
+      renderDriverTable();
+    });
+    document.getElementById('fdReset').addEventListener('click', function () {
+      filt = { q: filt.q || '', status: 'all', role: 'all', zone: 'all', sort: 'name-az' };
+      resetPopup(filt);
+      syncTabFromStatus();
+      syncFilterButton();
+      renderDriverTable();
+    });
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('#dmFilterDrop') && !e.target.closest('#dmFilterBtn')) {
+        document.getElementById('dmFilterDrop').classList.remove('open');
+        filtr = null;
+      }
+      if (!e.target.closest('.dm-3dot-wrap')) closeAllMenus();
+      if (!e.target.closest('#notifBtn') && !e.target.closest('#notifPop')) document.getElementById('notifPop').classList.remove('open');
+    });
+    document.getElementById('notifBtn').addEventListener('click', function (e) { e.stopPropagation(); document.getElementById('notifPop').classList.toggle('open'); renderNotifications(); });
+    syncFilterOptionsInPopup();
+
+    document.getElementById('ddClose').addEventListener('click', closeDrawer);
+    document.getElementById('dmOverlay').addEventListener('click', closeDrawer);
+    document.getElementById('cfCancel').addEventListener('click', closeConfirm);
+    document.getElementById('cfOk').addEventListener('click', function () { var cb = confirmCb; closeConfirm(); if (cb) cb(); });
+    document.getElementById('confirmOverlay').addEventListener('click', function (e) { if (e.target === this) closeConfirm(); });
+    document.getElementById('rejectCancel').addEventListener('click', function () { document.getElementById('rejectOverlay').classList.remove('open'); });
+    document.getElementById('rejectOk').addEventListener('click', function () {
+      var id = document.getElementById('rejectReason')._id;
+      document.getElementById('rejectOverlay').classList.remove('open');
+      doReject(id, document.getElementById('rejectReason').value);
+    });
+    document.getElementById('rejectOverlay').addEventListener('click', function (e) { if (e.target === this) this.classList.remove('open'); });
+    document.getElementById('addDriverBtn').addEventListener('click', function () { renderAddForm(); document.getElementById('addOverlay').classList.add('open'); });
+    document.getElementById('addOverlay').addEventListener('click', function (e) { if (e.target === this) closeAddModal(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { closeDrawer(); closeConfirm(); document.getElementById('rejectOverlay').classList.remove('open'); closeAddModal(); document.getElementById('notifPop').classList.remove('open'); document.getElementById('dmFilterDrop').classList.remove('open'); filtr = null; closeAllMenus(); }
+    });
+
+    function tickVars() {
+      var s = window.Auth && Auth.session();
+      if (s && s.name) document.getElementById('topAvatar').textContent = s.name.charAt(0).toUpperCase();
+    }
+
+    // ---- clock ----
+    var clockEl = document.getElementById('currentTime');
+    function tickClock() { if (clockEl) clockEl.textContent = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }); }
+    tickClock(); setInterval(tickClock, 30000);
+
+    tickVars();
+    loadDrivers();
+    loadCollections();
+    setInterval(loadDrivers, 30000);
+    setInterval(loadCollections, 60000);
+
+    // expose for inline onclick handlers
+    window.openDetails = openDetails;
+    window.openDetailsTab = openDetailsTab;
+    window.toggleDotMenu = toggleDotMenu;
+    window.actionApprove = actionApprove;
+    window.actionReject = actionReject;
+    window.confirmSuspend = confirmSuspend;
+    window.confirmActivate = confirmActivate;
+    window.confirmDelete = confirmDelete;
+    window.openAssign = openAssign;
+    window.doAssign = doAssign;
+    window.notifReview = notifyReview;
+    window.setTab = setTab;
+    window.clearAllFilters = clearAllFilters;
+    window.closeAddModal = closeAddModal; // for inline modal usage in HTML (addForm uses listener instead)
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dashboard | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body data-network data-role="municipality">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="index.html" id="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="drivers.html" id="nav-employees">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0113 0"/></svg>
+        Employees
+      </a>
+      <a href="dustbins.html" id="nav-dustbins">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        Dustbins
+      </a>
+      <a href="leaderboard.html" id="nav-leaderboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-4 5h8l-4-5z"/><circle cx="12" cy="9" r="6"/><path d="M9 9l2 2 4-4"/></svg>
+        Leaderboard
+      </a>
+      <a href="complaints.html" id="nav-complaints">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Complaints
+      </a>
+      <a href="scan.html" id="nav-scan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><path d="M20 14v3h-3M20 20h-3"/></svg>
+        QR Scan
+      </a>
+    </nav>
+  </aside>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title">Dashboard</span>
+      <span class="topbar-subtitle">Overview of your smart bin system</span>
+    </div>
+    <div class="topbar-actions">
+      <div class="topbar-time" id="currentTime"></div>
+      <button class="topbar-logout" id="mLogout" type="button" title="Sign out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        <span>Sign out</span>
+      </button>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- Ring Gauge KPI Row -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="ring-gauge" data-value="0" data-max="1" id="gaugeDustbins" data-color="#2563eb">
+          <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="ring-bg"/><circle cx="50" cy="50" r="42" class="ring-fill" style="stroke:#2563eb" stroke-dasharray="0 264"/><text x="50" y="50" class="ring-text" fill="#2563eb">0</text></svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Total Dustbins</span>
+          <span class="kpi-value" id="totalDustbins">--</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="ring-gauge" data-color="#dc2626" id="gaugeFilled">
+          <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="ring-bg"/><circle cx="50" cy="50" r="42" class="ring-fill" style="stroke:#dc2626" stroke-dasharray="0 264"/><text x="50" y="50" class="ring-text" fill="#dc2626">0</text></svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Filled</span>
+          <span class="kpi-value" id="filledDustbins">--</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="ring-gauge" data-color="#d97706" id="gaugeReady">
+          <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="ring-bg"/><circle cx="50" cy="50" r="42" class="ring-fill" style="stroke:#d97706" stroke-dasharray="0 264"/><text x="50" y="50" class="ring-text" fill="#d97706">0</text></svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Ready to Unload</span>
+          <span class="kpi-value" id="readyDustbins">--</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="ring-gauge" data-color="#16a34a" id="gaugeEmployees">
+          <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" class="ring-bg"/><circle cx="50" cy="50" r="42" class="ring-fill" style="stroke:#16a34a" stroke-dasharray="0 264"/><text x="50" y="50" class="ring-text" fill="#16a34a">0</text></svg>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-label">Employees</span>
+          <span class="kpi-value" id="totalEmployees">--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Smart City Connection Flow -->
+    <div class="city-flow glass">
+      <span class="flow-label">Live Network</span>
+      <div class="flow-node primary"><span class="flow-icon"></span>Smart&nbsp;Bin</div>
+      <div class="flow-line"><span class="flow-particle"></span></div>
+      <div class="flow-node amber"><span class="flow-icon"></span>Admin</div>
+      <div class="flow-line"><span class="flow-particle"></span></div>
+      <div class="flow-node"><span class="flow-icon"></span>Driver</div>
+      <div class="flow-line"><span class="flow-particle"></span></div>
+      <div class="flow-node success clean"><span class="flow-icon"></span>Clean&nbsp;City</div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="charts-row">
+      <div class="chart-card chart-wide chart-card-primary">
+        <div class="chart-header">
+          <div>
+            <h3>Dustbin Status</h3>
+            <p class="chart-subtitle">Live fullness &mdash; is each bin full?</p>
+          </div>
+          <div class="binstatus-legend">
+            <span class="lg"><i class="st-dot st-full"></i>Full</span>
+            <span class="lg"><i class="st-dot st-almost"></i>Almost full</span>
+            <span class="lg"><i class="st-dot st-ok"></i>Not full</span>
+          </div>
+        </div>
+        <div class="bin-status-grid" id="binStatusGrid"><div class="bs-loading">Scanning bins...</div></div>
+      </div>
+      <div class="chart-card chart-narrow">
+        <div class="chart-header">
+          <div>
+            <h3>Status Distribution</h3>
+            <p class="chart-subtitle">Bin status breakdown</p>
+          </div>
+        </div>
+        <div class="chart-body chart-body-doughnut"><canvas id="chartStatus"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="charts-row">
+      <div class="chart-card chart-narrow">
+        <div class="chart-header">
+          <div>
+            <h3>Fill Distribution</h3>
+            <p class="chart-subtitle">Low / Medium / High ranges</p>
+          </div>
+        </div>
+        <div class="chart-body chart-body-doughnut"><canvas id="chartFillDist"></canvas></div>
+      </div>
+      <div class="chart-card chart-wide">
+        <div class="chart-header">
+          <div>
+            <h3>Top Performers This Week</h3>
+            <p class="chart-subtitle">Ranked by total unloads</p>
+          </div>
+          <a href="leaderboard.html" class="btn btn-outline btn-sm">Full Board</a>
+        </div>
+        <div class="chart-body"><canvas id="chartPerformers"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Bottom Row: Secondary Stats + Quick Table -->
+    <div class="bottom-row">
+      <div class="mini-stat-grid">
+        <div class="mini-stat">
+          <div class="mini-icon mini-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg></div>
+          <div class="mini-info"><span class="mini-label">Empty</span><span class="mini-value" id="emptyDustbins">--</span></div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-icon mini-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div>
+          <div class="mini-info"><span class="mini-label">Unloads Today</span><span class="mini-value" id="unloadsToday">--</span></div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-icon mini-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="mini-info"><span class="mini-label">Open Complaints</span><span class="mini-value" id="openComplaints">--</span></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <h3>Recent Activity</h3>
+            <p class="chart-subtitle">Latest dustbin updates</p>
+          </div>
+        </div>
+<div class="panel-body">
+          <table>
+            <thead><tr><th>ID</th><th>Location</th><th>Fill</th><th>Status</th><th>Updated</th></tr></thead>
+            <tbody id="dustbinTable"><tr><td colspan="5" class="table-empty">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weekly Activity Visualization -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div>
+          <h3>Weekly Activity Trend</h3>
+          <p class="chart-subtitle">Collections &amp; complaint resolutions per day</p>
+        </div>
+      </div>
+      <div class="chart-body"><canvas id="chartWeekly"></canvas></div>
+    </div>
+
+  </div>
+</div>
+<script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/ws-init.js"></script>
+<script>
+document.getElementById('nav-dashboard').classList.add('active');
+
+function updateClock() {
+    const now = new Date();
+    document.getElementById('currentTime').textContent = now.toLocaleString('en-US', { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('#mLogout') : null;
+    if (!btn) return;
+    try {
+        if (window.Auth && window.Auth.logout) {
+            window.Auth.logout();
+        } else {
+            if (window.Auth && window.Auth.clear) window.Auth.clear();
+            window.location.href = 'login.html';
+        }
+    } catch (err) {
+        window.location.href = 'login.html';
+    }
+});
+
+
+const CIRC = 2 * Math.PI * 42;
+function setRing(id, value, max) {
+    const pct = max > 0 ? value / max : 0;
+    const dashLen = pct * CIRC;
+    const circle = document.querySelector('#' + id + ' .ring-fill');
+    const text = document.querySelector('#' + id + ' .ring-text');
+    circle.style.transition = 'stroke-dasharray 1s ease';
+    circle.setAttribute('stroke-dasharray', dashLen + ' ' + CIRC);
+    text.textContent = value;
+}
+
+let charts = {};
+
+function renderBinStatus(bins) {
+    const grid = document.getElementById('binStatusGrid');
+    grid.innerHTML = '';
+    bins.forEach(function (b, i) {
+        const fill = Math.round(b.fill_level || 0);
+        const full = fill >= 80;
+        const almost = fill >= 40 && fill < 80;
+        const cls = full ? 'bs-full' : almost ? 'bs-almost' : 'bs-ok';
+        const state = full ? 'Full' : almost ? 'Almost full' : 'Not full';
+        const tile = document.createElement('div');
+        tile.className = 'bs-tile ' + cls;
+        tile.style.animationDelay = (i * 70) + 'ms';
+        tile.innerHTML =
+            '<div class="bs-head"><span class="bs-id">' + b.dustbin_id + '</span><span class="status-dot2 ' + (full ? 'bad' : almost ? 'warn' : 'good') + '"></span></div>' +
+            '<div class="bs-bin"><div class="bs-fill" style="height:' + fill + '%" data-fill="' + fill + '">' + (full ? '<span class="bs-splash"></span>' : '') + '</div></div>' +
+            '<div class="bs-foot">' +
+            '  <span class="bs-loc">' + (b.location || '--') + '</span>' +
+            '  <span class="bs-state"><span class="bs-dot"></span>' + state + '</span>' +
+            '</div>';
+        grid.appendChild(tile);
+    });
+    SmartCity.animateFillStatus(grid);
+}
+
+function initCharts(bins, lb, summary) {
+Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+    Chart.defaults.font.size = 12;
+
+    const dark = (localStorage.getItem('lg-theme') || 'light') === 'dark';
+    const tck = dark ? '#94a3b8' : '#64748b';
+    const grd = dark ? 'rgba(148,163,184,.1)' : 'rgba(148,163,184,.16)';
+    const lgd = dark ? '#94a3b8' : '#475569';
+
+    renderBinStatus(bins);
+
+    const sEmpty = summary.empty_dustbins, sFilled = summary.filled_dustbins, sReady = summary.ready_to_unload;
+    charts.status = new Chart(document.getElementById('chartStatus'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Empty', 'Filled', 'Ready to Unload'],
+            datasets: [{
+                data: [sEmpty, sFilled, sReady],
+                backgroundColor: ['#22c55e', '#ef4444', '#f59e0b'],
+                borderWidth: 0, hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            cutout: '65%',
+plugins: { legend: { position: 'bottom', labels: { color: lgd, padding: 16, usePointStyle: true, pointStyleWidth: 10 } } }
+        }
+    });
+
+    const low = bins.filter(b => b.fill_level < 40).length;
+    const med = bins.filter(b => b.fill_level >= 40 && b.fill_level < 80).length;
+    const high = bins.filter(b => b.fill_level >= 80).length;
+    charts.fillDist = new Chart(document.getElementById('chartFillDist'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Low (< 40%)', 'Medium (40-80%)', 'High (> 80%)'],
+            datasets: [{
+                data: [low, med, high],
+                backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                borderWidth: 0, hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            cutout: '65%',
+plugins: { legend: { position: 'bottom', labels: { color: lgd, padding: 16, usePointStyle: true, pointStyleWidth: 10 } } }
+        }
+    });
+
+    const top5 = lb.slice(0, 5);
+    charts.performers = new Chart(document.getElementById('chartPerformers'), {
+        type: 'bar',
+        data: {
+            labels: top5.map(e => e.name),
+            datasets: [
+                {
+                    label: 'Unloads',
+                    data: top5.map(e => e.total_unloads),
+                    backgroundColor: '#2563eb33',
+                    borderColor: '#2563eb',
+                    borderWidth: 2, borderRadius: 6, borderSkipped: false,
+                },
+                {
+                    label: 'Points',
+                    data: top5.map(e => e.reward_points),
+                    backgroundColor: '#7c3aed33',
+                    borderColor: '#7c3aed',
+                    borderWidth: 2, borderRadius: 6, borderSkipped: false,
+                }
+            ]
+        },
+options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'top', labels: { color: lgd, usePointStyle: true, pointStyleWidth: 10, padding: 16 } } },
+            scales: {
+                x: { beginAtZero: true, grid: { color: grd }, ticks: { color: tck } },
+                y: { grid: { display: false }, ticks: { color: tck } }
+            }
+        }
+    });
+
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const colls = [24, 31, 28, 36, 33, 41, 38];
+    const resolved = [18, 22, 25, 29, 27, 33, 30];
+    charts.weekly = new Chart(document.getElementById('chartWeekly'), {
+        type: 'line',
+        data: {
+            labels: days,
+            datasets: [
+                {
+                    label: 'Collections',
+                    data: colls,
+                    borderColor: '#2563eb', backgroundColor: '#2563eb22',
+                    borderWidth: 2, tension: 0.35, fill: true, pointRadius: 4,
+                },
+                {
+                    label: 'Closures',
+                    data: resolved,
+                    borderColor: '#16a34a', backgroundColor: '#16a34a22',
+                    borderWidth: 2, tension: 0.35, fill: true, pointRadius: 4,
+                }
+            ]
+        },
+options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'top', labels: { color: lgd, usePointStyle: true, pointStyleWidth: 10, padding: 16 } } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: tck } },
+                y: { beginAtZero: true, grid: { color: grd }, ticks: { color: tck } }
+            }
+        }
+    });
+}
+
+async function load() {
+    let bins = [], lb = [], summary = {};
+
+    try { summary = await api.get('/dashboard/summary'); } catch(e) { console.error(e); }
+    try { bins = await api.get('/dustbins/'); } catch(e) { console.error(e); }
+    try { lb = await api.get('/leaderboard/weekly'); } catch(e) { console.error(e); }
+
+    setRing('gaugeDustbins', summary.total_dustbins || 0, Math.max(summary.total_dustbins || 0, 10));
+    setRing('gaugeFilled', summary.filled_dustbins || 0, summary.total_dustbins || 1);
+    setRing('gaugeReady', summary.ready_to_unload || 0, summary.total_dustbins || 1);
+    setRing('gaugeEmployees', summary.total_employees || 0, Math.max(summary.total_employees || 0, 10));
+
+    animateNumber('totalDustbins', summary.total_dustbins || 0);
+    animateNumber('filledDustbins', summary.filled_dustbins || 0);
+    animateNumber('readyDustbins', summary.ready_to_unload || 0);
+    animateNumber('totalEmployees', summary.total_employees || 0);
+    animateNumber('emptyDustbins', summary.empty_dustbins || 0);
+    animateNumber('unloadsToday', summary.total_unloads_today || 0);
+    animateNumber('openComplaints', summary.open_complaints || 0);
+
+if (bins.length || lb.length) initCharts(bins, lb, summary);
+
+    renderRecentActivity(bins);
+}
+
+function timeAgo(dt) {
+    const d = new Date(dt);
+    if (isNaN(d.getTime())) return '--';
+    const s = Math.floor((Date.now() - d.getTime()) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    const days = Math.floor(s / 86400);
+    if (days < 7) return days + 'd ago';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function renderRecentActivity(bins) {
+    const tbody = document.getElementById('dustbinTable');
+    if (!bins || !bins.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="table-empty">No recent activity yet.</td></tr>';
+        return;
+    }
+    const latest = bins.slice()
+        .sort(function (a, b) {
+            const ta = a.last_update ? new Date(a.last_update).getTime() : 0;
+            const tb = b.last_update ? new Date(b.last_update).getTime() : 0;
+            return tb - ta;
+        })
+        .slice(0, 8);
+    tbody.innerHTML = latest.map(b =>
+        '<tr><td><span class="mono-id">' + escapeHtml(b.dustbin_id) + '</span></td>' +
+        '<td>' + escapeHtml(b.location || '--') + '</td>' +
+        '<td><div class="fill-cell">' + fillBar(b.fill_level || 0) + '<span class="fill-pct">' + Math.round(b.fill_level || 0) + '%</span></div></td>' +
+        '<td>' + statusBadge(b.status) + '</td>' +
+        '<td class="td-muted">' + (b.last_update ? timeAgo(new Date(b.last_update)) : '--') + '</td></tr>'
+    ).join('');
+    SmartCity.animateFillBars(tbody);
+    SmartCity.runLiveAlerts(bins);
+}
+
+function animateNumber(id, target) {
+    const el = document.getElementById(id);
+    const start = parseInt(el.textContent) || 0;
+if (start === target) { el.textContent = target; return; }
+    const diff = target - start;
+    const steps = 20; let step = 0;
+    const interval = setInterval(() => {
+        step++;
+        el.textContent = Math.round(start + (diff * (step / steps)));
+        if (step >= steps) { el.textContent = target; clearInterval(interval); }
+    }, 25);
+}
+
+window.addEventListener('smb:theme', function () {
+    const dark = (localStorage.getItem('lg-theme') || 'light') === 'dark';
+    const tck = dark ? '#94a3b8' : '#64748b';
+    const grd = dark ? 'rgba(148,163,184,.1)' : 'rgba(148,163,184,.16)';
+    const lgd = dark ? '#94a3b8' : '#475569';
+    ['status', 'fillDist'].forEach(k => {
+        if (charts[k] && charts[k].options.plugins.legend) {
+            charts[k].options.plugins.legend.labels.color = lgd;
+            charts[k].update();
+        }
+    });
+    if (charts.performers) {
+        charts.performers.options.plugins.legend.labels.color = lgd;
+        charts.performers.options.scales.x.grid.color = grd;
+        charts.performers.options.scales.x.ticks.color = tck;
+        charts.performers.options.scales.y.ticks.color = tck;
+        charts.performers.update();
+    }
+    if (charts.weekly) {
+        charts.weekly.options.plugins.legend.labels.color = lgd;
+        charts.weekly.options.scales.y.grid.color = grd;
+        charts.weekly.options.scales.x.ticks.color = tck;
+        charts.weekly.options.scales.y.ticks.color = tck;
+        charts.weekly.update();
+    }
+});
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>System Settings | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+</head>
+<body class="settings-page" data-network data-page="settings" data-role="municipality">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav"></nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">System Settings</span>
+        <span class="topbar-subtitle">Configure thresholds, notifications and municipality profile</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="live-badge"><i></i>Settings Saved Locally</span>
+        <div class="topbar-sep"></div>
+        <div class="topbar-time" id="currentTime"></div>
+        <div class="st-notif">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="st-notif-badge">3</span>
+        </div>
+        <div class="topbar-sep"></div>
+        <div class="avatar">M</div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ============ Quick summary cards ============ -->
+      <div class="set-summary">
+        <div class="set-sum-card sum-blue">
+          <div class="sum-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l2-8h14l2 8M5 17h14v3H5z"/><path d="M6 11l1.5-4M10 11l1-4M14 11l-1.5-4M18 11l-1.5-4"/></svg>
+          </div>
+          <div class="sum-body">
+            <div class="sum-label">Threshold Rules</div>
+            <div class="sum-val">5</div>
+            <div class="sum-sub">Active</div>
+          </div>
+          <div class="sum-chart"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+
+        <div class="set-sum-card sum-cyan">
+          <div class="sum-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </div>
+          <div class="sum-body">
+            <div class="sum-label">Active Notifications</div>
+            <div class="sum-val">5</div>
+            <div class="sum-sub">Enabled</div>
+          </div>
+          <div class="sum-chart"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+
+        <div class="set-sum-card sum-purple">
+          <div class="sum-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+          </div>
+          <div class="sum-body">
+            <div class="sum-label">Municipality Profile</div>
+            <div class="sum-val">1</div>
+            <div class="sum-sub">Configured</div>
+          </div>
+          <div class="sum-chart"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+
+        <div class="set-sum-card sum-amber">
+          <div class="sum-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          </div>
+          <div class="sum-body">
+            <div class="sum-label">Last Updated</div>
+            <div class="sum-val">Today</div>
+            <div class="sum-sub">10:38 PM</div>
+          </div>
+          <div class="sum-chart"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+      </div>
+
+      <!-- ============ Collection Thresholds | Notifications ============ -->
+      <div class="set-grid">
+        <div class="set-card">
+          <div class="set-head">
+            <span class="set-ico set-ico-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h4l2-6 4 12 2-6h6"/></svg>
+            </span>
+            <div><h3>Collection Thresholds</h3><p>When bins trigger collection requests &amp; alerts</p></div>
+          </div>
+          <div class="set-rows" id="thresholdRows">
+            <div class="set-row">
+              <div class="set-label"><span class="set-lbl-ico ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10m6 10V4m6 16v-7m4 7V6"/></svg></span><div><strong>Alert fill level</strong><small>Bins crossing this open a request</small></div></div>
+              <div class="set-input"><input type="number" id="thAlert" min="50" max="95" class="form-control" value="70"><span>%</span></div>
+            </div>
+            <div class="set-row">
+              <div class="set-label"><span class="set-lbl-ico ico-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 10v4m0 3h.01"/></svg></span><div><strong>Urgent fill level</strong><small>Marked URGENT for immediate dispatch</small></div></div>
+              <div class="set-input"><input type="number" id="thUrgent" min="60" max="100" class="form-control" value="85"><span>%</span></div>
+            </div>
+            <div class="set-row">
+              <div class="set-label"><span class="set-lbl-ico ico-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.6 8-8 0-5-3.5-9.5-8-12-4.5 2.5-8 7-8 12 0 4.4 3.6 8 8 8z"/></svg></span><div><strong>Fire temp sensor</strong><small>Temperature above this triggers fire alert</small></div></div>
+              <div class="set-input"><input type="number" id="thFire" min="40" max="120" class="form-control" value="65"><span>&deg;C</span></div>
+            </div>
+            <div class="set-row">
+              <div class="set-label"><span class="set-lbl-ico ico-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16c-2 0-3-1.5-3-3s1-3 3-3"/><path d="M12 16c-2 0-3-1.5-3-3s1-3 3-3"/><path d="M17 16c-2 0-3-1.5-3-3s1-3 3-3"/></svg></span><div><strong>Gas (MQ-4) sensor</strong><small>ppm above this triggers a gas alert</small></div></div>
+              <div class="set-input"><input type="number" id="thGas" min="100" max="800" class="form-control" value="350"><span>ppm</span></div>
+            </div>
+          </div>
+          <div class="set-actions">
+            <button class="btn btn-primary btn-sm btn-save" id="saveThresholds">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+              Save Thresholds
+            </button>
+            <span class="set-saved" id="thSaved">Saved</span>
+          </div>
+        </div>
+
+        <div class="set-card">
+          <div class="set-head">
+            <span class="set-ico set-ico-cyan">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            </span>
+            <div><h3>Notifications</h3><p>Which alerts the control room receives</p></div>
+          </div>
+          <div class="set-rows">
+            <div class="set-row">
+              <div class="set-label"><span class="set-lbl-ico ico-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.4 0 8-3.6 8-8 0-5-3.5-9.5-8-12-4.5 2.5-8 7-8 12 0 4.4 3.6 8 8 8z"/></svg></span><div><strong>Fire alerts</strong><small>Immediate SMS + email escalation</small></div></div>
+              <label class="switch"><input type="checkbox" id="nFire" checked><span class="slider"></span></label>
+            </div>
+            <div class="set-row">
+              <div class="set-label"><span class="set-lbl-ico ico-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span><div><strong>Gas alerts</strong><small>Sensor anomalies above threshold</small></div></div>
+              <label class="switch"><input type="checkbox" id="nGas" checked><span class="slider"></span></label>
+            </div>
+            <div class="set-row">
+              <div class="set-label"><span class="set-lbl-ico ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h4l2-6 4 12 2-6h6"/></svg></span><div><strong>Bin near-full</strong><small>Daily digest of bins &gt; 80%</small></div></div>
+              <label class="switch"><input type="checkbox" id="nFull" checked><span class="slider"></span></label>
+            </div>
+            <div class="set-row">
+              <div class="set-label"><span class="set-lbl-ico ico-cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><path d="M12 2a10 10 0 0 1 10 10h-8"/><path d="M12 22A10 10 0 0 1 2 12h8"/></svg></span><div><strong>Driver geo-fence exits</strong><small>Van leaves assigned zone</small></div></div>
+              <label class="switch"><input type="checkbox" id="nGeofence"><span class="slider"></span></label>
+            </div>
+            <div class="set-row">
+              <div class="set-label"><span class="set-lbl-ico ico-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span><div><strong>New registrations</strong><small>Notify on driver/municipality sign-ups</small></div></div>
+              <label class="switch"><input type="checkbox" id="nReg" checked><span class="slider"></span></label>
+            </div>
+          </div>
+          <div class="set-actions">
+            <button class="btn btn-primary btn-sm btn-save" id="saveNotify">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+              Save Notification Prefs
+            </button>
+            <span class="set-saved" id="nSaved">Saved</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ Municipality Profile ============ -->
+      <div class="set-card set-profile">
+        <div class="set-head">
+          <span class="set-ico set-ico-purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
+          </span>
+          <div><h3>Municipality Profile</h3><p>Account shown at the top panel</p></div>
+        </div>
+        <div class="profile-body">
+          <div class="profile-left">
+            <div class="profile-avatar">SB</div>
+            <div class="profile-meta">
+              <div class="profile-name">SmartBin Municipality <span class="profile-verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Verified</span></div>
+              <div class="profile-contact-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16l-8 8z"/><path d="M4 20h16l-8-8"/></svg><span id="meName">loading session...</span></div>
+              <div class="profile-contact-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2z"/></svg><span>+91-80-2255 0100</span></div>
+              <div class="profile-contact-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.3-7-11a7 7 0 0 1 14 0c0 5.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Green City Municipality, Sector 1</span></div>
+            </div>
+          </div>
+          <div class="profile-right">
+            <div class="profile-acct">
+              <div class="profile-acct-label">Signed in as</div>
+              <div class="profile-acct-name">SmartBin Municipality Account</div>
+              <button class="btn btn-outline btn-sm" id="openLogin">View / Switch Account</button>
+            </div>
+            <div class="profile-reset">
+              <div class="profile-reset-label">Need a fresh start?</div>
+              <div class="profile-reset-sub">Reset demo data and reinitialize the system.</div>
+              <button class="btn btn-danger btn-sm" id="resetDemo">Reset Demo Data</button>
+              <span class="set-muted" id="resetMsg"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ Footer ============ -->
+      <div class="set-foot">
+        <span class="foot-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>All settings are saved locally in your browser</span>
+        <span class="foot-sep">|</span>
+        <span class="foot-right" id="footLast">Last saved: --</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/animations.js"></script>
+  <script src="assets/js/ws-init.js"></script>
+  <script>
+  var STORAGE_KEY = 'smb:settings';
+
+  function updateClock() {
+    var now = new Date();
+    document.getElementById('currentTime').textContent = now.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    var fl = document.getElementById('footLast');
+    if (fl) fl.textContent = 'Last saved: ' + now.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  updateClock(); setInterval(updateClock, 30000);
+
+  function loadSettings() {
+    var saved = {};
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch (e) { saved = {}; }
+    if (saved.thresholds) {
+      document.getElementById('thAlert').value = saved.thresholds.alert;
+      document.getElementById('thUrgent').value = saved.thresholds.urgent;
+      document.getElementById('thFire').value = saved.thresholds.fire;
+      document.getElementById('thGas').value = saved.thresholds.gas;
+    }
+    if (saved.notifications) {
+      ['nFire', 'nGas', 'nFull', 'nGeofence', 'nReg'].forEach(function (id) {
+        if (typeof saved.notifications[id] === 'boolean') document.getElementById(id).checked = saved.notifications[id];
+      });
+    }
+  }
+
+  function flashSaved(id) {
+    var el = document.getElementById(id);
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.classList.remove('show'); }, 2000);
+  }
+
+  document.getElementById('saveThresholds').addEventListener('click', function () {
+    var th = {
+      alert: document.getElementById('thAlert').value,
+      urgent: document.getElementById('thUrgent').value,
+      fire: document.getElementById('thFire').value,
+      gas: document.getElementById('thGas').value
+    };
+    try {
+      var settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      settings.thresholds = th;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      flashSaved('thSaved');
+      var saveT = document.getElementById('saveThresholds');
+      saveT.classList.add('saved');
+      setTimeout(function () { saveT.classList.remove('saved'); }, 1400);
+    } catch (e) { showToast('Could not save settings.', 'error'); }
+  });
+
+  document.getElementById('saveNotify').addEventListener('click', function () {
+    var notif = {};
+    ['nFire', 'nGas', 'nFull', 'nGeofence', 'nReg'].forEach(function (id) {
+      notif[id] = !!document.getElementById(id).checked;
+    });
+    try {
+      var settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      settings.notifications = notif;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      flashSaved('nSaved');
+      var saveN = document.getElementById('saveNotify');
+      saveN.classList.add('saved');
+      setTimeout(function () { saveN.classList.remove('saved'); }, 1400);
+    } catch (e) { showToast('Could not save preferences.', 'error'); }
+  });
+
+  document.getElementById('openLogin').addEventListener('click', function () {
+    window.Auth.logout();
+  });
+
+  document.getElementById('resetDemo').addEventListener('click', function () {
+    localStorage.removeItem('smb:driverTasks');
+    localStorage.removeItem('smb:settings');
+    loadSettings();
+    document.getElementById('resetMsg').textContent = 'Demo data reset.';
+    showToast('Demo data reset.', 'success');
+    setTimeout(function () { document.getElementById('resetMsg').textContent = ''; }, 3000);
+  });
+
+  (function showMe() {
+    var s = sessionStorage.getItem('smb:session');
+    if (s) {
+      try {
+        var u = JSON.parse(s).user;
+        document.getElementById('meName').textContent = (u && u.full_name ? u.full_name : u && u.email ? u.email : 'municipality account') + ' (' + (u && u.email || '') + ')';
+        return;
+      } catch (e) {}
+    }
+    auth.me().then(function (u) {
+      document.getElementById('meName').textContent = (u && u.full_name ? u.full_name : 'municipality account') + ' (' + (u && u.email || '') + ')';
+    }).catch(function () {
+      document.getElementById('meName').textContent = 'session guest';
+    });
+  })();
+
+  loadSettings();
+  </script>
+</body>
+</html>

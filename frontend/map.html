@@ -1,0 +1,1092 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Live Map | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    /* ===================== Smart City Waste Mgmt Control Center ===================== */
+    body.live-map {
+      --lm-bg: #060D1A;
+      --lm-panel: #0C1728;
+      --lm-panel-2: #111F33;
+      --lm-panel-3: #162738;
+      --lm-line: rgba(69,122,199,.28);
+      --lm-line-soft: rgba(148,163,184,.12);
+      --lm-ink: #e9f2ff;
+      --lm-dim: #8fa7cb;
+      --lm-muted: #5c7295;
+      --lm-blue: #3B82F6;
+      --lm-cyan: #22D3EE;
+      --lm-green: #22C55E;
+      --lm-amber: #F59E0B;
+      --lm-red: #EF4444;
+      --lm-purple: #A78BFA;
+      background: var(--lm-bg);
+      color: var(--lm-ink);
+      overflow: hidden;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    body.live-map .sidebar { background: rgba(6,13,26,.98); border-right: 1px solid var(--lm-line); }
+    body.live-map .sidebar-brand span,
+    body.live-map .sidebar-nav a { color: var(--lm-ink); }
+    body.live-map .sidebar-nav a.active {
+      background: linear-gradient(135deg, rgba(59,130,246,.28), rgba(34,211,238,.16));
+      border-left: 3px solid var(--lm-cyan);
+      color: #fff;
+    }
+    body.live-map .sidebar-nav a:hover { background: rgba(59,130,246,.14); }
+
+    body.live-map .main { margin-left: 240px; height: 100vh; display: flex; flex-direction: column; }
+    .lm-topbar {
+      display: flex; align-items: center; gap: 16px; height: 58px; padding: 0 20px;
+      background: linear-gradient(180deg, rgba(12,23,40,.94), rgba(9,17,31,.9));
+      border-bottom: 1px solid var(--lm-line);
+      backdrop-filter: blur(10px); z-index: 1250; position: relative;
+      box-sizing: border-box; flex-shrink: 0;
+    }
+    .lm-topbar-left { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .lm-topbar-title { font-size: 1.04rem; font-weight: 800; letter-spacing: .02em; }
+    .lm-topbar-sub { font-size: .7rem; color: var(--lm-muted); }
+    .lm-live-wrap { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .lm-live-badge {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 13px;
+      border-radius: 999px; background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.35);
+      font-size: .74rem; font-weight: 800; color: #4ade80; letter-spacing: .06em;
+      transition: border-color .2s, color .2s, background .2s;
+    }
+    .lm-live-badge.stale { color: #fbbf24; background: rgba(245,158,11,.12); border-color: rgba(245,158,11,.4); }
+    .lm-live-badge.stale .dot { background: #f59e0b; box-shadow: 0 0 0 0 rgba(245,158,11,.5); }
+    .lm-live-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 0 rgba(34,197,94,.5); animation: lmPulse 1.8s infinite; }
+    @keyframes lmPulse { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,.5);} 70% { box-shadow: 0 0 0 8px rgba(34,197,94,0);} 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0);} }
+    .lm-sync { font-size: .7rem; color: var(--lm-dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .lm-topbar-time { font-size: .8rem; color: var(--lm-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .lm-demo-pill { display: inline-flex; align-items: center; gap: 6px; font-size: .64rem; font-weight: 800; color: #fbbf24; background: rgba(245,158,11,.12); border: 1px dashed rgba(245,158,11,.4); padding: 3px 9px; border-radius: 999px; letter-spacing: .04em; }
+
+    .lm-body { flex: 1; display: flex; min-height: 0; position: relative; }
+    /* Left panel */
+    .lm-left {
+      width: 336px; min-width: 300px; background: rgba(11,21,36,.95); border-right: 1px solid var(--lm-line);
+      display: flex; flex-direction: column; z-index: 1100;
+    }
+    .lm-left-scroll { flex: 1; overflow-y: auto; padding: 14px; scrollbar-width: thin; scrollbar-color: var(--lm-line) transparent; }
+    .lm-left-scroll::-webkit-scrollbar { width: 6px; }
+    .lm-left-scroll::-webkit-scrollbar-thumb { background: var(--lm-line); border-radius: 4px; }
+    .lm-search { position: relative; margin-bottom: 12px; }
+    .lm-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--lm-muted); }
+    .lm-search input {
+      width: 100%; height: 42px; padding: 0 12px 0 40px; box-sizing: border-box;
+      background: var(--lm-panel-2); border: 1px solid var(--lm-line); border-radius: 10px;
+      color: var(--lm-ink); font-size: .84rem; outline: none; transition: border-color .15s;
+    }
+    .lm-search input:focus { border-color: var(--lm-blue); box-shadow: 0 0 0 3px rgba(59,130,246,.16); }
+    .lm-search input::placeholder { color: var(--lm-muted); }
+    .lm-search-res { position: absolute; top: 46px; left: 0; right: 0; z-index: 1500; background: var(--lm-panel); border: 1px solid var(--lm-line); border-radius: 10px; box-shadow: 0 14px 40px rgba(0,0,0,.65); max-height: 260px; overflow-y: auto; display: none; }
+    .lm-search-res.open { display: block; }
+    .lm-search-item { padding: 10px 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--lm-line-soft); }
+    .lm-search-item:last-child { border-bottom: none; }
+    .lm-search-item:hover { background: rgba(59,130,246,.12); }
+    .lm-search-item .si-ic { width: 30px; height: 30px; border-radius: 8px; background: rgba(59,130,246,.16); color: #7db2ff; display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 800; flex: none; }
+    .lm-search-item .si-ic.drv { background: rgba(34,211,238,.15); color: #22d3ee; }
+    .lm-search-item .si-ic.bin { background: rgba(34,197,94,.16); color: #4ade80; }
+    .lm-search-item b { display: block; font-size: .82rem; }
+    .lm-search-item small { color: var(--lm-muted); font-size: .72rem; }
+
+    .lm-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+    .lm-sum-card { background: linear-gradient(160deg, var(--lm-panel-2), var(--lm-panel)); border: 1px solid var(--lm-line-soft); border-radius: 12px; padding: 12px 13px; }
+    .lm-sum-card .k { font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--lm-muted); }
+    .lm-sum-card .v { font-size: 1.45rem; font-weight: 800; margin-top: 2px; display: flex; align-items: baseline; gap: 4px; font-variant-numeric: tabular-nums; color: var(--lm-ink); }
+    .lm-sum-card .v small { font-size: .66rem; color: var(--lm-dim); font-weight: 600; }
+    .lm-sum-card.active .v { color: #4ade80; }
+    .lm-sum-card.onroute .v { color: #22d3ee; }
+    .lm-sum-card.off .v { color: #94a3b8; }
+
+    .lm-panel-head { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 10px; }
+    .lm-panel-head h3 { margin: 0; font-size: .76rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--lm-dim); }
+    .lm-panel-head .cnt { font-size: .72rem; color: var(--lm-muted); background: rgba(148,163,184,.14); padding: 2px 8px; border-radius: 999px; }
+
+    .lm-driver-list { display: flex; flex-direction: column; gap: 10px; }
+    .lm-dr-card { background: linear-gradient(160deg, var(--lm-panel-2), var(--lm-panel)); border: 1px solid var(--lm-line-soft); border-radius: 12px; padding: 12px; cursor: pointer; transition: border-color .15s, transform .12s, box-shadow .15s; }
+    .lm-dr-card:hover { border-color: var(--lm-blue); box-shadow: 0 8px 22px rgba(0,0,0,.4); transform: translateY(-1px); }
+    .lm-dr-card.sel { border-color: var(--lm-cyan); box-shadow: 0 0 0 1px var(--lm-cyan), 0 8px 22px rgba(34,211,238,.18); }
+    .lm-dr-top { display: flex; align-items: center; gap: 11px; }
+    .lm-dr-av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--lm-blue), var(--lm-cyan)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .95rem; flex-shrink: 0; position: relative; }
+    .lm-dr-av .lv { position: absolute; width: 10px; height: 10px; border-radius: 50%; right: 0; bottom: 0; border: 2px solid var(--lm-panel); }
+    .lm-dr-av .lv.on { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.28); animation: lmPulse 2s infinite; }
+    .lm-dr-av .lv.off { background: #64748b; }
+    .lm-dr-av .lv.nav { background: #22d3ee; }
+    .lm-dr-av .lv.stale { background: #f59e0b; }
+    .lm-dr-av .demo-tag { position: absolute; top: -5px; left: -5px; background: rgba(245,158,11,.9); color: #1a1203; font-size: .5rem; font-weight: 900; padding: 1px 4px; border-radius: 6px; letter-spacing: .05em; }
+    .lm-dr-meta { flex: 1; min-width: 0; }
+    .lm-dr-meta b { display: block; font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lm-dr-meta .id { font-size: .68rem; color: var(--lm-muted); }
+    .lm-dr-st { display: flex; align-items: center; gap: 6px; font-size: .7rem; font-weight: 700; margin-top: 3px; }
+    .lm-dr-st .st-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .lm-dr-st.on { color: #4ade80; } .lm-dr-st.on .st-dot { background: #22c55e; }
+    .lm-dr-st.off { color: #94a3b8; } .lm-dr-st.off .st-dot { background: #64748b; }
+    .lm-dr-st.nav { color: #22d3ee; } .lm-dr-st.nav .st-dot { background: #22d3ee; }
+    .lm-dr-st.stale { color: #fbbf24; } .lm-dr-st.stale .st-dot { background: #f59e0b; }
+    .lm-dr-st.demo { color: #fbbf24; } .lm-dr-st.demo .st-dot { background: #f59e0b; }
+    .lm-dr-detail { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--lm-line-soft); font-size: .72rem; color: var(--lm-dim); display: flex; flex-direction: column; gap: 4px; }
+    .lm-dr-detail .row { display: flex; justify-content: space-between; gap: 8px; }
+    .lm-dr-detail .row b { color: var(--lm-ink); font-weight: 600; text-align: right; }
+    .lm-dr-detail .row b.upd { font-variant-numeric: tabular-nums; }
+    .lm-dr-detail .row b.demox { color: #fbbf24; font-weight: 700; }
+    .lm-empty { color: var(--lm-muted); font-size: .8rem; text-align: center; padding: 22px 10px; }
+
+    /* Center map */
+    .lm-map-wrap { flex: 1; position: relative; min-width: 0; background: #060D1A; }
+    #lmMap { position: absolute; inset: 0; z-index: 1; background: #060D1A; }
+    .leaflet-container { background: #060D1A; font-family: inherit; }
+    /* Dark control-room treatment of the base tiles (keyless OSM) */
+    .leaflet-tile-pane { filter: invert(1) hue-rotate(190deg) saturate(.45) brightness(.9) contrast(1.05); }
+    /* grid fallback layer */
+    .lm-gridlayer { position: absolute; inset: 0; }
+    .lm-map-attribution { position: absolute; bottom: 4px; right: 6px; z-index: 400; font-size: .6rem; color: rgba(255,255,255,.35); }
+
+    /* Floating controls */
+    .lm-ctl-group { position: absolute; right: 16px; z-index: 1200; display: flex; flex-direction: column; gap: 8px; }
+    .lm-ctl-btn {
+      width: 42px; height: 42px; border-radius: 11px; background: rgba(17,31,51,.94); border: 1px solid var(--lm-line);
+      color: var(--lm-ink); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.45); transition: background .15s, color .15s, border-color .15s, transform .1s; position: relative; font-size: 1.1rem; font-weight: 700;
+    }
+    .lm-ctl-btn:hover { background: rgba(59,130,246,.3); border-color: var(--lm-blue); color: #fff; transform: translateY(-1px); }
+    .lm-ctl-btn svg { width: 18px; height: 18px; }
+    .lm-layer-menu { position: absolute; right: 16px; top: 64px; z-index: 1250; width: 212px; background: rgba(13,24,42,.97); border: 1px solid var(--lm-line); border-radius: 12px; box-shadow: 0 16px 44px rgba(0,0,0,.55); padding: 12px; display: none; }
+    .lm-layer-menu.open { display: block; }
+    .lm-layer-menu h4 { margin: 0 0 8px; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--lm-muted); }
+    .lm-layer-item { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 8px; cursor: pointer; font-size: .82rem; color: var(--lm-ink); }
+    .lm-layer-item:hover { background: rgba(59,130,246,.1); }
+    .lm-check { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--lm-line); display: flex; align-items: center; justify-content: center; color: #fff; background: transparent; flex: none; }
+    .lm-layer-item.on .lm-check { background: var(--lm-blue); border-color: var(--lm-blue); }
+    .lm-layer-item .lx { width: 10px; height: 10px; border-radius: 3px; }
+    .lm-layer-item.on .lx { box-shadow: 0 0 6px currentColor; }
+
+    /* Right details panel */
+    .lm-right {
+      position: absolute; top: 14px; right: 68px; bottom: 14px; width: 340px; max-width: 40vw; z-index: 1300;
+      background: rgba(10,19,33,.97); border: 1px solid var(--lm-line); border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.02); display: flex; flex-direction: column; overflow: hidden;
+      transform: translateX(0); transition: transform .25s ease;
+    }
+    .lm-right.closed { transform: translateX(115%); }
+    .lm-right-head { padding: 14px 16px; border-bottom: 1px solid var(--lm-line); background: linear-gradient(160deg, var(--lm-panel-3), var(--lm-panel-2)); display: flex; align-items: center; justify-content: space-between; }
+    .lm-right-head h3 { margin: 0; font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--lm-dim); }
+    .lm-right-close { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--lm-line-soft); background: transparent; color: var(--lm-muted); cursor: pointer; font-size: 1rem; }
+    .lm-right-close:hover { color: var(--lm-ink); background: rgba(255,255,255,.06); }
+    .lm-right-body { flex: 1; overflow-y: auto; padding: 16px; scrollbar-width: thin; scrollbar-color: var(--lm-line) transparent; }
+    .lm-right-body::-webkit-scrollbar { width: 6px; }
+    .lm-right-body::-webkit-scrollbar-thumb { background: var(--lm-line); border-radius: 4px; }
+
+    .lm-det-top { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .lm-det-av { width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, var(--lm-blue), var(--lm-cyan)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; flex: none; }
+    .lm-det-top b { font-size: 1.05rem; display: block; }
+    .lm-det-top small { color: var(--lm-muted); font-size: .74rem; }
+    .lm-det-st { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: .72rem; font-weight: 800; padding: 3px 10px; border-radius: 999px; }
+    .lm-det-st.live { color: #4ade80; background: rgba(34,197,94,.12); }
+    .lm-det-st.live .st-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; animation: lmPulse 2s infinite; }
+    .lm-det-st.off .st-dot { width: 7px; height: 7px; border-radius: 50%; background: #64748b; }
+    .lm-det-st.off { color: #94a3b8; background: rgba(100,116,139,.14); }
+    .lm-det-st.nav { color: #22d3ee; background: rgba(34,211,238,.12); }
+    .lm-det-st.nav .st-dot { width: 7px; height: 7px; border-radius: 50%; background: #22d3ee; animation: lmPulse 2s infinite; }
+    .lm-det-st.stale { color: #fbbf24; background: rgba(245,158,11,.12); }
+    .lm-det-st.stale .st-dot { width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; }
+    .lm-det-st.demo { color: #fbbf24; background: rgba(245,158,11,.1); border: 1px dashed rgba(245,158,11,.4); }
+    .lm-det-st.demo .st-dot { width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; }
+    .lm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 14px; }
+    .lm-cell { background: var(--lm-panel-2); border: 1px solid var(--lm-line-soft); border-radius: 11px; padding: 9px 11px; }
+    .lm-cell .k { font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--lm-muted); }
+    .lm-cell .v { font-size: .9rem; font-weight: 700; margin-top: 2px; word-break: break-word; font-variant-numeric: tabular-nums; }
+    .lm-cell.warn .v { color: var(--lm-amber); }
+    .lm-cell.demox .v { color: #fbbf24; font-style: italic; }
+    .lm-seconds { color: var(--lm-cyan); font-size: .7rem; }
+    .lm-section-title { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: var(--lm-dim); margin: 14px 0 8px; }
+    .lm-progress { height: 8px; border-radius: 999px; background: var(--lm-panel-2); overflow: hidden; }
+    .lm-progress span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--lm-blue), var(--lm-cyan)); transition: width .4s; }
+    .lm-progress-row { display: flex; justify-content: space-between; font-size: .78rem; margin-bottom: 6px; color: var(--lm-dim); }
+    .lm-progress-row b { color: var(--lm-ink); }
+    .lm-route-meta { display: flex; justify-content: space-between; align-items: center; font-size: .8rem; margin-top: 8px; }
+    .lm-route-meta span { color: var(--lm-dim); } .lm-route-meta b { color: var(--lm-ink); }
+    /* automatic collection-task assignment (municipality) */
+    .lm-task-bin { position: relative; width: 64px; text-align: center; filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); }
+    .lm-task-bin b { display: block; font-size: .62rem; letter-spacing: .03em; background: #0a1422; border: 1px solid rgba(255,255,255,.18); color: #fff; border-radius: 10px 10px 4px 4px; padding: 4px 4px 1px; width: 56px; margin: 0 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lm-task-bin i { display: block; font-style: normal; font-size: .56rem; font-weight: 800; background: #ef4444; color: #fff; border-radius: 2px 2px 8px 8px; width: 56px; margin: 0 auto; padding: 2px 0 4px; letter-spacing: .03em; }
+    .lm-task-bin em { display: block; margin-top: 2px; font-style: normal; font-size: .54rem; background: rgba(10,20,34,.92); color: #22d3ee; border: 1px solid rgba(34,211,238,.4); border-radius: 999px; padding: 1px 5px; width: 60px; margin-left: auto; margin-right: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lm-task-bin .t-pulse { position: absolute; top: 18px; left: 50%; width: 44px; height: 44px; margin-left: -6px; border: 2px solid rgba(239,68,68,.7); border-radius: 50%; animation: tPulse 2s infinite; }
+    .lm-task-bin.onroute i { background: #0ea5e9; }
+    .lm-task-bin.arrived i { background: #8b5cf6; }
+    .lm-task-bin.collecting i { background: #f59e0b; }
+    .lm-task-bin.onroute .t-pulse { border-color: rgba(14,165,233,.7); }
+    .lm-task-bin.arrived .t-pulse { border-color: rgba(139,92,246,.7); }
+    .lm-task-bin.collecting .t-pulse { border-color: rgba(245,158,11,.7); }
+    @keyframes tPulse { 0% { transform: scale(.75); opacity:.9; } 70% { transform: scale(1.15); opacity:0; } 100% { opacity:0; } }
+    .lm-av-asm { background: linear-gradient(150deg, #ef4444, #f59e0b); }
+    .asm-item { display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-bottom: 1px solid var(--lm-line-soft); cursor: pointer; border-radius: 6px; }
+    .asm-item:hover { background: var(--lm-panel-2); }
+    .asm-item .asm-ic { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 10px; background: #22d3ee; box-shadow: 0 0 0 4px rgba(34,211,238,.15); }
+    .asm-item.on .asm-ic { background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,.15); }
+    .asm-item.collecting .asm-ic { background: #f59e0b; box-shadow: 0 0 0 4px rgba(245,158,11,.15); }
+    .asm-item.arrived .asm-ic { background: #8b5cf6; box-shadow: 0 0 0 4px rgba(139,92,246,.15); }
+    .asm-item.pend .asm-ic { background: #64748b; box-shadow: 0 0 0 4px rgba(100,116,139,.15); }
+    .asm-item div { flex: 1; min-width: 0; }
+    .asm-item b { display: block; font-size: .78rem; color: var(--lm-ink); }
+    .asm-item small { font-size: .68rem; color: var(--lm-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .asm-st { font-size: .58rem; font-weight: 800; letter-spacing: .03em; padding: 2px 7px; border-radius: 999px; text-transform: uppercase; white-space: nowrap; }
+    .asm-st.on { background: rgba(34,211,238,.14); color: #22d3ee; }
+    .asm-st.collecting { background: rgba(245,158,11,.16); color: #fbbf24; }
+    .asm-st.arrived { background: rgba(139,92,246,.18); color: #c4b5fd; }
+    .asm-st.pend { background: rgba(100,116,139,.18); color: #94a3b8; }
+    .lm-cta {
+      width: 100%; margin-top: 16px; padding: 12px; border-radius: 11px; border: none; cursor: pointer;
+      background: linear-gradient(135deg, var(--lm-blue), var(--lm-cyan)); color: #fff; font-weight: 800; font-size: .86rem;
+      display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity .15s, transform .1s;
+    }
+    .lm-cta:hover { opacity: .92; transform: translateY(-1px); }
+    .lm-cta svg { width: 16px; height: 16px; }
+    .lm-bin-body { text-align: center; padding-top: 8px; }
+    .lm-bin-body .big { font-size: 2.2rem; font-weight: 800; }
+    .lm-bin-body .st-pill { display: inline-flex; margin-top: 8px; padding: 4px 12px; border-radius: 999px; font-weight: 800; font-size: .74rem; }
+
+    .leaflet-bar a { background: rgba(17,31,51,.94) !important; color: var(--lm-ink) !important; border-bottom: 1px solid var(--lm-line) !important; }
+    .leaflet-bar a:hover { background: rgba(59,130,246,.3) !important; color: #fff !important; }
+    .leaflet-control-attribution { background: rgba(6,13,26,.72) !important; color: rgba(255,255,255,.4) !important; font-size: .6rem !important; }
+    .leaflet-control-attribution a { color: rgba(255,255,255,.5) !important; }
+
+    /* -------- Driver GPS markers -------- */
+    .lm-driver-marker { position: relative; width: 46px; height: 54px; }
+    .lm-driver-marker .pulse-ring { position: absolute; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; background: radial-gradient(circle, rgba(34,197,94,.55), rgba(34,197,94,0) 70%); animation: lmGps 2.2s cubic-bezier(.2,.6,.4,1) infinite; }
+    .lm-driver-marker .veh {
+      position: absolute; inset: 0; margin: auto; width: 34px; height: 34px; border-radius: 50%;
+      background: radial-gradient(circle at 32% 30%, #34d399, #16a34a 60%, #15803d);
+      border: 2px solid #4ade80; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 0 4px rgba(34,197,94,.22), 0 0 18px rgba(34,197,94,.75); transition: transform .6s linear;
+    }
+    .lm-driver-marker .veh svg { width: 16px; height: 16px; color: #052e16; }
+    .lm-driver-marker .lab { position: absolute; top: 36px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: .58rem; font-weight: 800; color: #d1e8ff; text-shadow: 0 1px 3px #000; text-align: center; line-height: 1.25; }
+    .lm-driver-marker .lab small { display: block; font-size: .5rem; color: #4ade80; font-weight: 800; letter-spacing: .03em; }
+    .lm-driver-marker .lab small.demo-c { color: #fbbf24; }
+    .lm-driver-marker.cyan .veh { background: radial-gradient(circle at 32% 30%, #67e8f9, #0891b2 60%, #155e75); border-color: #22d3ee; box-shadow: 0 0 0 4px rgba(34,211,238,.2), 0 0 18px rgba(34,211,238,.7); }
+    .lm-driver-marker.cyan .veh svg { color: #082f49; }
+    .lm-driver-marker.cyan .pulse-ring { background: radial-gradient(circle, rgba(34,211,238,.55), rgba(34,211,238,0) 70%); }
+    .lm-driver-marker.cyan .lab small { color: #5eead4; }
+    .lm-driver-marker.stale .veh { background: radial-gradient(circle at 32% 30%, #fcd34d, #d97706 60%, #92400e); border-color: #fbbf24; box-shadow: 0 0 0 4px rgba(245,158,11,.2), 0 0 14px rgba(245,158,11,.6); }
+    .lm-driver-marker.stale .veh svg { color: #451a03; }
+    .lm-driver-marker.stale .pulse-ring { background: radial-gradient(circle, rgba(245,158,11,.5), rgba(245,158,11,0) 70%); }
+    .lm-driver-marker.stale .lab small { color: #fcd34d; }
+    .lm-driver-marker.grey .veh { background: radial-gradient(circle at 32% 30%, #64748b, #475569 60%, #334155); border-color: #94a3b8; box-shadow: 0 0 0 3px rgba(100,116,139,.2); }
+    .lm-driver-marker.grey .veh svg { color: #1f2937; }
+    .lm-driver-marker.grey .pulse-ring { display: none; }
+    .lm-driver-marker.grey .lab small { color: #94a3b8; }
+    .lm-driver-marker .sel-ring { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; border: 2px solid #fff; opacity: 0; animation: lmSel 1.2s infinite; }
+    .lm-driver-marker.sel .sel-ring { opacity: 1; }
+    @keyframes lmGps { 0%{ transform: scale(.7); opacity:.9;} 100%{ transform: scale(2.1); opacity:0;} }
+    @keyframes lmSel { 0%{ transform: scale(.8); opacity:.9;} 100%{ transform: scale(1.35); opacity:0;} }
+
+    /* Bin markers */
+    .lm-bin-marker { display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
+    .lm-bin-marker .b-head { width: 26px; height: 26px; border-radius: 7px 7px 4px 4px; border: 2px solid; display: flex; align-items: center; justify-content: center; font-size: .62rem; font-weight: 800; color: #04111f; cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,.6); transition: transform .12s; }
+    .lm-bin-marker .b-head:hover { transform: scale(1.15); }
+    .lm-bin-marker .b-lab { font-size: .56rem; font-weight: 800; color: #cbd5e1; }
+    .lm-bin-marker .pulse { position: absolute; width: 26px; height: 26px; border-radius: 7px; animation: lmBinPulse 2.4s infinite; }
+    .lm-bin-marker.red .pulse { background: rgba(239,68,68,.5); }
+    .lm-bin-marker.amber .pulse { background: rgba(245,158,11,.5); }
+    @keyframes lmBinPulse { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,.4);} 70% { box-shadow: 0 0 0 10px rgba(239,68,68,0);} 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0);} }
+
+    /* Routes */
+    .lm-route { stroke: #22d3ee; stroke-width: 3; stroke-opacity: .6; filter: drop-shadow(0 0 4px rgba(34,211,238,.65)); }
+    .lm-route.dim { stroke-opacity: .2; filter: none; }
+    .lm-route.selected { stroke: #3b82f6; stroke-width: 3.5; filter: drop-shadow(0 0 6px rgba(59,130,246,.8)); }
+
+    /* Zones */
+    .lm-zone-tag { color: #A78BFA; font-size: .68rem; font-weight: 800; text-shadow: 0 1px 3px #000; }
+
+    .lm-mobile-toggle { display: none; }
+    @media (max-width: 1024px) { .lm-right { width: 320px; } }
+    @media (max-width: 860px) {
+      body.live-map .main { margin-left: 0; }
+      .lm-topbar { height: 54px; padding: 0 14px; }
+      .lm-topbar-sub { display: none; }
+      .lm-left { position: absolute; left: 0; top: 0; bottom: 0; width: 300px; transform: translateX(-105%); transition: transform .25s ease; box-shadow: 0 0 40px rgba(0,0,0,.55); z-index: 1150; }
+      .lm-left.open { transform: translateX(0); }
+      .lm-mobile-toggle { display: flex; position: absolute; left: 12px; top: 12px; z-index: 1400; width: 40px; height: 40px; border-radius: 10px; background: rgba(17,31,51,.94); border: 1px solid var(--lm-line); color: var(--lm-ink); align-items: center; justify-content: center; cursor: pointer; }
+      .lm-right { width: 300px; }
+      .lm-right:not(.closed) { right: 14px; }
+    }
+    @media (max-width: 560px) {
+      .lm-topbar-title { font-size: .9rem; }
+      .lm-live-badge { padding: 4px 9px; font-size: .66rem; }
+      .lm-sync { display: none; }
+      .lm-right { width: 86vw; }
+      .lm-left { width: 88vw; }
+    }
+    @media (max-width: 860px) { body.live-map .main { position: relative; } }
+  </style>
+</head>
+<body data-page="map" data-role="municipality" class="live-map">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav"></nav>
+  </aside>
+
+  <div class="main">
+    <header class="lm-topbar">
+      <div class="lm-topbar-left">
+        <span class="lm-topbar-title">Live Operations Map</span>
+        <span class="lm-topbar-sub">Smart City Waste Management Control Center</span>
+      </div>
+      <div class="lm-live-wrap">
+        <span class="lm-demo-pill" id="lmDemoPill" style="display:none">DEMO MODE</span>
+        <span class="lm-live-badge" id="lmLiveBadge"><span class="dot"></span>LIVE</span>
+        <span class="lm-sync" id="lmSync">Last synchronized: --</span>
+        <span class="lm-topbar-time" id="lmClock"></span>
+      </div>
+    </header>
+
+    <div class="lm-body">
+      <button class="lm-mobile-toggle" id="lmMobilePanel" aria-label="Toggle driver panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+
+      <aside class="lm-left" id="lmLeft">
+        <div class="lm-left-scroll">
+          <div class="lm-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input id="lmSearchInput" placeholder="Search driver, vehicle or bin...">
+            <div class="lm-search-res" id="lmSearchRes"></div>
+          </div>
+
+          <div class="lm-summary">
+            <div class="lm-sum-card"><div class="k">Total Drivers</div><div class="v" id="lmSDrivers">0</div></div>
+            <div class="lm-sum-card active"><div class="k">Active</div><div class="v" id="lmSActive">0</div></div>
+            <div class="lm-sum-card onroute"><div class="k">On Route</div><div class="v" id="lmSOnroute">0</div></div>
+            <div class="lm-sum-card off"><div class="k">Offline</div><div class="v" id="lmSOffline">0</div></div>
+          </div>
+
+          <div class="lm-panel-head"><h3>Fleet Drivers</h3><span class="cnt" id="lmDrvCount">0</span></div>
+          <div class="lm-driver-list" id="lmDriverList">
+            <div class="lm-empty" id="lmDrvEmpty">Loading fleet...</div>
+          </div>
+
+          <div class="lm-panel-head" style="margin-top:14px"><h3>Collection Assignments</h3><span class="cnt" id="lmAssignCount">0</span></div>
+          <div class="lm-driver-list" id="lmAssignList">
+            <div class="lm-empty">Loading assignments...</div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="lm-map-wrap">
+        <div id="lmMap"></div>
+        <div class="lm-map-attribution">SmartBin · Fleet Control · OpenStreetMap</div>
+
+        <button class="lm-ctl-btn" id="lmLayersBtn" style="position:absolute;right:16px;top:16px;z-index:1250" aria-label="Layers">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </button>
+        <div class="lm-layer-menu" id="lmLayerMenu">
+          <h4>Map Layers</h4>
+          <div class="lm-layer-item on" data-layer="drivers"><span class="lm-check">&#10003;</span><span class="lx" style="background:#22c55e"></span>Drivers</div>
+          <div class="lm-layer-item on" data-layer="bins"><span class="lm-check">&#10003;</span><span class="lx" style="background:#22c55e"></span>Smart Bins</div>
+          <div class="lm-layer-item on" data-layer="routes"><span class="lm-check">&#10003;</span><span class="lx" style="background:#22d3ee"></span>Routes</div>
+          <div class="lm-layer-item on" data-layer="assignments"><span class="lm-check">&#10003;</span><span class="lx" style="background:#ef4444"></span>Assignments</div>
+          <div class="lm-layer-item on" data-layer="zones"><span class="lm-check">&#10003;</span><span class="lx" style="background:#a78bfa"></span>Zones</div>
+        </div>
+
+        <div class="lm-ctl-group" style="top:64px">
+          <button class="lm-ctl-btn" id="lmZoomIn" aria-label="Zoom in">+</button>
+          <button class="lm-ctl-btn" id="lmZoomOut" aria-label="Zoom out">&#8722;</button>
+        </div>
+        <div class="lm-ctl-group" style="top:160px">
+          <button class="lm-ctl-btn" id="lmLocate" aria-label="Center map">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          </button>
+          <button class="lm-ctl-btn" id="lmFullscreen" aria-label="Fullscreen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="lm-right closed" id="lmRight">
+        <div class="lm-right-head">
+          <h3 id="lmRightTitle">Details</h3>
+          <button class="lm-right-close" id="lmRightClose" aria-label="Close">&#10005;</button>
+        </div>
+        <div class="lm-right-body" id="lmRightBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/animations.js"></script>
+  <script src="assets/js/ws-init.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+  // Live Operations Map — Smart City Waste Management Control Center
+  (function () {
+    'use strict';
+    document.getElementById('nav-map') && document.getElementById('nav-map').classList.add('active');
+
+    var CITY = { lat: 18.5204, lng: 73.8567 };
+
+    /* ---------- honest data & demo policy ----------
+       Real driver GPS comes from GET /drivers/live (posted by the driver panel via
+       POST /drivers/location). A marker is only "live" when the backend reports a
+       valid, non-zero coordinate AND is_active=true.
+       DEMO_MODE synthesises clearly-labelled "DEMO LOCATION" movement ONLY to
+       demonstrate live updating when no real live GPS exists. Real data, when
+       present, always replaces demo. */
+    var DEMO_MODE = true;
+    var DEMO_LBL = 'DEMO LOCATION';
+    var STALE_SEC = 45;
+
+    var map = null;
+    var LIVE = [];
+    var BINS = [];
+    var DRIVERS = [];
+    var TASKS = [];            // backend collection-task assignments (municipality)
+    var markers = {};          // driver markers keyed by driver_id
+    var statuses = {};         // driver_id -> { kind, live, hasLoc, age }
+    var depots = {};           // driver_id -> demo last latlng
+    var binMarkers = L.layerGroup();
+    var driverLayer = L.layerGroup();
+    var routeLayer = L.layerGroup();
+    var zoneLayer = L.layerGroup();
+    var assignLayer = L.layerGroup();    // active assignment markers + routes
+    var assignMarkers = {};    // task_id -> Leaflet marker
+    var selectedId = null;
+    var layerState = { drivers: true, bins: true, routes: true, zones: true, assignments: true };
+    var lastSync = 0;
+    var demoActive = false;
+
+    function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function validCoord(lat, lng) { return lat != null && lng != null && isFinite(lat) && isFinite(lng) && Math.abs(lat) > 0.0001 && Math.abs(lng) > 0.0001; }
+    function num(v) { return (v == null || isNaN(Number(v))) ? 0 : Number(v); }
+
+    /* deterministic projection for bins that only have a text location */
+    function seedHash(s) { var h = 2166136261; s = String(s); for (var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return (h>>>0)/4294967295; }
+    function binPos(b) {
+      var a = seedHash('lat'+(b.dustbin_id||b.id)) * 360, r = 1.6 + seedHash((b.dustbin_id||b.id)) * 5;
+      return { lat: CITY.lat + (r/111) * Math.cos(a*Math.PI/180),
+               lng: CITY.lng + (r/(111*Math.cos(CITY.lat*Math.PI/180))) * Math.sin(a*Math.PI/180) };
+    }
+    function binClass(b) { var f = num(b.fill_level); var st = String(b.status||'').toUpperCase(); if (f>=80 || st==='FULL' || st==='COLLECTION') return 'red'; if (f>=40 || st==='READY' || st==='WARNING') return 'amber'; if (st==='OFFLINE') return 'grey'; return ''; }
+    function binColor(b) { var f = num(b.fill_level); return f >= 80 ? '#EF4444' : f >= 40 ? '#F59E0B' : b.status==='OFFLINE' ? '#94A3B8' : '#22C55E'; }
+    function binLabel(b) { var f = num(b.fill_level); var st = String(b.status||'').toUpperCase(); if (st==='OFFLINE') return 'OFFLINE'; if (f >= 80 || st==='FULL') return 'FULL'; if (f >= 40 || st==='READY') return 'READY'; return 'EMPTY'; }
+
+    /* ---------- tile + grid fallback ---------- */
+    var GridFallback = L.GridLayer.extend({
+      createTile: function (coords) {
+        var sz = this.getTileSize();
+        var tile = document.createElement('canvas');
+        tile.width = sz.x; tile.height = sz.y;
+        var ctx = tile.getContext('2d');
+        ctx.fillStyle = '#081120';
+        ctx.fillRect(0,0,sz.x,sz.y);
+        var step = 64;
+        for (var x=0;x<sz.x;x+=step){ ctx.strokeStyle='rgba(76,118,168,.12)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,sz.y); ctx.stroke(); }
+        for (var y=0;y<sz.y;y+=step){ ctx.strokeStyle='rgba(76,118,168,.12)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(sz.x,y+0.5); ctx.stroke(); }
+        // faint city-block weave
+        ctx.strokeStyle='rgba(59,130,246,.05)';
+        for (var i=0;i<12;i++){ ctx.beginPath(); ctx.moveTo(i*step,0); ctx.lineTo((i*step*1.5)%sz.x,sz.y); ctx.stroke(); }
+        return tile;
+      }
+    });
+
+    function initMap() {
+      map = L.map('lmMap', { center:[CITY.lat,CITY.lng], zoom:13, zoomControl:true, attributionControl:true });
+      // fallback grid (dark control-room backdrop) sits at pane bottom, always visible
+      new GridFallback({ tileSize: 256 }).addTo(map);
+      // keyless real roads via OpenStreetMap standard tiles, darkened with CSS filter
+      var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19, opacity: 1
+      }).addTo(map);
+      tiles.on('tileerror', function () { /* tiles may fall back to grid; keep map usable */ });
+
+      binMarkers.addTo(map);
+      driverLayer.addTo(map);
+      routeLayer.addTo(map);
+      zoneLayer.addTo(map);
+      assignLayer.addTo(map);
+      map.on('click', function () { selectDriver(null); });
+    }
+
+    /* ---------- zones (municipality operating area) ---------- */
+    function renderZones() {
+      zoneLayer.clearLayers();
+      var wards = ['ZONE A','ZONE B','ZONE C','ZONE D'];
+      wards.forEach(function (w, i) {
+        var ang = Math.PI/2 - i*Math.PI/2;
+        var lat = CITY.lat + (2.4/111)*Math.cos(ang), lng = CITY.lng + (1.9/(111*Math.cos(CITY.lat*Math.PI/180)))*Math.sin(ang);
+        L.circle([lat,lng], { radius: 900, color:'#a78bfa', weight:1.2, opacity:.5, dashArray:'4 6', fillOpacity:.04 })
+          .addTo(zoneLayer)
+          .bindTooltip('<span class="lm-zone-tag">'+w+'</span>', { direction:'top' });
+        L.marker([lat,lng], { interactive:false, icon: L.divIcon({ className:'', html:'<span class="lm-zone-tag">'+w+'</span>', iconSize:[60,18], iconAnchor:[30,0] }) }).addTo(zoneLayer);
+      });
+    }
+
+    /* ---------- data status model ---------- */
+    function ageSec(iso){ if(!iso) return null; return Math.max(0,(Date.now()-new Date(iso).getTime())/1000); }
+    function liveFor(id){ return LIVE.find(function(x){ return x.driver_id === Number(id); }); }
+
+    function resolveDriverState(d, t) {
+      // d: driver account record
+      var live = liveFor(d.id);
+      var hasLoc = live && validCoord(live.latitude, live.longitude);
+      var age = live ? ageSec(live.updated_at) : null;
+      var activeAcc = (d.status === 'active' || d.status === 'verified');
+      var kind, coord, demo=false;
+      if (hasLoc && live.is_active === true) {
+        kind = (age != null && age > STALE_SEC) ? 'stale' : 'live';
+        coord = { lat: live.latitude, lng: live.longitude };
+      } else if (hasLoc) {
+        // has a last-known coordinate but not currently broadcasting
+        kind = activeAcc ? (age != null && age > STALE_SEC ? 'stale' : 'stale') : 'offline';
+        kind = 'offline';
+        coord = { lat: live.latitude, lng: live.longitude };
+      } else {
+        // no valid backend coordinate at all
+        kind = activeAcc ? 'noloc' : 'offline';
+        coord = null;
+      }
+      // demo simulation only for active accounts lacking a real live fix
+      if (DEMO_MODE && activeAcc && (!hasLoc || !live) && kind !== 'live') {
+        demo = true;
+        kind = 'demo';
+        coord = demoCoord(d, t);
+      }
+      return { kind: kind, live: live, hasLoc: hasLoc, age: age, coord: coord, demo: demo, activeAcc: activeAcc };
+    }
+
+    /* generate (and persist) a clearly-labelled demo location near the operating area */
+    function demoCoord(d, t) {
+      var base = depots[d.id];
+      if (!base) {
+        var a = seedHash('demo' + d.id) * Math.PI * 2;
+        var r = seedHash('demo' + d.id + 'x') * 2.8 + 0.8;
+        base = { lat: CITY.lat + (r/111)*Math.cos(a), lng: CITY.lng + (r/(111*Math.cos(CITY.lat*Math.PI/180)))*Math.sin(a) };
+        depots[d.id] = base;
+      }
+      var k = t / 6000;
+      var dLat = Math.sin(k*0.9 + d.id) * 0.0022;
+      var dLng = Math.cos(k*0.7 + d.id) * 0.0022;
+      return { lat: base.lat + dLat, lng: base.lng + dLng };
+    }
+
+    function refreshStatuses(t) {
+      statuses = {};
+      DRIVERS.forEach(function (d) { statuses[d.id] = resolveDriverState(d, t); });
+      var anyRealLive = DRIVERS.some(function(d){ return statuses[d.id].kind === 'live'; });
+      var anyDemo = DRIVERS.some(function(d){ return statuses[d.id].demo; });
+      demoActive = anyDemo;
+      var pill = document.getElementById('lmDemoPill');
+      if (pill) pill.style.display = (anyDemo && !anyRealLive) ? 'inline-flex' : 'none';
+    }
+
+    /* ---------- driver markers ---------- */
+    function initials(name){ return String(name||'?').split(' ').map(function(w){return w?w[0]:'';}).join('').slice(0,2).toUpperCase(); }
+    function driverIconHtml(d, st) {
+      var live = (st.kind==='live'||st.kind==='demo') && !!st.coord;
+      var cls = st.kind==='demo'||st.kind==='live' ? (st.kind==='demo'?'cyan':'') : st.kind==='stale' ? 'stale' : 'grey';
+      var statusTxt = st.kind==='demo' ? 'DEMO' : live ? '● ACTIVE' : st.kind==='stale' ? 'STALE' : 'OFFLINE';
+      var emp = d.employee_id || ('EMP'+d.id);
+      var demoLab = st.demo ? ' demo-c' : '';
+      return '<div class="lm-driver-marker ' + cls + (Number(d.id)===Number(selectedId)?' sel':'') + '">' +
+        (live ? '<span class="pulse-ring"></span>' : '') +
+        (Number(d.id)===Number(selectedId) ? '<span class="sel-ring"></span>' : '') +
+        '<span class="veh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 11l1-4h12l1 4M5 11h14v5H5z"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/></svg></span>' +
+        '<span class="lab">' + esc(emp) + '<small class="' + demoLab + '">' + statusTxt + '</small></span></div>';
+    }
+
+    function makeDriverMarker(d, st) {
+      if (!st.coord) return null;
+      var icon = L.divIcon({ className:'', html: driverIconHtml(d, st), iconSize:[46,58], iconAnchor:[23,50] });
+      var m = L.marker([st.coord.lat, st.coord.lng], { icon: icon, zIndexOffset: st.kind==='live'||st.kind==='demo' ? 600 : 400 });
+      m.on('click', function (e) { L.DomEvent.stopPropagation(e); selectDriver(d.id); });
+      return m;
+    }
+    function syncDriverMarker(d, st) {
+      var existing = markers[d.id];
+      if (!st.coord) {
+        if (existing) { driverLayer.removeLayer(existing); delete markers[d.id]; }
+        return;
+      }
+      var icon = L.divIcon({ className:'', html: driverIconHtml(d, st), iconSize:[46,58], iconAnchor:[23,50] });
+      if (existing) {
+        existing.setIcon(icon);
+        existing.setLatLng([st.coord.lat, st.coord.lng]);
+        existing.setZIndexOffset(st.kind==='live'||st.kind==='demo' ? 600 : 400);
+      } else {
+        var nm = L.marker([st.coord.lat, st.coord.lng], { icon: icon, zIndexOffset: st.kind==='live'||st.kind==='demo' ? 600 : 400 });
+        nm.on('click', function (e) { L.DomEvent.stopPropagation(e); selectDriver(d.id); });
+        markers[d.id] = nm; driverLayer.addLayer(nm);
+      }
+    }
+    function refreshDriverMarkers(t) { DRIVERS.forEach(function(d){ syncDriverMarker(d, statuses[d.id]||resolveDriverState(d,t)); }); }
+
+    /* ---------- routes (only when route data exists) ---------- */
+    function assignedBinsFor(d) {
+      var area = String(d.assigned_area||'').toLowerCase();
+      var matched = area ? BINS.filter(function(b){ return String(b.location||'').toLowerCase().indexOf(area) !== -1; }) : [];
+      if (matched.length) return matched;
+      return BINS.filter(function(b){ return (num(b.fill_level)) >= 40; });
+    }
+    function renderRoutes(t) {
+      routeLayer.clearLayers();
+      function placePoint(p){ return [p.lat, p.lng]; }
+      DRIVERS.forEach(function (d) {
+        var st = statuses[d.id] || resolveDriverState(d, t);
+        if (!st.coord) return;
+        var hasRoute = !!String(d.assigned_route||'').trim();
+        var targets = assignedBinsFor(d).slice(0,6);
+        if (!targets.length && !hasRoute) return;
+        var pts = [[st.coord.lat, st.coord.lng]].concat(targets.map(function(b){ return placePoint(binPos(b)); }));
+        var line = L.polyline(pts, { color:'#22d3ee', weight:3, opacity:.6 }).addTo(routeLayer);
+        var sel = Number(d.id) === Number(selectedId);
+        line.setStyle({ color: sel ? '#3b82f6' : '#22d3ee', weight: sel?3.5:3, opacity: (sel||st.kind==='live') ? .7 : .22 });
+        targets.forEach(function(b){ var p=binPos(b); L.circleMarker([p.lat,p.lng], { radius:5, color:'#22d3ee', weight:1, fillColor:'#0a1422', fillOpacity:1, opacity:.75 }).addTo(routeLayer); });
+      });
+      applyLayer('routes');
+    }
+    function highlightRoute(id) {
+      routeLayer.eachLayer(function(l){
+        if (l instanceof L.Polyline) {
+          var sel = Number(id) && Number(id) === selectedId;
+          l.setStyle(sel ? { color:'#3b82f6', opacity:.9 } : { color:'#22d3ee', opacity:.22 });
+        }
+      });
+    }
+
+    /* ---------- automatic collection-task assignments (municipality) ---------- */
+    function activeAssigneeTask(t) { return t && ['ASSIGNED','ACCEPTED','ON_ROUTE','ARRIVED','COLLECTING'].indexOf(t.status) !== -1; }
+    function taskBin(t) { return BINS.filter(function(b){ return b.dustbin_id === t.dustbin_code; })[0] || null; }
+    function taskDriverLoc(t) {
+      var live = LIVE.filter(function(l){ return Number(l.driver_id) === Number(t.driver_id); })[0];
+      if (live && validCoord(live.latitude, live.longitude)) return [live.latitude, live.longitude];
+      return null;
+    }
+    function renderAssignments() {
+      assignLayer.clearLayers();
+      assignMarkers = {};
+      TASKS.forEach(function (t) {
+        if (!activeAssigneeTask(t)) return;
+        var bin = taskBin(t);
+        var binPt = bin ? [binPos(bin).lat, binPos(bin).lng] : null;
+        var drvPt = taskDriverLoc(t);
+        if (!binPt) return;
+        var pct = Math.round(t.fill_level || (bin ? bin.fill_level : 0));
+        var badgeCls = t.status === 'COLLECTING' ? 'collecting' : t.status === 'ARRIVED' ? 'arrived' : t.status === 'ON_ROUTE' ? 'onroute' : t.status === 'ACCEPTED' ? 'accepted' : 'assigned';
+        // dustbin alert marker override
+        var binIcon = L.divIcon({ className:'', html:
+          '<div class="lm-task-bin ' + badgeCls + '"><span class="t-pulse"></span>' +
+          '<b>' + esc(t.dustbin_code) + '</b><i>' + pct + '% FULL</i>' +
+          '<em>' + esc(t.driver_employee_id || t.driver_name || 'Unassigned') + '</em></div>',
+          iconSize:[64,52], iconAnchor:[32,26] });
+        var bm = L.marker([binPt[0], binPt[1]], { icon: binIcon, zIndexOffset: 800 });
+        bm.on('click', function(e){ L.DomEvent.stopPropagation(e); openTaskInfo(t); });
+        assignLayer.addLayer(bm); assignMarkers[t.task_id] = bm;
+        // route driver -> full dustbin (only when driver GPS available)
+        if (drvPt) {
+          L.polyline([drvPt, [binPt[0], binPt[1]]], {
+            color: t.status === 'COLLECTING' ? '#f59e0b' : '#22d3ee',
+            weight: 4, opacity: .85, dashArray: '6 6'
+          }).addTo(assignLayer);
+          L.circleMarker(drvPt, { radius: 6, color:'#22d3ee', weight:1, fillColor:'#0a1422', fillOpacity:1, opacity:.9 }).addTo(assignLayer);
+        }
+      });
+      applyLayer('assignments');
+      renderAssignmentsList();
+    }
+    function renderAssignmentsList() {
+      var host = document.getElementById('lmAssignList');
+      if (!host) return;
+      var active = TASKS.filter(activeAssigneeTask);
+      var pending = TASKS.filter(function(t){ return t.status === 'PENDING_ASSIGNMENT'; });
+      var countEl = document.getElementById('lmAssignCount');
+      if (countEl) countEl.textContent = active.length + pending.length;
+      var items = active.concat(pending).slice(0, 12);
+      host.innerHTML = (items.length ? items.map(function(t){
+        var stCls = t.status === 'PENDING_ASSIGNMENT' ? 'pend' : t.status === 'COLLECTING' ? 'collecting' : t.status === 'ARRIVED' ? 'arrived' : 'on';
+        var pct = Math.round(t.fill_level || 0);
+        return '<div class="asm-item ' + stCls + '" data-task="' + t.task_id + '">' +
+          '<span class="asm-ic"></span>' +
+          '<div><b>' + esc(t.dustbin_code) + ' &middot; ' + pct + '%</b>' +
+          '<small>' + (t.status === 'PENDING_ASSIGNMENT' ? 'No available driver — waiting' : (esc(t.driver_name||'') + ' &middot; ' + (t.distance_km!=null?t.distance_km.toFixed(1)+' km':'zone'))) + '</small></div>' +
+          '<span class="asm-st ' + stCls + '">' + esc(statusTag(t.status)) + '</span></div>';
+      }).join('') : '<div class="lm-empty">No active collection assignments.</div>');
+      host.querySelectorAll('.asm-item').forEach(function(it){
+        it.addEventListener('click', function(){
+          var tid = it.getAttribute('data-task');
+          var t = TASKS.filter(function(x){ return x.task_id === tid; })[0];
+          if (!t) return;
+          var bin = taskBin(t);
+          if (bin) map.flyTo([binPos(bin).lat, binPos(bin).lng], 16);
+          openTaskInfo(t);
+        });
+      });
+    }
+    function statusTag(s){ return s==='PENDING_ASSIGNMENT' ? 'PENDING' : s==='COLLECTING' ? 'COLLECTING' : s==='ARRIVED' ? 'ARRIVED' : s==='ON_ROUTE' ? 'ON ROUTE' : s==='ACCEPTED' ? 'ACCEPTED' : s==='COMPLETED' ? 'DONE' : s; }
+    function openTaskInfo(t) {
+      var bin = taskBin(t);
+      document.getElementById('lmRightTitle').textContent = 'Assignment';
+      document.getElementById('lmRight').classList.remove('closed');
+      var pct = Math.round(t.fill_level || 0);
+      document.getElementById('lmRightBody').innerHTML =
+        '<div class="lm-det-top">' +
+          '<div class="lm-det-av lm-av-asm">&#128663;</div>' +
+          '<div><b>' + esc(t.dustbin_code) + ' — Assignment</b><small>' + esc(t.task_id) + ' &middot; ' + esc(t.assignment_mode||'AUTOMATIC') + '</small><br>' +
+          '<span class="lm-det-st ' + (t.status==='PENDING_ASSIGNMENT'?'off':'nav') + '"><span class="st-dot"></span>' + esc(statusTag(t.status)) + '</span></div></div>' +
+        '<div class="lm-grid">' +
+          '<div class="lm-cell"><div class="k">Dustbin</div><div class="v">' + esc(t.dustbin_code) + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Fill Level</div><div class="v ' + (pct>=80?'warn':'') + '">' + pct + '%</div></div>' +
+          '<div class="lm-cell"><div class="k">Zone</div><div class="v">' + esc(t.zone||'—') + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Priority</div><div class="v">' + esc(t.priority||'HIGH') + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Assigned Driver</div><div class="v">' + esc(t.driver_name||'—') + '<small>' + esc(t.driver_employee_id||'') + '</small></div></div>' +
+          '<div class="lm-cell"><div class="k">Driver Status</div><div class="v">' + esc(statusTag(t.status)) + '</div></div>' +
+          (t.distance_km!=null ? '<div class="lm-cell"><div class="k">Distance</div><div class="v">' + t.distance_km.toFixed(1) + ' km</div></div>' : '') +
+          '<div class="lm-cell"><div class="k">Assigned</div><div class="v"><span class="lm-seconds">' + (t.assigned_at?timeAgo(t.assigned_at):'—') + '</span></div></div>' +
+        '</div>' +
+        '<div class="lm-section-title">Location</div><div class="lm-cell"><div class="k">Address</div><div class="v" style="font-size:.8rem">' + esc(bin?bin.location:'—') + '</div></div>';
+    }
+    async function loadTasks() {
+      try {
+        var a = await api.get('/tasks/assignments');
+        TASKS = (Array.isArray(a) ? a : (a.value||[]));
+        renderAssignments();
+      } catch(e) { /* keep existing */ }
+    }
+
+    /* ---------- bins ---------- */
+    function renderBins() {
+      binMarkers.clearLayers();
+      BINS.forEach(function (b) {
+        var p = binPos(b);
+        var c = binColor(b);
+        var cls = binClass(b);
+        var icon = L.divIcon({ className:'', html:
+          '<div class="lm-bin-marker ' + cls + '">' +
+          '<span class="pulse"></span>' +
+          '<span class="b-head" style="background:'+c+';border-color:'+c+'">' + Math.round(num(b.fill_level)) + '</span>' +
+          '<span class="b-lab">' + esc(b.dustbin_id || b.id) + '</span></div>',
+          iconSize: [34, 46], iconAnchor: [17, 34] });
+        var m = L.marker([p.lat, p.lng], { icon: icon });
+        m.on('click', function (e) { L.DomEvent.stopPropagation(e); openBin(b); });
+        m.on('mouseover', function () { this.bindTooltip('<b>'+esc(b.dustbin_id)+'</b> · '+Math.round(num(b.fill_level))+'% · '+binLabel(b)).openTooltip(); });
+        binMarkers.addLayer(m);
+      });
+      applyLayer('bins');
+    }
+    function assignedDriverOf(b) {
+      var bid = (b.dustbin_id||b.id);
+      var hit = DRIVERS.find(function(d){ return assignedBinsFor(d).some(function(x){ return (x.dustbin_id||x.id)===bid; }); });
+      return hit ? (hit.full_name + ' · ' + (hit.employee_id||('EMP'+hit.id))) : '—';
+    }
+
+    /* ---------- info panel ---------- */
+    function findAccountById(id){ return DRIVERS.find(function(x){ return x.id === Number(id); }); }
+    function timeAgo(iso){ if(!iso) return '--'; var s=Math.max(0,Math.floor((Date.now()-new Date(iso).getTime())/1000)); if(s<10) return 'just now'; if(s<60) return s+'s ago'; if(s<3600) return Math.floor(s/60)+'m ago'; return Math.floor(s/3600)+'h ago'; }
+
+    function markSel() {
+      document.querySelectorAll('.lm-dr-card').forEach(function(c){ c.classList.toggle('sel', Number(c.getAttribute('data-id'))===Number(selectedId)); });
+      DRIVERS.forEach(function(d){ var st=statuses[d.id]; if(st){ var mk=markers[d.id]; if(mk) mk.setIcon(L.divIcon({className:'',html:driverIconHtml(d,st),iconSize:[46,58],iconAnchor:[23,50]})); } });
+    }
+
+    function selectDriver(id) {
+      selectedId = id;
+      markSel();
+      highlightRoute(id);
+      var linked = findAccountById(id);
+      if (!id || !linked) { closeRight(); return; }
+      var st = statuses[id];
+      if (!st) { closeRight(); return; }
+      if (st.coord) map.flyTo([st.coord.lat, st.coord.lng], Math.max(map.getZoom(), 15), { duration:.8 });
+
+      var emp = linked.employee_id || ('EMP'+linked.id);
+      var izLive = (st.kind==='live'||st.kind==='demo');
+      var stCls = st.kind==='demo' ? 'demo' : st.kind==='live' ? 'nav' : st.kind==='stale' ? 'stale' : 'off';
+      var stTxt = st.kind==='demo' ? 'DEMO · ' + DEMO_LBL : st.kind==='live' ? 'ACTIVE' : st.kind==='stale' ? 'STALE LOCATION' : 'OFFLINE';
+      var upd = st.live ? timeAgo(st.live.updated_at) : '—';
+      var coordCell = st.coord
+        ? (st.coord.lat.toFixed(5) + ', ' + st.coord.lng.toFixed(5))
+        : '<span style="color:var(--lm-muted)">Location unavailable</span>';
+      var coordNote = st.demo ? '<span class="lm-seconds" style="color:#fbbf24">' + DEMO_LBL + '</span>' : (st.kind==='live' ? 'Live GPS' : 'Last known');
+      var activity = st.kind==='live' ? (String(linked.assigned_route||'').trim().length ? 'Collecting waste · On Route' : 'Active') : st.kind==='demo' ? 'Simulated route (demo)' : st.kind==='stale' ? 'Location stale' : 'Offline';
+      var zone = linked.assigned_area || 'Zone —';
+      var route = linked.assigned_route || '—';
+      var assignedN = assignedBinsFor(linked).length;
+
+      document.getElementById('lmRightTitle').textContent = 'Driver Details';
+      document.getElementById('lmRight').classList.remove('closed');
+      document.getElementById('lmRightBody').innerHTML =
+        '<div class="lm-det-top">' +
+          '<div class="lm-det-av">' + esc((linked.full_name||'?').charAt(0).toUpperCase()) + '</div>' +
+          '<div><b>' + esc(linked.full_name) + '</b><small>' + emp + ' &middot; Driver</small><br>' +
+          '<span class="lm-det-st ' + stCls + '"><span class="st-dot"></span>' + stTxt + '</span></div>' +
+        '</div>' +
+        '<div class="lm-grid">' +
+          '<div class="lm-cell"><div class="k">Current Location</div><div class="v">' + coordCell + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Source</div><div class="v">' + coordNote + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Status</div><div class="v">' + stTxt + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Assigned Zone</div><div class="v">' + esc(zone) + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Current Activity</div><div class="v">' + esc(activity) + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Last Updated</div><div class="v"><span class="lm-seconds">' + upd + '</span></div></div>' +
+        '</div>' +
+        '<div class="lm-section-title">Route</div>' +
+        '<div class="lm-grid">' +
+          '<div class="lm-cell"><div class="k">Route</div><div class="v">' + esc(route) + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Assigned Bins</div><div class="v">' + assignedN + '</div></div>' +
+        '</div>' +
+        '<div class="lm-route-meta"><span>Vehicle</span><b>' + esc(linked.vehicle_number || '—') + '</b></div>' +
+        '<div class="lm-route-meta"><span>Mobile</span><b>' + esc(linked.mobile || '—') + '</b></div>' +
+        '<button class="lm-cta" id="lmCenterBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>CENTER ON DRIVER</button>';
+
+      var btn = document.getElementById('lmCenterBtn');
+      if (btn) btn.addEventListener('click', function () { if (st.coord) map.flyTo([st.coord.lat, st.coord.lng], 16); });
+      setInterval(function(){ var el=document.getElementById('lmUpdTicker'); }, 100000000); // no-op safeguard
+    }
+
+    function openBin(b) {
+      var p = binPos(b);
+      document.getElementById('lmRightTitle').textContent = 'Smart Bin';
+      document.getElementById('lmRight').classList.remove('closed');
+      document.getElementById('lmRightBody').innerHTML =
+        '<div class="lm-bin-body">' +
+          '<div class="big" style="color:' + binColor(b) + '">' + Math.round(num(b.fill_level)) + '%</div>' +
+          '<span class="st-pill" style="background:'+binColor(b)+'22;color:'+binColor(b)+';border:1px solid '+binColor(b)+'55">' + binLabel(b) + '</span>' +
+        '</div>' +
+        '<div class="lm-section-title">Details</div>' +
+        '<div class="lm-grid">' +
+          '<div class="lm-cell"><div class="k">Bin ID</div><div class="v">' + esc(b.dustbin_id) + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Fill Level</div><div class="v">' + Math.round(num(b.fill_level)) + '%</div></div>' +
+          '<div class="lm-cell"><div class="k">Status</div><div class="v">' + esc(b.status||binLabel(b)) + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Battery</div><div class="v">' + (b.battery!=null?b.battery+'%':'—') + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Location</div><div class="v">' + esc(b.location||'—') + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Assigned Driver</div><div class="v">' + esc(assignedDriverOf(b)) + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Coordinates</div><div class="v" style="font-size:.78rem">' + p.lat.toFixed(4) + ', ' + p.lng.toFixed(4) + '</div></div>' +
+          '<div class="lm-cell"><div class="k">Last Updated</div><div class="v">' + (b.last_update?timeAgo(b.last_update):'—') + '</div></div>' +
+        '</div>' +
+        '<div class="lm-progress-row"><span>Fill</span><b>'+Math.round(num(b.fill_level))+'%</b></div>' +
+        '<div class="lm-progress"><span style="width:'+Math.min(100,num(b.fill_level))+'%"></span></div>';
+    }
+
+    /* ---------- search ---------- */
+    function doSearch(q) {
+      var box = document.getElementById('lmSearchRes');
+      q = (q||'').trim().toLowerCase();
+      if (!q) { box.classList.remove('open'); box.innerHTML=''; return; }
+      var hits = [];
+      DRIVERS.forEach(function(d){
+        var s = (d.full_name+' '+(d.employee_id||'')+' '+(d.vehicle_number||'')+' '+(d.assigned_area||'')+' '+(d.assigned_route||'')).toLowerCase();
+        if (s.indexOf(q) !== -1) hits.push({ type:'driver', id:d.id, name:d.full_name, sub:(d.employee_id||'EMP'+d.id)+' · '+(d.assigned_area||'—') });
+      });
+      BINS.forEach(function(b){
+        var s = (b.dustbin_id+' '+(b.location||'')).toLowerCase();
+        if (s.indexOf(q) !== -1) hits.push({ type:'bin', id:b.dustbin_id, name:b.dustbin_id, sub:(b.location||'—')+' · '+Math.round(num(b.fill_level))+'%' });
+      });
+      box.innerHTML = hits.slice(0,10).map(function(h,i){
+        return '<div class="lm-search-item" data-i="'+i+'"><span class="si-ic '+(h.type==='driver'?'drv':'bin')+'">'+(h.type==='driver'?(h.name||'?').charAt(0).toUpperCase():'B')+'</span>' +
+          '<div><b>'+esc(h.name)+'</b><small>'+esc(h.sub)+'</small></div></div>';
+      }).join('') || '<div class="lm-search-item" style="color:var(--lm-muted)">No matches</div>';
+      box._hits = hits;
+      box.classList.add('open');
+      Array.prototype.forEach.call(box.querySelectorAll('.lm-search-item[data-i]'), function(it){
+        it.addEventListener('click', function(){
+          var h = box._hits[Number(it.getAttribute('data-i'))];
+          box.classList.remove('open');
+          document.getElementById('lmSearchInput').value = h.type==='driver' ? h.name : h.name;
+          if (h.type==='driver') { selectDriver(h.id); }
+          else { var b=BINS.find(function(x){return x.dustbin_id===h.id;}); if(b){ var p=binPos(b); map.flyTo([p.lat,p.lng],16); openBin(b);} }
+        });
+      });
+    }
+
+    /* ---------- left panel + stats ---------- */
+    function renderLeft() {
+      var total = DRIVERS.length;
+      var liveCount = DRIVERS.filter(function(d){ var s=statuses[d.id]; return s && (s.kind==='live'); }).length;
+      var onroute = DRIVERS.filter(function(d){ var s=statuses[d.id]; return s && s.kind==='live' && String(d.assigned_route||'').trim().length; }).length;
+      var offline = total - liveCount;
+      document.getElementById('lmSDrivers').innerHTML = total + '<small>total</small>';
+      document.getElementById('lmSActive').innerHTML = liveCount + '<small>live</small>';
+      document.getElementById('lmSOnroute').innerHTML = onroute + '<small>on route</small>';
+      document.getElementById('lmSOffline').innerHTML = Math.max(0, offline) + '<small>offline</small>';
+      document.getElementById('lmDrvCount').textContent = total;
+
+      var list = document.getElementById('lmDriverList');
+      var empty = document.getElementById('lmDrvEmpty');
+      if (!DRIVERS.length) { list.innerHTML = '<div class="lm-empty">No drivers found</div>'; return; }
+      empty && (empty.style.display='none');
+      list.innerHTML = DRIVERS.map(function(d){
+        var s = statuses[d.id] || resolveDriverState(d, Date.now());
+        var live = (s.kind==='live'||s.kind==='demo') && !!s.coord;
+        var stCls = s.kind==='demo' ? 'demo' : s.kind==='live' ? 'nav' : s.kind==='stale' ? 'stale' : 'off';
+        var stTxt = s.kind==='demo' ? 'DEMO' : s.kind==='live' ? 'ACTIVE' : s.kind==='stale' ? 'STALE' : 'OFFLINE';
+        var lvCls = s.kind==='live'||s.kind==='demo' ? (String(d.assigned_route||'').trim().length?'nav':'on') : (s.kind==='stale'?'stale':'off');
+        var upd = s.live ? timeAgo(s.live.updated_at) : (s.demo ? 'demo' : '—');
+        var activity = s.kind==='live' ? (String(d.assigned_route||'').trim().length ? 'On Route' : 'Active') : s.kind==='demo' ? 'Simulated (demo)' : s.kind==='stale' ? 'Stale' : 'Offline';
+        var zone = d.assigned_area || 'Zone —';
+        var demoRow = s.demo ? '<div class="row"><span>Location</span><b class="demox">'+DEMO_LBL+'</b></div>' : '';
+        return '<div class="lm-dr-card' + (Number(d.id)===Number(selectedId)?' sel':'') + '" data-id="'+d.id+'">' +
+          '<div class="lm-dr-top">' +
+            '<div class="lm-dr-av">' + esc((d.full_name||'?').charAt(0).toUpperCase()) + (s.demo?'<span class="demo-tag">DEMO</span>':'') + '<span class="lv ' + lvCls + '"></span></div>' +
+            '<div class="lm-dr-meta"><b>' + esc(d.full_name) + '</b><span class="id">' + esc(d.employee_id||('EMP'+d.id)) + '</span>' +
+            '<span class="lm-dr-st ' + stCls + '"><span class="st-dot"></span>' + stTxt + '</span></div>' +
+          '</div>' +
+          '<div class="lm-dr-detail">' +
+            '<div class="row"><span>Current activity</span><b>' + esc(activity) + '</b></div>' +
+            '<div class="row"><span>Assigned zone</span><b>' + esc(zone) + '</b></div>' +
+            demoRow +
+            '<div class="row"><span>Last updated</span><b class="upd">' + upd + '</b></div>' +
+          '</div></div>';
+      }).join('');
+      list.querySelectorAll('.lm-dr-card').forEach(function(c){
+        c.addEventListener('click', function(){
+          selectDriver(c.getAttribute('data-id'));
+          if (window.innerWidth <= 860) document.getElementById('lmLeft').classList.remove('open');
+        });
+      });
+    }
+
+    function closeRight() { document.getElementById('lmRight').classList.add('closed'); selectedId = null; markSel(); }
+
+    /* ---------- layer toggles ---------- */
+    function applyLayer(k) {
+      var g = { bins: binMarkers, drivers: driverLayer, routes: routeLayer, zones: zoneLayer, assignments: assignLayer }[k];
+      if (!g) return;
+      if (layerState[k]) { if (!map.hasLayer(g)) g.addTo(map); }
+      else if (map.hasLayer(g)) g.removeFrom(map);
+    }
+
+    /* ---------- auto focus ---------- */
+    function autoFocus() {
+      var pts = [];
+      DRIVERS.forEach(function(d){ var s=statuses[d.id]; if(s && s.coord) pts.push([s.coord.lat,s.coord.lng]); });
+      BINS.forEach(function(b){ var p=binPos(b); pts.push([p.lat,p.lng]); });
+      if (pts.length) {
+        map.fitBounds(L.latLngBounds(pts).pad(0.2), { maxZoom: 15 });
+      } else {
+        map.setView([CITY.lat, CITY.lng], 13);
+      }
+    }
+
+    /* ---------- sync ---------- */
+    var syncing = false;
+    async function loadBins() {
+      try {
+        var b = await api.get('/dustbins/');
+        BINS = Array.isArray(b) ? b : (b.value||[]);
+        renderBins();
+        if (!map.getBounds().isValid()) renderZones();
+        focusQueryBin();
+      } catch(e) {}
+    }
+
+    /* focus a specific bin passed via ?bin=ID (from Nearby Bins "View on Map") */
+    var _focusedQ = false;
+    function focusQueryBin() {
+      if (_focusedQ) return;
+      var q = new URLSearchParams(window.location.search).get('bin');
+      if (!q) return;
+      _focusedQ = true;
+      var b = BINS.find(function(x){ return String((x.dustbin_id||x.id||'')) === String(q); });
+      if (!b) return;
+      var p = binPos(b);
+      map.flyTo([p.lat, p.lng], 16, { duration: 1 });
+      openBin(b);
+    }
+    async function loadDrivers(first) {
+      if (syncing) return;
+      syncing = true;
+      try {
+        var live = await api.get('/drivers/live');
+        LIVE = Array.isArray(live) ? live : (live.value||[]);
+      } catch(e) { }
+      try {
+        var acc = await api.get('/auth/accounts?role=driver');
+        var accs = Array.isArray(acc) ? acc : (acc.value||[]);
+        DRIVERS = accs;
+        LIVE.forEach(function(l){
+          var idx = DRIVERS.findIndex(function(x){ return x.id === l.driver_id; });
+          if (idx === -1) {
+            DRIVERS.push({ id:l.driver_id, full_name:l.driver_name||('Driver '+l.driver_id), employee_id:l.driver_employee_id, vehicle_number:l.vehicle_number, assigned_area:l.assigned_area, assigned_route:l.assigned_route, status:l.status });
+          }
+        });
+        refreshStatuses(Date.now());
+        refreshDriverMarkers(Date.now());
+        renderLeft();
+        renderRoutes(Date.now());
+        // remove markers dropped from data
+        Object.keys(markers).forEach(function(id){
+          if (!DRIVERS.some(function(d){ return d.id === Number(id); })) { var mm=markers[id]; if(mm) driverLayer.removeLayer(mm); delete markers[id]; }
+        });
+        lastSync = Date.now();
+        var sy = document.getElementById('lmSync'); if (sy) sy.textContent = 'Last synchronized: just now';
+        document.getElementById('lmLiveBadge').classList.remove('stale');
+        if (first) autoFocus();
+      } catch(e) {}
+      syncing = false;
+    }
+
+    /* ---------- controls ---------- */
+    function initControls() {
+      document.getElementById('lmZoomIn').addEventListener('click', function(){ map.zoomIn(); });
+      document.getElementById('lmZoomOut').addEventListener('click', function(){ map.zoomOut(); });
+      document.getElementById('lmFullscreen').addEventListener('click', function(){
+        if (document.fullscreenElement) document.exitFullscreen();
+        else document.documentElement.requestFullscreen();
+      });
+      document.getElementById('lmLocate').addEventListener('click', function(){
+        if (selectedId) { var s=statuses[selectedId]; if(s && s.coord) map.flyTo([s.coord.lat,s.coord.lng],16); return; }
+        autoFocus();
+      });
+      document.getElementById('lmLayersBtn').addEventListener('click', function(e){ e.stopPropagation(); document.getElementById('lmLayerMenu').classList.toggle('open'); });
+      document.getElementById('lmLayerMenu').querySelectorAll('.lm-layer-item').forEach(function(it){
+        it.addEventListener('click', function(){
+          var k = this.getAttribute('data-layer');
+          layerState[k] = !layerState[k];
+          this.classList.toggle('on', layerState[k]);
+          applyLayer(k);
+        });
+      });
+      document.getElementById('lmRightClose').addEventListener('click', closeRight);
+      document.getElementById('lmMobilePanel').addEventListener('click', function(){ document.getElementById('lmLeft').classList.toggle('open'); });
+      document.getElementById('lmSearchInput').addEventListener('input', function(){ doSearch(this.value); });
+      document.addEventListener('click', function(e){
+        if (!e.target.closest('.lm-search') && !e.target.closest('#lmLayerMenu')) {
+          var r=document.getElementById('lmSearchRes'); if(r) r.classList.remove('open');
+          var m=document.getElementById('lmLayerMenu'); if(m) m.classList.remove('open');
+        }
+      });
+      setInterval(function(){ if(selectedId){ var el=document.querySelector('#lmRightBody .lm-seconds'); if(el){ var s=statuses[selectedId]; el.textContent = s&&s.live?timeAgo(s.live.updated_at):(s&&s.demo?'demo':'—'); } } }, 3000);
+      setInterval(function(){
+        var sy = document.getElementById('lmSync');
+        if (lastSync) sy.textContent = 'Last synchronized: ' + timeAgo(new Date(lastSync).toISOString());
+        if (Date.now() - lastSync > 30000) document.getElementById('lmLiveBadge').classList.add('stale');
+      }, 5000);
+    }
+
+    function tickClock(){ var el=document.getElementById('lmClock'); if(el) el.textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      initMap();
+      renderZones();
+      initControls();
+      tickClock(); setInterval(tickClock, 1000);
+      loadBins();
+      loadDrivers(true);
+      loadTasks();
+      setInterval(function(){ loadDrivers(false); }, 6000);
+      setInterval(loadBins, 30000);
+      setInterval(loadTasks, 5000);
+      setInterval(loadDrivers, 15000);
+    });
+  })();
+  </script>
+</body>
+</html>

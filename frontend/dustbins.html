@@ -1,0 +1,250 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dustbins | SmartBin</title>
+<link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    .qr-cell { width: 80px; height: 80px; }
+    .qr-cell canvas, .qr-cell img { width: 70px !important; height: 70px !important; }
+    .qr-modal-display { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .qr-modal-display .qr-big canvas, .qr-modal-display .qr-big img { width: 200px !important; height: 200px !important; }
+    .qr-link { font-size: .75rem; color: var(--primary); cursor: pointer; text-decoration: underline; margin-top: 4px; display: block; }
+  </style>
+</head>
+<body data-page="dustbins" data-role="municipality">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="index.html" id="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="drivers.html" id="nav-employees">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0113 0"/></svg>
+        Employees
+      </a>
+      <a href="dustbins.html" id="nav-dustbins">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        Dustbins
+      </a>
+      <a href="leaderboard.html" id="nav-leaderboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-4 5h8l-4-5z"/><circle cx="12" cy="9" r="6"/><path d="M9 9l2 2 4-4"/></svg>
+        Leaderboard
+      </a>
+      <a href="complaints.html" id="nav-complaints">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Complaints
+      </a>
+      <a href="scan.html" id="nav-scan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><path d="M20 14v3h-3M20 20h-3"/></svg>
+        QR Scan
+      </a>
+    </nav>
+  </aside>
+<div class="main">
+  <header class="topbar">
+    <span class="topbar-title">Dustbin Management</span>
+    <div class="topbar-actions"><div class="avatar">A</div></div>
+  </header>
+  <div class="content">
+    <div class="panel">
+      <div class="panel-header">
+        <h2>All Dustbins</h2>
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Dustbin
+        </button>
+      </div>
+      <div class="panel-body">
+        <table>
+          <thead><tr><th>ID</th><th>Location</th><th>Fill Level</th><th>Status</th><th>QR Code</th><th>Actions</th></tr></thead>
+          <tbody id="binTable"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--gray-400)">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Dustbin Modal -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Register New Dustbin</h3><button class="modal-close" onclick="closeAddModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Dustbin ID</label><input class="form-control" id="fBinId" placeholder="e.g. DB009"></div>
+        <div class="form-group"><label>Location</label><input class="form-control" id="fLocation" placeholder="e.g. Main Lobby"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeAddModal()">Cancel</button><button class="btn btn-primary" onclick="addBin()">Register Dustbin</button></div>
+  </div>
+</div>
+
+<!-- QR Code View Modal -->
+<div class="modal-overlay" id="qrModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="qrModalTitle">QR Code</h3><button class="modal-close" onclick="closeQrModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="qr-modal-display">
+        <div class="qr-big" id="qrBig"></div>
+        <p style="color:var(--gray-500);font-size:.85rem" id="qrText"></p>
+        <p style="color:var(--gray-400);font-size:.75rem">Users scan this QR code to raise complaints about this dustbin</p>
+        <button class="btn btn-primary btn-sm" onclick="printQR()">Print QR Code</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Digital Twin Modal -->
+<div class="twin-overlay" id="twinModal">
+  <div class="twin-card">
+    <div class="twin-top">
+      <h3>Digital Twin &mdash; <span id="twinTitle">Bin</span></h3>
+      <button class="twin-close" onclick="closeTwin()">&times;</button>
+    </div>
+    <div class="twin-grid">
+      <div class="twin-visual">
+        <div class="twin-bin"><div class="twin-fill" id="twinFill"></div></div>
+        <div class="twin-sensors">
+          <div class="twin-chip"><span class="st"><span class="status-dot2" id="tFire"></span>Fire</span><span class="val" id="tFireVal">--</span></div>
+          <div class="twin-chip"><span class="st"><span class="status-dot2" id="tGas"></span>Gas</span><span class="val" id="tGasVal">--</span></div>
+          <div class="twin-chip"><span class="st"><span class="status-dot2" id="tBatt"></span>Battery</span><span class="val" id="tBattVal">--</span></div>
+          <div class="twin-chip"><span class="st"><span class="status-dot2" id="tGps"></span>GPS</span><span class="val" id="tGpsVal">OK</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="tt-head"><strong id="twinLoc">--</strong></div>
+        <div class="tt-row">Fill level</div>
+        <div class="fill-bar-bg"><div class="fill-bar" id="twinFillBar" style="width:0%"></div></div>
+        <div class="twin-stats">
+          <div class="twin-stat"><div class="num" id="tStatFill">--</div><div class="lbl">Fill %</div></div>
+          <div class="twin-stat"><div class="num" id="tStatTemp">--</div><div class="lbl">Temp &deg;C</div></div>
+          <div class="twin-stat"><div class="num" id="tStatVol">--</div><div class="lbl">Volume L</div></div>
+        </div>
+        <div class="tt-row">Status</div>
+        <div id="twinStatus"></div>
+        <div class="tt-row tt-sub">Syncs live with IoT sensors via the Smart City network.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/ws-init.js"></script>
+<script>
+document.getElementById('nav-dustbins').classList.add('active');
+
+function openAddModal(){document.getElementById('addModal').classList.add('show');}
+function closeAddModal(){document.getElementById('addModal').classList.remove('show');}
+function closeQrModal(){document.getElementById('qrModal').classList.remove('show');document.getElementById('qrBig').innerHTML='';}
+
+function showQR(dustbinId, location) {
+    document.getElementById('qrModal').classList.add('show');
+    document.getElementById('qrModalTitle').textContent = 'QR Code - ' + dustbinId;
+    document.getElementById('qrBig').innerHTML = '';
+    // The QR encodes a complaint URL with dustbin ID
+    var complaintUrl = window.location.origin + '/complaint.html?dustbin=' + dustbinId;
+    document.getElementById('qrText').textContent = complaintUrl;
+    new QRCode(document.getElementById('qrBig'), {
+        text: complaintUrl,
+        width: 200, height: 200,
+        colorDark: '#111827', colorLight: '#ffffff',
+    });
+}
+
+function printQR() {
+    var content = document.getElementById('qrBig').innerHTML;
+    var title = document.getElementById('qrModalTitle').textContent;
+    var w = window.open('', '_blank');
+    w.document.write('<html><head><title>'+title+'</title><style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif}h2{margin-bottom:20px}img,canvas{width:300px!important;height:300px!important}</style></head><body data-role="municipality"><h2>'+title+'</h2>'+content+'<p style="margin-top:16px;color:#666">Scan to report an issue</p></body></html>');
+    w.document.close();
+    w.print();
+}
+
+async function loadBins(){
+    try{
+const bins=await api.get('/dustbins/');
+        currentBins = bins;
+        const tbody=document.getElementById('binTable');
+        if(!bins.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--gray-400)">No dustbins registered.</td></tr>';return;}
+        tbody.innerHTML = bins.map(b => {
+            return '<tr><td><strong>'+b.dustbin_id+'</strong></td><td>'+(b.location||'--')+'</td><td>'+fillBar(b.fill_level)+' <small>'+b.fill_level.toFixed(0)+'%</small></td><td>'+statusBadge(b.status)+'</td><td><div class="qr-cell" id="qr-'+b.dustbin_id+'"></div><span class="qr-link" onclick="showQR(\''+b.dustbin_id+'\',\''+(b.location||'')+'\')">View Large</span></td><td><button class="btn btn-outline btn-sm" onclick="openTwin(\''+b.dustbin_id+'\')">Twin</button> <button class="btn btn-danger btn-sm" onclick="deleteBin(\''+b.dustbin_id+'\')">Delete</button></td></tr>';
+}).join('');
+        // Animate fill bars growing into place
+        SmartCity.animateFillBars(tbody);
+        // Render small QR codes in each row
+        bins.forEach(b => {
+            var el = document.getElementById('qr-' + b.dustbin_id);
+            if (el) {
+                var url = window.location.origin + '/complaint.html?dustbin=' + b.dustbin_id;
+                new QRCode(el, { text: url, width: 70, height: 70, colorDark: '#111827', colorLight: '#ffffff' });
+            }
+        });
+    }catch(e){showToast('Failed to load','error');}
+}
+
+async function addBin(){
+    const body={dustbin_id:document.getElementById('fBinId').value,location:document.getElementById('fLocation').value};
+    if(!body.dustbin_id){showToast('Dustbin ID is required','error');return;}
+    try{await api.post('/dustbins/',body);showToast('Dustbin registered!');closeAddModal();loadBins();}catch(e){showToast(e.message,'error');}
+}
+
+async function deleteBin(id){if(!confirm('Delete '+id+'?'))return;try{await api.del('/dustbins/'+id);showToast('Deleted');loadBins();}catch(e){showToast(e.message,'error');}}
+
+var currentBins = [];
+
+function openTwin(id) {
+    var b = currentBins.filter(function (x) { return x.dustbin_id === String(id); })[0];
+    if (!b) { showToast('Bin not found', 'error'); return; }
+    var h = Math.round(SmartCity.seedHash(b.dustbin_id) * 10000);
+    var rand = function (n) { return (h % n); };
+    var fire = rand(100) > 92 ? 'RISK' : 'SAFE';
+    var gas = 30 + Math.round(SmartCity.seedHash(b.dustbin_id) * 160 + b.fill_level * 1.1);
+    var batt = 55 + rand(45);
+    var temp = Math.round(24 + rand(10));
+
+    document.getElementById('twinModal').classList.add('open');
+    document.getElementById('twinTitle').textContent = b.dustbin_id;
+    document.getElementById('twinLoc').textContent = b.location || 'Location unknown';
+    var fill = Math.round(b.fill_level || 0);
+    document.getElementById('twinFill').style.height = fill + '%';
+    document.getElementById('twinFillBar').style.width = fill + '%';
+    document.getElementById('tStatFill').textContent = fill;
+    document.getElementById('tStatTemp').textContent = temp;
+    document.getElementById('tStatVol').textContent = Math.round(240 * (fill / 100));
+
+    var fireEl = document.getElementById('tFire'), fireVal = document.getElementById('tFireVal');
+    fireEl.className = 'status-dot2 ' + (fire === 'SAFE' ? 'good' : 'bad');
+    fireVal.textContent = fire;
+    var gasEl = document.getElementById('tGas'), gasVal = document.getElementById('tGasVal');
+    gasEl.className = 'status-dot2 ' + (gas > 200 ? 'warn' : 'good');
+    gasVal.textContent = gas + ' ppm';
+    var battEl = document.getElementById('tBatt'), battVal = document.getElementById('tBattVal');
+    battEl.className = 'status-dot2 ' + (batt > 60 ? 'good' : 'warn');
+    battVal.textContent = batt + '%';
+    document.getElementById('tGps').className = 'status-dot2 good';
+
+    var statusEl = document.getElementById('twinStatus');
+    statusEl.innerHTML = statusBadge(b.status);
+    if (b.status === 'FILLED') {
+        SmartCity.notify({ title: 'Twin inspection', body: b.dustbin_id + ' is FILLED. Schedule pickup.', type: 'warning' });
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function closeTwin() { document.getElementById('twinModal').classList.remove('open'); }
+document.getElementById('twinModal').addEventListener('click', function (e) { if (e.target === this) closeTwin(); });
+
+loadBins();
+</script>
+</body>
+</html>

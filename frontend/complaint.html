@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Report Issue | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+  <style>
+    body { background: linear-gradient(135deg, #dbeafe 0%, #f9fafb 50%, #dcfce7 100%); }
+    .complaint-container { max-width: 540px; margin: 40px auto; padding: 0 20px; }
+    .complaint-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: hidden; }
+    .complaint-header { background: var(--primary); color: #fff; padding: 28px 32px; text-align: center; }
+    .complaint-header h1 { font-size: 1.3rem; margin-bottom: 6px; }
+    .complaint-header p { opacity: .85; font-size: .9rem; }
+    .complaint-body { padding: 32px; }
+    .complaint-success { text-align: center; padding: 40px 32px; display: none; }
+    .complaint-success svg { width: 64px; height: 64px; color: var(--success); margin-bottom: 16px; }
+    .complaint-success h2 { color: var(--gray-800); margin-bottom: 8px; }
+    .complaint-success p { color: var(--gray-500); }
+    .dustbin-info { background: var(--primary-light); border-radius: var(--radius-sm); padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+    .dustbin-info strong { color: var(--primary); font-size: 1.1rem; }
+    .dustbin-info small { color: var(--gray-500); }
+.location-status { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--gray-50); border-radius: var(--radius-sm); margin-bottom: 20px; font-size: .85rem; justify-content: space-between; }
+    .location-status.capturing { color: var(--warning); }
+    .location-status.captured { color: var(--success); }
+    .location-status.failed { color: var(--danger); }
+    .location-status .loc-text { flex: 1; }
+    .loc-actions { display: flex; align-items: center; flex: 0 0 auto; }
+    .loc-btn { font-family: inherit; font-size: .76rem; font-weight: 700; padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--primary); color: var(--primary); background: #fff; cursor: pointer; white-space: nowrap; transition: background .15s; }
+    .loc-btn:hover { background: var(--primary-light); }
+  </style>
+</head>
+<body>
+  <div class="complaint-container">
+    <div class="complaint-card">
+      <div class="complaint-header">
+        <h1>Report a Dustbin Issue</h1>
+        <p>Help us keep the environment clean</p>
+      </div>
+
+      <!-- Form -->
+      <div class="complaint-body" id="formSection">
+        <div class="dustbin-info" id="dustbinInfo" style="display:none">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          <div><strong id="dustbinIdDisplay"></strong><br><small id="dustbinLocDisplay"></small></div>
+        </div>
+
+        <div class="form-group" id="dustbinIdGroup">
+          <label>Dustbin ID</label>
+          <input class="form-control" id="cDustbin" placeholder="e.g. DB002">
+        </div>
+
+        <div class="form-group">
+          <label>Your Name *</label>
+          <input class="form-control" id="cName" placeholder="Your full name">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input class="form-control" id="cPhone" placeholder="Optional contact number">
+        </div>
+<div class="form-group">
+          <label>Issue Category</label>
+          <select class="form-control" id="cCategory">
+            <option value="">Select a category...</option>
+            <option>Overflowing bin</option>
+            <option>Bad smell</option>
+            <option>Damaged / broken lid</option>
+            <option>Vandalism</option>
+            <option>Stray animals</option>
+            <option>Burning / smoke near bin</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Photo (optional)</label>
+          <input type="file" class="form-control" id="cPhoto" accept="image/*" onchange="previewPhoto(event)">
+          <div id="photoPreview" style="display:none;margin-top:12px;border-radius:var(--radius-sm);overflow:hidden;max-width:220px"></div>
+        </div>
+        <div class="form-group">
+          <label>Describe the Issue *</label>
+          <textarea class="form-control" id="cDesc" rows="4" placeholder="e.g. Dustbin is overflowing, bad smell, damaged lid..."></textarea>
+        </div>
+
+<div class="location-status" id="locationStatus">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 10-16 0c0 3 2.7 7 8 11.7z"/></svg>
+          <span class="loc-text" id="locText">Location optional — enabling live location helps our team reach you faster.</span>
+          <div class="loc-actions">
+            <button type="button" class="loc-btn" id="locBtn" onclick="toggleLocation()">Enable Live Location</button>
+          </div>
+        </div>
+
+        <input type="hidden" id="cLat">
+        <input type="hidden" id="cLng">
+        <input type="hidden" id="cAddr">
+
+        <button class="btn btn-primary" onclick="submitComplaint()" style="width:100%;justify-content:center;padding:14px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
+          Submit Complaint
+        </button>
+      </div>
+
+<!-- Success -->
+      <div class="complaint-success" id="successSection">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+        <h2>Complaint Submitted!</h2>
+        <p>Thank you for reporting. Our team will address this issue promptly.</p>
+        <div id="smartTimeline"></div>
+        <button class="btn btn-outline" onclick="resetForm()" style="margin-top:20px">Report Another Issue</button>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:20px;color:var(--gray-400);font-size:.8rem">Powered by SmartBin Management System</p>
+  </div>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/ws-init.js"></script>
+<script>
+// Auto-fill dustbin ID from URL query param (from QR code)
+const params = new URLSearchParams(window.location.search);
+const dustbinFromQR = params.get('dustbin');
+if (dustbinFromQR) {
+    document.getElementById('cDustbin').value = dustbinFromQR;
+    document.getElementById('dustbinIdGroup').style.display = 'none';
+    // Fetch dustbin info
+    api.get('/dustbins/' + dustbinFromQR).then(d => {
+        document.getElementById('dustbinInfo').style.display = 'flex';
+        document.getElementById('dustbinIdDisplay').textContent = d.dustbin_id;
+        document.getElementById('dustbinLocDisplay').textContent = d.location || 'Location not set';
+    }).catch(() => {
+        document.getElementById('dustbinIdGroup').style.display = 'block';
+    });
+}
+
+// Live location capture (optional — the complaint still submits without it)
+const loc = { watching: false, watchId: null, active: false };
+
+function locSupported() {
+    return !!window.isSecureContext && !!navigator.geolocation;
+}
+
+function setLoc(state, text, btn) {
+    const st = document.getElementById('locationStatus');
+    st.className = state ? 'location-status ' + state : 'location-status';
+    document.getElementById('locText').textContent = text;
+    document.getElementById('locBtn').textContent = btn;
+}
+
+function toggleLocation() {
+    if (loc.active || loc.watching) { stopLiveLocation(); return; }
+    enableLiveLocation();
+}
+
+function enableLiveLocation() {
+    if (!locSupported()) return;
+    setLoc('capturing', 'Requesting your location...', 'Stop');
+    const opts = { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 };
+    if (!loc.watching) {
+        loc.watchId = navigator.geolocation.watchPosition(locOnFix, locOnFail, opts);
+        loc.watching = true;
+    }
+}
+
+function locOnFix(pos) {
+    loc.active = true;
+    document.getElementById('cLat').value = pos.coords.latitude;
+    document.getElementById('cLng').value = pos.coords.longitude;
+    const acc = pos.coords.accuracy ? ' ±' + Math.round(pos.coords.accuracy) + 'm' : '';
+    const live = pos.coords.latitude.toFixed(5) + ', ' + pos.coords.longitude.toFixed(5);
+    setLoc('captured', 'Live location active (' + live + acc + ') — updates as you move.', 'Stop');
+}
+
+function locOnFail(err) {
+    loc.active = false;
+    if (loc.watching) { navigator.geolocation.clearWatch(loc.watchId); loc.watching = false; loc.watchId = null; }
+    const code = err && err.code;
+    if (code === 1) {
+        setLoc('failed', 'Location permission denied — enable location access in your browser settings, then try again.', 'Try Again');
+    } else if (code === 2) {
+        setLoc('failed', 'Your current location could not be detected. The complaint will still be submitted.', 'Try Again');
+    } else {
+        setLoc('failed', 'Timed out finding your location. The complaint will still be submitted.', 'Try Again');
+    }
+}
+
+function stopLiveLocation() {
+    if (loc.watching) { navigator.geolocation.clearWatch(loc.watchId); loc.watching = false; loc.watchId = null; }
+    loc.active = false;
+    document.getElementById('cLat').value = '';
+    document.getElementById('cLng').value = '';
+    setLoc('', 'Location optional — enabling live location helps our team reach you faster.', 'Enable Live Location');
+}
+
+if (!locSupported()) setLoc('failed', 'Location needs a secure connection (https or localhost) to work here.', '');
+window.addEventListener('beforeunload', function () {
+    if (loc.watching) navigator.geolocation.clearWatch(loc.watchId);
+});
+
+function previewPhoto(ev) {
+    const file = ev.target.files[0];
+    const box = document.getElementById('photoPreview');
+    if (!file) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        box.innerHTML = '<img src="' + e.target.result + '" alt="preview" style="width:100%;display:block">';
+        box.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+async function submitComplaint() {
+    const category = document.getElementById('cCategory').value;
+    const photo = document.getElementById('cPhoto').files[0];
+    let description = document.getElementById('cDesc').value;
+    if (category) description = '[' + category + '] ' + description;
+    if (photo) description += ' (Photo: ' + photo.name + ')';
+    const body = {
+        dustbin_id: document.getElementById('cDustbin').value,
+        reporter_name: document.getElementById('cName').value,
+        reporter_phone: document.getElementById('cPhone').value || null,
+        description: description,
+        latitude: parseFloat(document.getElementById('cLat').value) || null,
+        longitude: parseFloat(document.getElementById('cLng').value) || null,
+    };
+    if (!body.dustbin_id || !body.reporter_name || !body.description) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+try {
+        const res = await api.post('/complaints/', body);
+        document.getElementById('formSection').style.display = 'none';
+        document.getElementById('successSection').style.display = 'block';
+        if (window.SmartCity) SmartCity.showComplaintTimeline(res.id);
+    } catch(e) {
+        showToast(e.message, 'error');
+    }
+}
+
+function resetForm() {
+    document.getElementById('formSection').style.display = 'block';
+    document.getElementById('successSection').style.display = 'none';
+    document.getElementById('cName').value = '';
+    document.getElementById('cPhone').value = '';
+    document.getElementById('cDesc').value = '';
+    document.getElementById('cCategory').value = '';
+    document.getElementById('cPhoto').value = '';
+    document.getElementById('photoPreview').style.display = 'none';
+    document.getElementById('photoPreview').innerHTML = '';
+}
+</script>
+</body>
+</html>

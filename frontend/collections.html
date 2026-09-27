@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Collection Management | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+</head>
+<body data-network data-page="collections" data-role="municipality">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav"></nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">Collection Management</span>
+        <span class="topbar-subtitle">Dispatch drivers and track collection requests</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="live-badge"><i></i>Live Dispatch</span>
+        <div class="topbar-time" id="currentTime"></div>
+        <div class="avatar">M</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-info"><span class="kpi-label">Requests Today</span><span class="kpi-value" id="kReq">0</span></div></div>
+        <div class="kpi-card"><div class="kpi-info"><span class="kpi-label">Assigned</span><span class="kpi-value" id="kAssigned">0</span></div></div>
+        <div class="kpi-card"><div class="kpi-info"><span class="kpi-label">Completed</span><span class="kpi-value" id="kDone">0</span></div></div>
+        <div class="kpi-card"><div class="kpi-info"><span class="kpi-label">On-Time Rate</span><span class="kpi-value" id="kOtr">0%</span></div></div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <div><h3>Collection Requests</h3><p class="chart-subtitle">Auto-generated when bins cross 70%</p></div>
+            <select class="coll-filter" id="collFilter">
+              <option value="all">All priorities</option>
+              <option value="URGENT">Urgent only</option>
+              <option value="NORMAL">Normal only</option>
+            </select>
+          </div>
+          <div class="panel-body">
+            <table>
+              <thead><tr><th>Request</th><th>Bin</th><th>Location</th><th>Fill</th><th>Priority</th><th>Status</th><th>Driver</th><th></th></tr></thead>
+              <tbody id="collTable"><tr><td colspan="8" class="table-empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><h3>Fleet Status</h3><p class="chart-subtitle">Active collection units</p></div>
+          </div>
+          <div class="fleet-list" id="fleetList"></div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <div><h3>Demand by Bin</h3><p class="chart-subtitle">Highest fill levels first</p></div>
+          </div>
+          <div class="demand-list" id="demandList"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><h3>Today's Pattern</h3><p class="chart-subtitle">Requests by hour</p></div>
+          </div>
+          <div class="hour-bars" id="hourBars"></div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card chart-wide">
+          <div class="chart-header">
+            <div><h3>Recorded Collections</h3><p class="chart-subtitle">Live collections logged by drivers from the shared network</p></div>
+            <button class="btn btn-outline btn-sm" id="collRefresh">Refresh</button>
+          </div>
+          <div class="panel-body">
+            <table>
+              <thead><tr><th>Collection ID</th><th>Driver</th><th>Driver ID</th><th>Dustbin ID</th><th>Location</th><th>Collected At</th><th>Waste Type</th><th>Status</th></tr></thead>
+              <tbody id="recTable"><tr><td colspan="8" class="table-empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/animations.js"></script>
+<script src="assets/js/ws-init.js"></script>
+  <script>
+  var DRIVERS = [
+    { name: 'Aarav Mehta', vehicle: 'MH-12-AB-1234', status: 'on route', pct: 62 },
+    { name: 'Bob Kumar', vehicle: 'MH-12-EF-7788', status: 'available', pct: 10 },
+    { name: 'Charlie Singh', vehicle: 'MH-12-GH-3344', status: 'on route', pct: 78 },
+    { name: 'Diana Patel', vehicle: 'MH-12-IJ-5566', status: 'idle', pct: 0 },
+    { name: 'Eve Sharma', vehicle: 'MH-12-KL-8899', status: 'on route', pct: 45 }
+  ];
+  var requests = [];
+  var driversSel = [];
+
+  function fillBar(pct) {
+    var cls = pct >= 80 ? 'high' : pct >= 40 ? 'medium' : 'low';
+    return '<div class="fill-bar-bg"><div class="fill-bar ' + cls + '" style="width:' + pct + '%"></div></div>';
+  }
+
+  function updateClock() {
+    document.getElementById('currentTime').textContent = new Date().toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  updateClock(); setInterval(updateClock, 30000);
+
+  function animateNumber(id, target, suffix) {
+    var el = document.getElementById(id);
+    var start = parseInt(el.textContent) || 0;
+    var iv = setInterval(function () {
+      start += Math.ceil((target - start) / 6);
+      el.textContent = start + (suffix || '');
+      if (start >= target) { el.textContent = target + (suffix || ''); clearInterval(iv); }
+    }, 22);
+  }
+
+  function makeRequests(bins) {
+    return bins.map(function (b) {
+      var fill = Math.round(b.fill_level || 0);
+      return {
+        id: 'COLL-' + String(9000 + b.id).slice(-4),
+        bin: b.dustbin_id,
+        loc: b.location || 'No location',
+        fill: fill,
+        priority: fill >= 85 ? 'URGENT' : fill >= 70 ? 'NORMAL' : 'LOW',
+        status: 'QUEUED',
+        driver: null
+      };
+    }).filter(function (r) { return r.fill >= 50; });
+  }
+
+  function renderTable(filter) {
+    var host = document.getElementById('collTable');
+    var list = requests.filter(function (r) { return filter === 'all' || r.priority === filter; });
+    host.innerHTML = list.map(function (r, i) {
+      var prioCls = r.priority === 'URGENT' ? 'coll-urgent' : r.priority === 'NORMAL' ? 'coll-normal' : 'coll-low';
+      var stCls = r.status === 'COMPLETED' ? 'st-resolved' : r.status === 'ASSIGNED' ? 'st-ack' : r.status === 'QUEUED' ? 'st-active' : 'st-done';
+      var optionalDriver = r.driver ? r.driver : '<select class="dl-driver" data-req="' + r.id + '">' + (driversSel || ['— Choose driver —']) + '</select>';
+      var action = r.status === 'COMPLETED'
+        ? '<span class="coll-checked">&#10003;</span>'
+        : '<button class="btn btn-primary btn-sm coll-go" data-id="' + r.id + '" data-name="' + (r.driver || '') + '">' + (r.status === 'ASSIGNED' ? 'Start' : 'Assign') + '</button>';
+      return '<tr>' +
+        '<td><span class="mono-id">' + r.id + '</span></td>' +
+        '<td><span class="mono-id">' + r.bin + '</span></td>' +
+        '<td>' + (r.loc || '--') + '</td>' +
+        '<td><div class="fill-cell">' + fillBar(r.fill) + '<span class="fill-pct">' + r.fill + '%</span></div></td>' +
+        '<td><span class="severity ' + prioCls + '">' + r.priority + '</span></td>' +
+        '<td><span class="inc-status ' + stCls + '">' + r.status + '</span></td>' +
+        '<td class="coll-driver">' + optionalDriver + '</td>' +
+        '<td>' + action + '</td></tr>';
+    }).join('');
+    if (!list.length) host.innerHTML = '<tr><td colspan="8" class="table-empty">No requests in this filter.</td></tr>';
+
+    host.querySelectorAll('.dl-driver').forEach(function (sel) {
+      sel.addEventListener('change', function () {
+        var id = sel.getAttribute('data-req');
+        var r = requests.filter(function (x) { return x.id === id; })[0];
+        if (r) { r.driver = sel.value; showToast('Driver assigned to ' + r.bin + '.', 'success'); }
+      });
+    });
+    host.querySelectorAll('.coll-go').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var id = b.getAttribute('data-id');
+        var r = requests.filter(function (x) { return x.id === id; })[0];
+        if (!r) return;
+        if (r.status === 'QUEUED') {
+          if (!r.driver) { showToast('Assign a driver first.', 'error'); return; }
+          r.status = 'ASSIGNED';
+        } else if (r.status === 'ASSIGNED') {
+          r.status = 'COMPLETED';
+          if (r.driver) {
+            var d = DRIVERS.filter(function (x) { return x.name === r.driver; })[0];
+            if (d) d.status = 'available';
+          }
+        }
+        refreshCounts();
+        renderTable(document.getElementById('collFilter').value);
+        showToast(r.bin + ' ' + (r.status === 'ASSIGNED' ? 'dispatched.' : 'collection completed.'), r.status === 'COMPLETED' ? 'success' : 'info');
+      });
+    });
+  }
+
+  function renderFleet() {
+    document.getElementById('fleetList').innerHTML = DRIVERS.map(function (d) {
+      var stCls = d.status === 'available' ? 'ok' : d.status === 'on route' ? 'warn' : 'dim';
+      return '<div class="fleet-item">' +
+        '<div class="fleet-head"><span class="status-dot ' + stCls + '"></span><strong>' + d.name + '</strong><small>' + d.vehicle + '</small></div>' +
+        '<div class="fill-cell"><div class="fill-bar-bg"><div class="fill-bar ' + (d.pct >= 70 ? 'high' : d.pct >= 40 ? 'medium' : 'low') + '" style="width:' + d.pct + '%"></div></div>' +
+        '<span class="fill-pct">' + (d.status === 'available' ? d.status : d.status + ' ' + (d.pct ? '· ' + d.pct + '% loaded' : '')) + '</span></div>' +
+        '</div>';
+    }).join('');
+    SmartCity.animateFillBars(document.getElementById('fleetList'));
+  }
+
+  function renderDemand(bins) {
+    var ordered = bins.slice().sort(function (a, b) { return (b.fill_level || 0) - (a.fill_level || 0); }).slice(0, 8);
+    document.getElementById('demandList').innerHTML = ordered.map(function (b, i) {
+      var pct = Math.round(b.fill_level || 0);
+      var cls = pct >= 80 ? 'high' : pct >= 40 ? 'medium' : 'low';
+      return '<div class="demand-row"><span class="d-rank-chip">' + (i + 1) + '</span>' +
+        '<div class="demand-main"><strong>' + b.dustbin_id + '</strong><small>' + (b.location || '') + '</small></div>' +
+        '<div class="fill-cell" style="max-width:130px">' + fillBar(pct) + '<span class="fill-pct">' + pct + '%</span></div>' +
+        '<span class="severity ' + (cls === 'high' ? 'coll-urgent' : cls === 'medium' ? 'coll-normal' : 'coll-low') + '">' + (cls === 'high' ? 'URGENT' : cls === 'medium' ? 'NORMAL' : 'LOW') + '</span></div>';
+    }).join('');
+    SmartCity.animateFillBars(document.getElementById('demandList'));
+  }
+
+  function renderHours() {
+    var hours = [2, 1, 4, 6, 11, 8, 5, 3, 1, 0, 2, 5];
+    var max = Math.max.apply(null, hours);
+    document.getElementById('hourBars').innerHTML = hours.map(function (h, i) {
+      return '<div class="h-bar"><div class="h-fill" data-h="' + h + '" style="height:' + Math.max(h / max * 100, 4) + '%"></div><span>' + (i < 9 ? '0' + i + ':00' : i + ':00').slice(0, 5).replace(':00', '') + 'h</span></div>';
+    }).join('');
+    setTimeout(function () {
+      document.querySelectorAll('.h-fill').forEach(function (el) {
+        el.style.animation = 'none';
+        void el.offsetWidth;
+        el.style.animation = 'heightFrom ' + (0.5 + Math.random() * 0.4) + 's ease forwards';
+      });
+    }, 200);
+  }
+
+  document.getElementById('collFilter').addEventListener('change', function () {
+    renderTable(this.value);
+  });
+
+  function refreshCounts() {
+    animateNumber('kReq', requests.length);
+    animateNumber('kAssigned', requests.filter(function (r) { return r.status === 'ASSIGNED'; }).length);
+    animateNumber('kDone', requests.filter(function (r) { return r.status === 'COMPLETED'; }).length);
+    animateNumber('kOtr', 91, '%');
+  }
+
+  var allRecorded = [];
+  function renderRecorded() {
+    var host = document.getElementById('recTable');
+    if (!allRecorded.length) { host.innerHTML = '<tr><td colspan="8" class="table-empty">No collections recorded yet.</td></tr>'; return; }
+    host.innerHTML = allRecorded.map(function (c) {
+      var st = c.status === 'COMPLETED' ? 'st-resolved' : 'st-ack';
+      var when = c.collected_at ? new Date(c.collected_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
+      return '<tr>' +
+        '<td><span class="mono-id">' + escapeHtml(c.collection_id) + '</span></td>' +
+        '<td>' + escapeHtml(c.driver_name) + '</td>' +
+        '<td><span class="mono-id">' + escapeHtml(c.driver_employee_id || '#' + c.driver_id) + '</span></td>' +
+        '<td><span class="mono-id">' + escapeHtml(c.dustbin_code) + '</span></td>' +
+        '<td>' + escapeHtml(c.location || '--') + '</td>' +
+        '<td class="td-muted">' + when + '</td>' +
+        '<td class="td-muted">' + escapeHtml(c.waste_type || '—') + '</td>' +
+        '<td><span class="inc-status ' + st + '">' + escapeHtml(c.status) + '</span></td></tr>';
+    }).join('');
+  }
+
+  (async function load() {
+    var bins = [];
+    try {
+      var resp = await api.get('/dustbins/');
+      bins = Array.isArray(resp) ? resp : (resp.value || []);
+    } catch (e) { bins = []; }
+    requests = makeRequests(bins);
+    driversSel = DRIVERS.map(function (d) { return '<option value="' + d.name + '">' + d.name + '</option>'; }).join('');
+    try {
+      var rec = await api.get('/collections/');
+      allRecorded = (Array.isArray(rec) ? rec : []) || [];
+    } catch (e) { allRecorded = []; }
+    renderTable('all');
+    renderFleet();
+    renderDemand(bins);
+    renderHours();
+    renderRecorded();
+    refreshCounts();
+
+    var refreshBtn = document.getElementById('collRefresh');
+    if (refreshBtn) refreshBtn.addEventListener('click', async function () {
+      refreshBtn.textContent = 'Loading...';
+      try {
+        var rec2 = await api.get('/collections/');
+        allRecorded = (Array.isArray(rec2) ? rec2 : []) || [];
+        renderRecorded();
+        showToast('Collections refreshed (' + allRecorded.length + ' records).', 'success');
+      } catch (e) { showToast('Could not refresh collections.', 'error'); }
+      refreshBtn.textContent = 'Refresh';
+    });
+  })();
+  </script>
+</body>
+</html>

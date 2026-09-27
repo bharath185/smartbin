@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Complaints | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+  <style>
+    :root {
+      --cp-bg: #0B1220;
+      --cp-card: #111C2E;
+      --cp-card-2: #162235;
+      --cp-border: #1E2A44;
+      --cp-border-2: #26344F;
+      --cp-ink: #F1F5F9;
+      --cp-muted: #A9B4C9;
+      --cp-dim: #64748B;
+      --cp-green: #22C55E;
+      --cp-green-hi: #4ADE80;
+      --cp-blue: #3B82F6;
+      --cp-cyan: #06B6D4;
+      --cp-amber: #F59E0B;
+      --cp-red: #EF4444;
+    }
+    body.complaints-page { background: var(--cp-bg) !important; color: var(--cp-ink); overflow-x: hidden; }
+    body.complaints-page .sidebar { width: 210px; background: #0D1729 !important; border-right: 1px solid var(--cp-border) !important; }
+    body.complaints-page .sidebar-brand { color: var(--cp-ink) !important; border-bottom-color: var(--cp-border) !important; }
+    body.complaints-page .sidebar-nav a { color: var(--cp-muted) !important; }
+    body.complaints-page .sidebar-nav a:hover:not(.active) { background: rgba(6,182,212,.10); color: var(--cp-ink) !important; }
+    body.complaints-page .sidebar-nav a.active { background: rgba(59,130,246,.18) !important; color: #60a5fa !important; }
+    body.complaints-page .main { margin-left: 210px; }
+    body.complaints-page .topbar { background: rgba(11,18,32,.85) !important; border-bottom: 1px solid var(--cp-border) !important; backdrop-filter: blur(10px); }
+    body.complaints-page .topbar-title { color: var(--cp-ink) !important; font-size: 1.3rem; }
+    body.complaints-page .topbar-subtitle { color: var(--cp-muted) !important; }
+    body.complaints-page .topbar-left { flex-direction: column; align-items: flex-start; gap: 2px; }
+    body.complaints-page .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    body.complaints-page .avatar { background: #1e293b !important; color: var(--cp-ink) !important; }
+    body.complaints-page .content { padding: 22px 24px 48px !important; max-width: 1500px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+
+    /* Header right-side status + new complaint */
+    .cp-live { display: inline-flex; align-items: center; gap: 7px; font-size: .78rem; font-weight: 600; color: var(--cp-muted); }
+    .cp-live .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cp-cyan); box-shadow: 0 0 0 3px rgba(6,182,212,.18); animation: cpPulse 2s infinite; }
+    @keyframes cpPulse { 0%,100% { box-shadow: 0 0 0 3px rgba(6,182,212,.18); } 50% { box-shadow: 0 0 0 6px rgba(6,182,212,.08); } }
+    .cp-date { color: var(--cp-dim); font-size: .78rem; white-space: nowrap; }
+    .btn-new { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 15px; border-radius: 9px; background: var(--cp-blue); border: 1px solid var(--cp-blue); color: #fff; font-size: .84rem; font-weight: 700; cursor: pointer; transition: background .15s, transform .15s, box-shadow .15s; white-space: nowrap; }
+    .btn-new:hover { background: #2563eb; border-color: #2563eb; box-shadow: 0 0 12px rgba(59,130,246,.5); }
+    .btn-new svg { width: 16px; height: 16px; }
+    .cp-timewrap { display: flex; align-items: center; gap: 6px; color: var(--cp-dim); font-size: .78rem; white-space: nowrap; }
+    .cp-timewrap svg { width: 14px; height: 14px; color: var(--cp-dim); }
+
+    /* Summary cards */
+    .cp-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+    .cp-stat { display: flex; align-items: center; gap: 14px; background: var(--cp-card); border: 1px solid var(--cp-border); border-radius: 12px; padding: 16px 18px; box-sizing: border-box; min-height: 64px; }
+    .cp-stat .cp-si { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .cp-stat .cp-si svg { width: 21px; height: 21px; }
+    .cp-stat .cp-si.total { background: rgba(59,130,246,.15); color: #60a5fa; box-shadow: 0 0 12px rgba(59,130,246,.12); }
+    .cp-stat .cp-si.open { background: rgba(245,158,11,.15); color: #fbbf24; }
+    .cp-stat .cp-si.resolved { background: rgba(34,197,94,.15); color: #4ade80; }
+    .cp-stat .cp-body { display: flex; flex-direction: column; gap: 2px; }
+    .cp-stat .cp-sv { font-size: 1.55rem; font-weight: 800; color: var(--cp-ink); line-height: 1.1; }
+    .cp-stat .cp-sl { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--cp-dim); }
+
+    /* Main panel */
+    .cp-panel { background: var(--cp-card); border: 1px solid var(--cp-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.35); overflow: hidden; }
+    .cp-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 15px 18px; border-bottom: 1px solid var(--cp-border); background: var(--cp-card-2); }
+    .cp-panel-head h2 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--cp-ink); }
+    .cp-panel-head .cp-count { font-size: .78rem; color: var(--cp-dim); margin-top: 2px; display: block; }
+    .cp-tools { display: flex; gap: 10px; align-items: center; }
+    .cp-search { display: flex; align-items: center; gap: 8px; background: #0D1729; border: 1px solid var(--cp-border-2); border-radius: 9px; padding: 0 12px; height: 38px; box-sizing: border-box; width: 250px; }
+    .cp-search svg { width: 16px; height: 16px; color: var(--cp-dim); flex-shrink: 0; }
+    .cp-search input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--cp-ink); font-size: .84rem; }
+    .cp-search input::placeholder { color: var(--cp-dim); }
+    .cp-search:focus-within { border-color: var(--cp-blue); box-shadow: 0 0 0 2px rgba(59,130,246,.18); }
+    .cp-filter-btn { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 13px; border-radius: 9px; background: #0D1729; border: 1px solid var(--cp-border-2); color: var(--cp-muted); font-size: .84rem; font-weight: 600; cursor: pointer; transition: background .15s, border-color .15s; }
+    .cp-filter-btn:hover { background: rgba(59,130,246,.12); border-color: var(--cp-blue); color: var(--cp-ink); }
+    .cp-filter-btn svg { width: 15px; height: 15px; }
+
+    /* Tabs */
+    .cp-tabs { display: flex; gap: 8px; padding: 11px 18px; border-bottom: 1px solid var(--cp-border); align-items: center; }
+    .cp-tab { padding: 6px 16px; border-radius: 8px; font-size: .82rem; font-weight: 600; background: rgba(255,255,255,.04); border: 1px solid var(--cp-border-2); color: var(--cp-muted); cursor: pointer; transition: background .15s, color .15s, box-shadow .15s; }
+    .cp-tab:hover { color: var(--cp-ink); background: rgba(255,255,255,.08); }
+    .cp-tab.active { background: var(--cp-blue); border-color: var(--cp-blue); color: #fff !important; font-weight: 700; box-shadow: 0 0 12px rgba(59,130,246,.4); }
+
+    /* Table - FIXED 7-col layout */
+    .cp-scroll { width: 100%; overflow-x: auto; }
+    .cp-table { width: 100%; min-width: 900px; border-collapse: collapse; table-layout: fixed; font-size: .83rem; color: var(--cp-muted); background: #162235; }
+    .cp-table th { text-align: left; padding: 11px 14px; font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--cp-dim); background: var(--cp-card-2); border-bottom: 1px solid var(--cp-border); white-space: nowrap; }
+    .cp-table td { padding: 11px 14px; vertical-align: middle; border-bottom: 1px solid rgba(30,42,68,.7); color: var(--cp-muted); box-sizing: border-box; overflow-wrap: break-word; word-break: break-word; }
+    .cp-table tbody tr { transition: background .14s; }
+    .cp-table tbody tr:hover { background: rgba(6,182,212,.07); }
+    .cp-table th:nth-child(1), .cp-table td:nth-child(1) { width: 7%; }
+    .cp-table th:nth-child(2), .cp-table td:nth-child(2) { width: 13%; }
+    .cp-table th:nth-child(3), .cp-table td:nth-child(3) { width: 22%; }
+    .cp-table th:nth-child(4), .cp-table td:nth-child(4) { width: 16%; }
+    .cp-table th:nth-child(5), .cp-table td:nth-child(5) { width: 15%; }
+    .cp-table th:nth-child(6), .cp-table td:nth-child(6) { width: 15%; }
+    .cp-table th:nth-child(7), .cp-table td:nth-child(7) { width: 12%; }
+
+    .cp-id { font-weight: 700; color: #93b4fc; font-size: .82rem; }
+    .cp-bin { font-weight: 700; color: var(--cp-ink); font-size: .84rem; }
+    .cp-reporter { display: flex; align-items: center; gap: 9px; min-width: 0; }
+    .cp-rav { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .74rem; color: #fff; background: linear-gradient(135deg, #1d4ed8, #06b6d4); }
+    .cp-rmeta { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .cp-rname { font-weight: 600; color: var(--cp-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cp-rtype { font-size: .7rem; color: var(--cp-dim); }
+
+    /* View Details button in COMPLAINTS column */
+    .cp-details-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 8px; font-size: .78rem; font-weight: 600; color: #7db2ff; background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.35); cursor: pointer; transition: background .15s, border-color .15s, box-shadow .15s; white-space: nowrap; }
+    .cp-details-btn:hover { background: rgba(59,130,246,.22); border-color: var(--cp-blue); box-shadow: 0 0 10px rgba(59,130,246,.35); }
+    .cp-details-btn svg { width: 15px; height: 15px; }
+    .cp-complaint-empty { color: var(--cp-dim); font-size: .78rem; }
+
+    /* Status */
+    .cp-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+    .cp-badge .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .cp-badge.open { background: rgba(245,158,11,.14); color: #fbbf24; }
+    .cp-badge.open .dot { background: #fbbf24; }
+    .cp-badge.resolved { background: rgba(34,197,94,.15); color: #4ade80; }
+    .cp-badge.resolved .dot { background: #4ade80; }
+
+    /* Date cell */
+    .cp-dcell { color: var(--cp-dim); font-size: .76rem; line-height: 1.4; white-space: nowrap; }
+    .cp-dcell b { color: var(--cp-muted); font-weight: 600; }
+
+    /* Action */
+    .btn-resolve { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; font-size: .78rem; font-weight: 700; cursor: pointer; background: rgba(239,68,68,.13); border: 1px solid rgba(239,68,68,.4); color: var(--cp-red); transition: background .15s, color .15s, border-color .15s, box-shadow .15s; white-space: nowrap; }
+    .btn-resolve:hover { background: var(--cp-red); border-color: var(--cp-red); color: #fff; box-shadow: 0 0 10px rgba(239,68,68,.4); }
+    .btn-resolve svg { width: 14px; height: 14px; }
+    .cp-done { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 8px; font-size: .76rem; font-weight: 700; color: var(--cp-green); background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.28); white-space: nowrap; cursor: default; }
+    .cp-done svg { width: 13px; height: 13px; }
+    .cp-demo { font-size: .6rem; font-weight: 700; color: #facc15; background: rgba(250,204,21,.12); padding: 1px 5px; border-radius: 5px; margin-left: 5px; vertical-align: middle; }
+    .cp-nodata { text-align: center; padding: 46px 20px; color: var(--cp-dim); }
+    .cp-nodata svg { width: 40px; height: 40px; margin-bottom: 10px; color: #475569; }
+
+    /* Pagination */
+    .cp-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 18px; border-top: 1px solid var(--cp-border); flex-wrap: wrap; }
+    .cp-showing { font-size: .78rem; color: var(--cp-dim); }
+    .cp-pages { display: flex; align-items: center; gap: 6px; }
+    .cp-page-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--cp-border-2); background: #0D1729; color: var(--cp-muted); font-size: .82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s, color .15s, border-color .15s; }
+    .cp-page-btn:hover:not(:disabled) { background: rgba(59,130,246,.12); border-color: var(--cp-blue); color: #7db2ff; }
+    .cp-page-btn:disabled { opacity: .4; cursor: default; }
+    .cp-page-btn.active { background: var(--cp-blue); border-color: var(--cp-blue); color: #fff; box-shadow: 0 0 10px rgba(59,130,246,.4); }
+
+    /* Filter dropdown */
+    .cp-fwrap { position: relative; }
+    .cp-fdrop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 220; width: 250px; background: var(--cp-card); border: 1px solid var(--cp-border-2); border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,.55); padding: 14px; display: none; }
+    .cp-fdrop.open { display: block; animation: cpIn .15s ease; }
+    @keyframes cpIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
+    .cp-fg { margin-bottom: 14px; }
+    .cp-fg:last-of-type { margin-bottom: 14px; }
+    .cp-fl { font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--cp-dim); margin-bottom: 7px; }
+    .cp-fo { display: flex; flex-direction: column; gap: 3px; }
+    .cp-fo-item { display: flex; align-items: center; gap: 8px; padding: 6px 9px; border-radius: 7px; font-size: .82rem; color: var(--cp-muted); cursor: pointer; transition: background .12s; }
+    .cp-fo-item:hover { background: rgba(255,255,255,.06); }
+    .cp-fo-item.selected { background: rgba(6,182,212,.13); color: #22d3ee; }
+    .cp-fo-item .cp-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--cp-border-2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .cp-fo-item.selected .cp-dot { border-color: var(--cp-cyan); }
+    .cp-fo-item.selected .cp-dot::after { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--cp-cyan); }
+    .cp-fbtns { display: flex; gap: 8px; }
+    .cp-fbtns button { flex: 1; padding: 8px; border-radius: 8px; font-size: .82rem; font-weight: 700; cursor: pointer; }
+    .cp-frst { background: transparent; border: 1px solid var(--cp-border-2); color: var(--cp-muted); }
+    .cp-fapl { background: var(--cp-blue); border: 1px solid var(--cp-blue); color: #fff; }
+
+    /* Confirm modal */
+    .cp-confirm { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); }
+    .cp-confirm.hidden { display: none; }
+    .cp-cbox { background: var(--cp-card); border: 1px solid var(--cp-border-2); border-radius: 14px; padding: 24px; max-width: 400px; width: calc(100% - 32px); box-shadow: 0 16px 48px rgba(0,0,0,.55); }
+    .cp-cbox h3 { margin: 0 0 8px; color: var(--cp-ink); font-size: 1.05rem; }
+    .cp-cbox p { margin: 0 0 20px; color: var(--cp-muted); font-size: .86rem; line-height: 1.5; }
+    .cp-cbtns { display: flex; gap: 10px; justify-content: flex-end; }
+    .cp-cbtns button { padding: 8px 18px; border-radius: 9px; font-size: .84rem; font-weight: 600; cursor: pointer; }
+    .cp-ccancel { background: transparent; border: 1px solid var(--cp-border-2); color: var(--cp-muted); }
+    .cp-cok { background: var(--cp-green); border: 1px solid var(--cp-green); color: #05210f; font-weight: 700; }
+
+    /* Details drawer */
+    .cp-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 400px; max-width: 92vw; z-index: 1000; background: var(--cp-card); border-left: 1px solid var(--cp-border-2); display: flex; flex-direction: column; box-shadow: -16px 0 48px rgba(0,0,0,.55); transform: translateX(100%); transition: transform .22s ease; }
+    .cp-drawer.open { transform: translateX(0); }
+    .cp-drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--cp-border); background: var(--cp-card-2); }
+    .cp-drawer-head h3 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--cp-ink); }
+    .cp-drawer-close { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--cp-border-2); background: #0D1729; color: var(--cp-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .cp-drawer-close:hover { color: var(--cp-ink); border-color: var(--cp-border-2); background: rgba(255,255,255,.06); }
+    .cp-drawer-body { padding: 18px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .cp-drawer-body.cp-scroll-lock .cp-drawer-inner { overflow: auto; }
+    .cp-drawer-empty { color: var(--cp-dim); font-size: .84rem; padding: 20px; text-align: center; }
+
+    /* Detail rows */
+    .cp-kv { display: flex; flex-direction: column; gap: 3px; }
+    .cp-kv .k { font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--cp-dim); }
+    .cp-kv .v { font-size: .88rem; color: var(--cp-ink); line-height: 1.45; }
+    .cp-kv .v.muted { color: var(--cp-muted); }
+    .cp-desc-box { background: var(--cp-card-2); border: 1px solid var(--cp-border); border-radius: 10px; padding: 12px 14px; font-size: .85rem; color: var(--cp-muted); line-height: 1.5; }
+    .cp-dt-title { font-weight: 700; color: var(--cp-ink); margin-bottom: 6px; display: block; font-size: .95rem; }
+    .cp-fb-box { background: rgba(6,182,212,.07); border: 1px solid rgba(6,182,212,.26); border-radius: 10px; padding: 12px 14px; }
+    .cp-fb-box .lbl { font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #22d3ee; margin-bottom: 4px; }
+    .cp-fb-box .txt { font-size: .84rem; color: var(--cp-muted); line-height: 1.45; }
+    .cp-imgrow { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cp-imgrow img { width: 96px; height: 96px; border-radius: 8px; object-fit: cover; border: 1px solid var(--cp-border); cursor: zoom-in; }
+    .cp-meta-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .cp-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; font-size: .76rem; font-weight: 700; width: fit-content; }
+    .cp-chip svg { width: 13px; height: 13px; }
+    .cp-map-link { color: #60a5fa; font-size: .82rem; text-decoration: none; }
+    .cp-map-link:hover { text-decoration: underline; }
+    .cp-ts { display: flex; align-items: center; gap: 7px; font-size: .84rem; color: var(--cp-muted); }
+    .cp-ts svg { width: 15px; height: 15px; color: var(--cp-dim); flex-shrink: 0; }
+
+    /* Create complaint modal */
+    .cp-modal { position: fixed; inset: 0; z-index: 1100; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); padding: 16px; }
+    .cp-modal.hidden { display: none; }
+    .cp-mbox { background: var(--cp-card); border: 1px solid var(--cp-border-2); border-radius: 14px; max-width: 480px; width: 100%; box-shadow: 0 16px 48px rgba(0,0,0,.55); max-height: 90vh; overflow-y: auto; }
+    .cp-mbox-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--cp-border); background: var(--cp-card-2); }
+    .cp-mbox-head h3 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--cp-ink); }
+    .cp-mbox-body { padding: 20px; }
+    .cp-field { margin-bottom: 14px; }
+    .cp-field label { display: block; font-size: .72rem; font-weight: 600; color: var(--cp-dim); margin-bottom: 6px; }
+    .cp-field input, .cp-field select, .cp-field textarea { width: 100%; padding: 9px 12px; border-radius: 8px; background: #0D1729; border: 1px solid var(--cp-border-2); color: var(--cp-ink); font-size: .85rem; box-sizing: border-box; outline: none; font-family: inherit; }
+    .cp-field textarea { resize: vertical; min-height: 70px; }
+    .cp-mbox-foot { display: flex; gap: 10px; justify-content: flex-end; padding: 14px 20px; border-top: 1px solid var(--cp-border); }
+
+    /* Lightbox */
+    .cp-lightbox { position: fixed; inset: 0; z-index: 1300; background: rgba(0,0,0,.85); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .cp-lightbox.hidden { display: none; }
+    .cp-lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.55); }
+
+    .cp-overlay { position: fixed; inset: 0; z-index: 990; background: rgba(0,0,0,.5); }
+    .cp-overlay.hidden { display: none; }
+
+    @media (max-width: 1100px) {
+      .cp-stats { grid-template-columns: 1fr 1fr; }
+      .cp-stats .cp-stat:last-child { grid-column: span 2; }
+    }
+    @media (max-width: 640px) {
+      body.complaints-page .main { margin-left: 0; }
+      .cp-stats { grid-template-columns: 1fr; }
+      .cp-stats .cp-stat:last-child { grid-column: auto; }
+      .cp-search { width: 160px; }
+      .cp-drawer { width: 100vw; }
+    }
+  </style>
+</head>
+<body data-page="complaints" data-role="municipality" class="complaints-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav"></nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">Complaints Management</span>
+        <span class="topbar-subtitle">Monitor, manage and resolve customer complaints</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="cp-live"><span class="dot"></span>System Live</span>
+        <span class="cp-date" id="cpHeaderDate"></span>
+        <button class="btn-new" id="cpNewBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          New Complaint
+        </button>
+        <div class="avatar">A</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Summary -->
+      <div class="cp-stats">
+        <div class="cp-stat">
+          <div class="cp-si total"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></div>
+          <div class="cp-body"><span class="cp-sv" id="cpSTotal">0</span><span class="cp-sl">Total Complaints</span></div>
+        </div>
+        <div class="cp-stat">
+          <div class="cp-si open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+          <div class="cp-body"><span class="cp-sv" id="cpSOpen">0</span><span class="cp-sl">Open</span></div>
+        </div>
+        <div class="cp-stat">
+          <div class="cp-si resolved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <div class="cp-body"><span class="cp-sv" id="cpSResolved">0</span><span class="cp-sl">Resolved</span></div>
+        </div>
+      </div>
+
+      <!-- Panel -->
+      <div class="cp-panel">
+        <div class="cp-panel-head">
+          <div><h2>All Complaints</h2><span class="cp-count" id="cpCount"></span></div>
+          <div class="cp-tools">
+            <div class="cp-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input id="cpSearch" placeholder="Search complaints..." />
+            </div>
+            <div class="cp-fwrap">
+              <button class="cp-filter-btn" id="cpFilterBtn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+                Filter
+              </button>
+              <div class="cp-fdrop" id="cpFdrop">
+                <div class="cp-fg">
+                  <div class="cp-fl">Status</div>
+                  <div class="cp-fo" id="cpFStatus">
+                    <div class="cp-fo-item selected" data-v="all"><span class="cp-dot"></span>All</div>
+                    <div class="cp-fo-item" data-v="OPEN"><span class="cp-dot"></span>Open</div>
+                    <div class="cp-fo-item" data-v="RESOLVED"><span class="cp-dot"></span>Resolved</div>
+                  </div>
+                </div>
+                <div class="cp-fg">
+                  <div class="cp-fl">Sort by</div>
+                  <div class="cp-fo" id="cpFSort">
+                    <div class="cp-fo-item selected" data-v="new"><span class="cp-dot"></span>Newest first</div>
+                    <div class="cp-fo-item" data-v="old"><span class="cp-dot"></span>Oldest first</div>
+                  </div>
+                </div>
+                <div class="cp-fbtns">
+                  <button class="cp-frst" id="cpFRst" type="button">Reset</button>
+                  <button class="cp-fapl" id="cpFapl" type="button">Apply</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cp-tabs" id="cpTabs">
+          <button class="cp-tab active" data-f="all">All</button>
+          <button class="cp-tab" data-f="OPEN">Open</button>
+          <button class="cp-tab" data-f="RESOLVED">Resolved</button>
+        </div>
+
+        <div class="cp-scroll">
+          <table class="cp-table">
+            <colgroup><col><col><col><col><col><col><col></colgroup>
+            <thead><tr>
+              <th>#</th><th>Dustbin</th><th>Reporter</th><th>Complaints</th><th>Status</th><th>Date</th><th>Action</th>
+            </tr></thead>
+            <tbody id="cpTbody"><tr><td colspan="7" class="cp-nodata">Loading...</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="cp-foot">
+          <span class="cp-showing" id="cpShowing"></span>
+          <div class="cp-pages" id="cpPages"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details drawer -->
+  <div class="cp-overlay hidden" id="cpOverlay"></div>
+  <div class="cp-drawer" id="cpDrawer" aria-hidden="true">
+    <div class="cp-drawer-head">
+      <h3>Complaint Details</h3>
+      <button class="cp-drawer-close" id="cpDrawerClose" type="button" aria-label="Close">&#10005;</button>
+    </div>
+    <div class="cp-drawer-body" id="cpDrawerBody"></div>
+  </div>
+
+  <!-- Confirm modal -->
+  <div class="cp-confirm hidden" id="cpConfirm">
+    <div class="cp-cbox">
+      <h3 id="cpCfTitle">Confirm</h3>
+      <p id="cpCfMsg">Are you sure?</p>
+      <div class="cp-cbtns">
+        <button class="cp-ccancel" id="cpCfCancel" type="button">Cancel</button>
+        <button class="cp-cok" id="cpCfOk" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New complaint modal -->
+  <div class="cp-modal hidden" id="cpNewModal">
+    <div class="cp-mbox">
+      <div class="cp-mbox-head">
+        <h3>New Complaint</h3>
+        <button class="cp-drawer-close" id="cpNewClose" type="button" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="cp-mbox-body">
+        <div class="cp-field"><label for="cpNDustbin">Dustbin ID</label><input id="cpNDustbin" placeholder="e.g. DB002"></div>
+        <div class="cp-field"><label for="cpNName">Reporter name</label><input id="cpNName" placeholder="Customer name"></div>
+        <div class="cp-field"><label for="cpNPhone">Phone / contact</label><input id="cpNPhone" placeholder="Contact (optional)"></div>
+        <div class="cp-field"><label for="cpNLoc">Location</label><input id="cpNLoc" placeholder="Reported location (optional)"></div>
+        <div class="cp-field"><label for="cpNDesc">Description</label><textarea id="cpNDesc" placeholder="Describe the complaint"></textarea></div>
+      </div>
+      <div class="cp-mbox-foot">
+        <button class="cp-ccancel" id="cpNewCancel" type="button">Cancel</button>
+        <button class="cp-cok" id="cpNewSave" type="button">Submit Complaint</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="cp-lightbox hidden" id="cpLightbox"><img id="cpLbImg" src="" alt="Preview"></div>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/animations.js"></script>
+  <script src="assets/js/ws-init.js"></script>
+  <script>
+  document.getElementById('nav-complaints') && document.getElementById('nav-complaints').classList.add('active');
+  var allComplaints = [];
+  var activeTab = 'all';
+  var filterStatus = 'all';
+  var sortOrder = 'new';
+  var currentPage = 1;
+  var pageSize = 8;
+  var searchedList = [];
+
+  function demoSvgImage(seed) {
+    var colors = ['#22c55e','#3b82f6','#f59e0b','#94a3b8'];
+    var c = colors[seed % colors.length];
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120">' +
+      '<rect width="160" height="120" rx="10" fill="#0f172a"/>' +
+      '<rect x="16" y="34" width="40" height="40" rx="6" fill="' + c + '"/>' +
+      '<rect x="64" y="20" width="80" height="20" rx="6" fill="' + c + '" opacity=".85"/>' +
+      '<rect x="64" y="48" width="80" height="14" rx="6" fill="' + c + '" opacity=".55"/>' +
+      '<circle cx="128" cy="94" r="16" fill="' + c + '" opacity=".4"/>' +
+      '</svg>');
+  }
+
+  function buildDemoComplaints() {
+    var demo = (typeof DEMO_CUSTOMERS !== 'undefined') ? DEMO_CUSTOMERS : [];
+    var tpl = [
+      ['Overflowing Bin','Wet waste','has not been cleared since yesterday.','Please increase collection frequency here.',3],
+      ['Blocked Access','Fire alert','lid is broken and cannot be closed.','Kindly install a sturdier hinge.',2],
+      ['Request Collection','Overflowing','is full since two days.','Urgent pickup needed.',1],
+      ['Bad Odour','Wet waste','has a strong smell.','Suggest daily cleaning rounds.',1]
+    ];
+    var bins = ['DB001','DB002','DB003','DB004','DB005','DB006','DB007','DB008'];
+    var locs = ['Main Lobby','Cafeteria','Parking Lot A','Office Floor 2','Library','Gym','Reception','Workshop'];
+    var out = [];
+    demo.forEach(function(d,i) {
+      var count = 1 + (i % 2);
+      for (var k = 0; k < count; k++) {
+        var t = tpl[(i+k) % tpl.length];
+        var resolved = (i+k) % 3 === 0;
+        var days = (i*2+k*3) % 12;
+        out.push({
+          id: 20000 + i*10 + k + 1, isDemo: true,
+          dustbin_code: bins[(i+k)%8], dustbin_location: locs[(i+k)%8],
+          reporter_name: d.name, reporter_phone: d.mobile,
+          description: '[ ' + t[0] + ' ] ' + t[1] + '. ' + t[2],
+          latitude: null, longitude: null, location_address: d.area,
+          feedback: t[3], images: t[4] ? [demoSvgImage(i+k)] : null,
+          status: resolved ? 'RESOLVED' : 'OPEN',
+          created_at: new Date(Date.now() - days * 86400000).toISOString()
+        });
+      }
+    });
+    return out;
+  }
+
+  function splitDesc(desc) {
+    desc = desc || '';
+    var m = desc.match(/^\s*\[([^\]]+)\]\s*(.*)$/);
+    if (m) return { title: m[1].trim(), body: m[2].trim() };
+    var parts = desc.split(/\n|\. /);
+    return { title: parts[0] || desc, body: parts.slice(1).join('. ') };
+  }
+
+  function fmtDateLine(iso) {
+    try {
+      var d = new Date(iso);
+      return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    } catch(e) { return iso || '--'; }
+  }
+  function fmtTimeLine(iso) {
+    try {
+      var d = new Date(iso);
+      return d.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit',hour12:true});
+    } catch(e) { return ''; }
+  }
+  function fmtFull(iso) {
+    try {
+      var d = new Date(iso);
+      return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) + ', ' +
+             d.toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
+    } catch(e) { return iso || '--'; }
+  }
+  function escapeH(s) { return escapeHtml(s); }
+
+  function avatarOf(name) {
+    return (name||'?').split(' ').map(function(w){return w?w[0]:'';}).join('').slice(0,2).toUpperCase();
+  }
+
+  function statusChip(c) {
+    if (c.status === 'OPEN') return '<span class="cp-badge open"><span class="dot"></span>OPEN</span>';
+    return '<span class="cp-badge resolved"><span class="dot"></span>RESOLVED</span>';
+  }
+
+  function headingOf(c) {
+    var p = splitDesc(c.description);
+    return p.title || 'Complaint';
+  }
+
+  function renderComplaints(list) {
+    var tbody = document.getElementById('cpTbody');
+    document.getElementById('cpSTotal').textContent = allComplaints.length;
+    document.getElementById('cpSOpen').textContent = allComplaints.filter(function(c){return c.status==='OPEN';}).length;
+    document.getElementById('cpSResolved').textContent = allComplaints.filter(function(c){return c.status==='RESOLVED';}).length;
+
+    searchedList = list;
+    var totalPages = Math.max(1, Math.ceil(list.length / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    var start = (currentPage - 1) * pageSize;
+    var pageRows = list.slice(start, start + pageSize);
+
+    document.getElementById('cpCount').textContent = list.length + ' complaint' + (list.length === 1 ? '' : 's');
+    document.getElementById('cpShowing').textContent = 'Showing 1 to ' + pageRows.length + ' of ' + list.length + (list.length === 1 ? ' complaint' : ' complaints');
+
+    if (!pageRows.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="cp-nodata"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg><br>No complaints found<br><small style="color:#475569">Try changing your search or filters</small></td></tr>';
+      renderPagination(1, list.length);
+      return;
+    }
+
+    tbody.innerHTML = pageRows.map(function(c) {
+      var action = c.status === 'OPEN'
+        ? '<button class="btn-resolve" onclick="resolveWithConfirm('+c.id+',\''+escapeH(String(c.dustbin_code||'').replace(/'/g,'' ))+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Resolve</button>'
+        : '<span class="cp-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Resolved</span>';
+
+      return '<tr>' +
+        '<td><span class="cp-id">' + c.id + (c.isDemo ? '<span class="cp-demo">demo</span>' : '') + '</span></td>' +
+        '<td><span class="cp-bin">' + escapeH(c.dustbin_code || '--') + '</span></td>' +
+        '<td><div class="cp-reporter"><div class="cp-rav">' + avatarOf(c.reporter_name) + '</div><div class="cp-rmeta"><span class="cp-rname">' + escapeH(c.reporter_name || '--') + '</span><span class="cp-rtype">Customer</span></div></div></td>' +
+        '<td><button class="cp-details-btn" onclick="openDetails('+c.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>View Details</button></td>' +
+        '<td>' + statusChip(c) + '</td>' +
+        '<td><div class="cp-dcell"><b>' + fmtDateLine(c.created_at) + '</b><br>' + fmtTimeLine(c.created_at) + '</div></td>' +
+        '<td>' + action + '</td>' +
+      '</tr>';
+    }).join('');
+
+    renderPagination(totalPages, list.length);
+  }
+
+  function renderPagination(totalPages, total) {
+    var box = document.getElementById('cpPages');
+    if (total === 0 || total <= pageSize) {
+      box.innerHTML = '';
+      return;
+    }
+    var html = '<button class="cp-page-btn" type="button" ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="gotoPage(' + (currentPage-1) + ')">&#8249;</button>';
+    for (var p = 1; p <= totalPages; p++) {
+      html += '<button class="cp-page-btn ' + (p === currentPage ? 'active' : '') + '" type="button" onclick="gotoPage(' + p + ')">' + p + '</button>';
+    }
+    html += '<button class="cp-page-btn" type="button" ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="gotoPage(' + (currentPage+1) + ')">&#8250;</button>';
+    box.innerHTML = html;
+  }
+
+  function gotoPage(p) {
+    currentPage = p;
+    renderComplaints(searchedList);
+  }
+
+  function getFilteredList() {
+    var q = (document.getElementById('cpSearch').value || '').toLowerCase().trim();
+    var st = activeTab !== 'all' ? activeTab : filterStatus;
+    var qs = String(q);
+    var list = allComplaints.filter(function(c) {
+      var okS = !q ||
+        String(c.id).indexOf(qs) > -1 ||
+        (c.dustbin_code || '').toLowerCase().indexOf(q) > -1 ||
+        (c.reporter_name || '').toLowerCase().indexOf(q) > -1 ||
+        (c.dustbin_location || '').toLowerCase().indexOf(q) > -1 ||
+        (c.location_address || '').toLowerCase().indexOf(q) > -1 ||
+        (c.description || '').toLowerCase().indexOf(q) > -1 ||
+        (c.feedback || '').toLowerCase().indexOf(q) > -1 ||
+        (c.status || '').toLowerCase().indexOf(q) > -1;
+      var okSt = st === 'all' || c.status === st;
+      return okS && okSt;
+    });
+    list.sort(function(a, b) {
+      var ta = new Date(a.created_at || 0).getTime();
+      var tb = new Date(b.created_at || 0).getTime();
+      return sortOrder === 'old' ? ta - tb : tb - ta;
+    });
+    return list;
+  }
+
+  function applyRender() {
+    currentPage = 1;
+    renderComplaints(getFilteredList());
+  }
+
+  /* Tabs */
+  document.getElementById('cpTabs').addEventListener('click', function(e) {
+    var tab = e.target.closest('.cp-tab');
+    if (!tab) return;
+    this.querySelectorAll('.cp-tab').forEach(function(t){t.classList.remove('active');});
+    tab.classList.add('active');
+    activeTab = tab.getAttribute('data-f');
+    applyRender();
+  });
+
+  /* Search */
+  document.getElementById('cpSearch').addEventListener('input', applyRender);
+
+  /* Filter panel */
+  document.getElementById('cpFilterBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    document.getElementById('cpFdrop').classList.toggle('open');
+  });
+  function bindChoice(groupId) {
+    document.querySelectorAll('#' + groupId + ' .cp-fo-item').forEach(function(o) {
+      o.addEventListener('click', function() {
+        document.querySelectorAll('#' + groupId + ' .cp-fo-item').forEach(function(x){x.classList.remove('selected');});
+        o.classList.add('selected');
+      });
+    });
+  }
+  bindChoice('cpFStatus');
+  bindChoice('cpFSort');
+  document.getElementById('cpFRst').addEventListener('click', function() {
+    filterStatus = 'all';
+    sortOrder = 'new';
+    document.querySelectorAll('#cpFStatus .cp-fo-item').forEach(function(o){o.classList.toggle('selected',o.getAttribute('data-v')==='all');});
+    document.querySelectorAll('#cpFSort .cp-fo-item').forEach(function(o){o.classList.toggle('selected',o.getAttribute('data-v')==='new');});
+    document.getElementById('cpFdrop').classList.remove('open');
+    activeTab = 'all';
+    document.getElementById('cpTabs').querySelectorAll('.cp-tab').forEach(function(t){t.classList.toggle('active',t.getAttribute('data-f')==='all');});
+    applyRender();
+  });
+  document.getElementById('cpFapl').addEventListener('click', function() {
+    var s = document.querySelector('#cpFStatus .cp-fo-item.selected');
+    var so = document.querySelector('#cpFSort .cp-fo-item.selected');
+    filterStatus = s ? s.getAttribute('data-v') : 'all';
+    sortOrder = so ? so.getAttribute('data-v') : 'new';
+    activeTab = filterStatus;
+    document.getElementById('cpTabs').querySelectorAll('.cp-tab').forEach(function(t){t.classList.toggle('active',t.getAttribute('data-f')===activeTab);});
+    document.getElementById('cpFdrop').classList.remove('open');
+    applyRender();
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#cpFdrop') && !e.target.closest('#cpFilterBtn')) {
+      document.getElementById('cpFdrop').classList.remove('open');
+    }
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('cpFdrop').classList.remove('open');
+      document.getElementById('cpConfirm').classList.add('hidden');
+      document.getElementById('cpLightbox').classList.add('hidden');
+      closeDrawer();
+      document.getElementById('cpNewModal').classList.add('hidden');
+    }
+  });
+
+  /* Confirm modal */
+  function showCf(title, msg, btn, fn) {
+    document.getElementById('cpCfTitle').textContent = title;
+    document.getElementById('cpCfMsg').textContent = msg;
+    document.getElementById('cpCfOk').textContent = btn;
+    document.getElementById('cpConfirm').classList.remove('hidden');
+    document.getElementById('cpConfirm')._fn = fn;
+  }
+  document.getElementById('cpCfOk').addEventListener('click', function() {
+    var fn = document.getElementById('cpConfirm')._fn;
+    document.getElementById('cpConfirm').classList.add('hidden');
+    if (fn) fn();
+  });
+  document.getElementById('cpCfCancel').addEventListener('click', function() {
+    document.getElementById('cpConfirm').classList.add('hidden');
+  });
+  document.getElementById('cpConfirm').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.add('hidden');
+  });
+
+  function resolveWithConfirm(id, binCode) {
+    showCf('Resolve Complaint?', 'Are you sure you want to resolve this complaint?', 'Resolve Complaint', function() {
+      resolveComplaint(id);
+    });
+  }
+
+  /* Lightbox */
+  function openLB(src) { document.getElementById('cpLbImg').src = src; document.getElementById('cpLightbox').classList.remove('hidden'); }
+  document.getElementById('cpLightbox').addEventListener('click', function() { this.classList.add('hidden'); });
+
+  async function resolveComplaint(id) {
+    var c = findBykId(id);
+    if (!c) return;
+    if (c.isDemo) {
+      c.status = 'RESOLVED';
+      c.resolved_at = new Date().toISOString();
+      showToast('Complaint resolved!');
+      applyRender();
+      return;
+    }
+    try {
+      await api.put('/complaints/' + id + '/resolve', {});
+      c.status = 'RESOLVED';
+      c.resolved_at = new Date().toISOString();
+      showToast('Complaint resolved!');
+      applyRender();
+    } catch(e) { showToast(e.message || 'Failed to resolve.', 'error'); }
+  }
+
+  /* Details drawer */
+  function findBykId(id) {
+    for (var i = 0; i < allComplaints.length; i++) if (allComplaints[i].id == id) return allComplaints[i];
+    return null;
+  }
+  function openDetails(id) {
+    var c = findBykId(id);
+    if (!c) return;
+    var p = splitDesc(c.description);
+    var body = document.getElementById('cpDrawerBody');
+
+    var contact = '';
+    if (c.reporter_phone) {
+      contact = '<div class="cp-kv"><span class="k">Contact</span><span class="v muted">' + escapeH(c.reporter_phone) + '</span></div>';
+    }
+    var locParts = [];
+    if (c.dustbin_location) locParts.push('<div class="cp-kv"><span class="k">Dustbin Location</span><span class="v">' + escapeH(c.dustbin_location) + '</span></div>');
+    if (c.location_address) locParts.push('<div class="cp-kv"><span class="k">Reported Location</span><span class="v">' + escapeH(c.location_address) + '</span></div>');
+    if (c.latitude && c.longitude) {
+      locParts.push('<div class="cp-kv"><span class="k">Coordinates</span><span class="v"><a class="cp-map-link" target="_blank" href="https://www.google.com/maps?q='+c.latitude+','+c.longitude+'">View on map &#8599;</a></span></div>');
+    }
+
+    var fbBox = c.feedback ? '<div class="cp-fb-box"><div class="lbl">Customer Feedback</div><div class="txt">' + escapeH(c.feedback) + '</div></div>' : '';
+    var imgs = (Array.isArray(c.images) && c.images.length)
+      ? '<div class="cp-imgrow">' + c.images.map(function(src){ return '<img src="'+src+'" alt="Evidence" onclick="openLB(this.src)">'; }).join('') + '</div>'
+      : '';
+    var evidence = (fbBox || imgs)
+      ? '<div class="cp-desc-box" style="padding:14px;display:flex;flex-direction:column;gap:12px">' + fbBox + (imgs ? '<div>' + imgs + '</div>' : '') + '</div>'
+      : '<div class="cp-kv"><span class="k">Evidence / Feedback</span><span class="v muted">No feedback or evidence attached.</span></div>';
+
+    var resolvedLine = c.resolved_at ? '<div class="cp-ts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Resolved: ' + fmtFull(c.resolved_at) + '</div>' : '';
+
+    body.innerHTML =
+      '<div class="cp-meta-grid">' +
+        '<div class="cp-kv"><span class="k">ID</span><span class="v">#' + c.id + (c.isDemo ? '<span class="cp-demo">demo</span>' : '') + '</span></div>' +
+        '<div class="cp-kv"><span class="k">Dustbin</span><span class="v">' + escapeH(c.dustbin_code || '--') + '</span></div>' +
+        '<div class="cp-kv"><span class="k">Reporter</span><span class="v muted">' + escapeH(c.reporter_name || '--') + '</span></div>' +
+        contact +
+        '<div class="cp-kv"><span class="k">Reported On</span><span class="v muted">' + fmtFull(c.created_at) + '</span></div>' +
+        '<div class="cp-kv"><span class="k">Status</span>' + statusChip(c) + '</div>' +
+      '</div>' +
+      (locParts.length ? '<div class="cp-meta-grid">' + locParts.join('') + '</div>' : '') +
+      '<div class="cp-desc-box"><span class="cp-dt-title">' + escapeH(p.title || 'Complaint') + '</span>' + escapeH(p.body || c.description) + '</div>' +
+      evidence +
+      (resolvedLine ? resolvedLine : '');
+
+    document.getElementById('cpDrawer').classList.add('open');
+    document.getElementById('cpDrawer').setAttribute('aria-hidden','false');
+    document.getElementById('cpOverlay').classList.remove('hidden');
+  }
+  function closeDrawer() {
+    document.getElementById('cpDrawer').classList.remove('open');
+    document.getElementById('cpDrawer').setAttribute('aria-hidden','true');
+    document.getElementById('cpOverlay').classList.add('hidden');
+  }
+  document.getElementById('cpDrawerClose').addEventListener('click', closeDrawer);
+  document.getElementById('cpOverlay').addEventListener('click', closeDrawer);
+
+  /* New complaint */
+  var newModal = document.getElementById('cpNewModal');
+  document.getElementById('cpNewBtn').addEventListener('click', function() { newModal.classList.remove('hidden'); });
+  function closeNew() { newModal.classList.add('hidden'); }
+  document.getElementById('cpNewClose').addEventListener('click', closeNew);
+  document.getElementById('cpNewCancel').addEventListener('click', closeNew);
+  newModal.addEventListener('click', function(e) { if (e.target === this) closeNew(); });
+  document.getElementById('cpNewSave').addEventListener('click', async function() {
+    var dustbin = document.getElementById('cpNDustbin').value.trim();
+    var name = document.getElementById('cpNName').value.trim();
+    var desc = document.getElementById('cpNDesc').value.trim();
+    if (!dustbin || !name || !desc) { showToast('Dustbin ID, reporter name and description are required.', 'error'); return; }
+    var btn = this;
+    if (window.SmartCity && SmartCity.btnLoading) SmartCity.btnLoading(btn, true, 'Submitting…');
+    try {
+      await api.post('/complaints/', {
+        dustbin_id: dustbin,
+        reporter_name: name,
+        reporter_phone: document.getElementById('cpNPhone').value.trim() || null,
+        location_address: document.getElementById('cpNLoc').value.trim() || null,
+        description: desc,
+        feedback: null,
+        images: null,
+        latitude: null, longitude: null
+      });
+      showToast('Complaint submitted.');
+      closeNew();
+      document.getElementById('cpNDustbin').value = '';
+      document.getElementById('cpNName').value = '';
+      document.getElementById('cpNPhone').value = '';
+      document.getElementById('cpNLoc').value = '';
+      document.getElementById('cpNDesc').value = '';
+      loadComplaints();
+    } catch(e) {
+      showToast(e.message || 'Failed to submit complaint.', 'error');
+    } finally {
+      if (window.SmartCity && SmartCity.btnLoading) SmartCity.btnLoading(btn, false);
+    }
+  });
+
+  /* Header date/time */
+  function tickClock() {
+    var el = document.getElementById('cpHeaderDate');
+    if (!el) return;
+    el.textContent = new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+  }
+  tickClock();
+  setInterval(tickClock, 30000);
+
+  async function loadComplaints() {
+    try {
+      var live = await api.get('/complaints/');
+      allComplaints = buildDemoComplaints().concat(Array.isArray(live) ? live : (live.value || []));
+    } catch(e) {
+      try {
+        await new Promise(function(r){setTimeout(r,1000);});
+        var live2 = await api.get('/complaints/');
+        allComplaints = buildDemoComplaints().concat(Array.isArray(live2) ? live2 : (live2.value || []));
+      } catch(e2) {
+        allComplaints = buildDemoComplaints();
+      }
+    }
+    applyRender();
+  }
+
+  loadComplaints();
+  </script>
+</body>
+</html>

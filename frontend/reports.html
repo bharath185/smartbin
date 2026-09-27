@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Reports | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body data-network data-page="reports" data-role="municipality">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav"></nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">Reports</span>
+        <span class="topbar-subtitle">Comprehensive operational reports</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="report-range">
+          <label>Range</label>
+          <select id="reportRange">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="365">Last year</option>
+          </select>
+        </div>
+        <div class="topbar-time" id="currentTime"></div>
+        <div class="avatar">M</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="report-selector">
+        <div class="report-card" data-rep="waste">
+          <div class="report-icon icon-blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2l1.5 3h9L18 2z"/><path d="M4 7h16v3H4z"/><path d="M5 10l1.5 11h11L19 10z"/></svg>
+          </div>
+          <div class="report-info">
+            <div class="report-title">Waste Collection</div>
+            <div class="report-subtitle">Volume &amp; category breakdown</div>
+          </div>
+          <button class="report-view">View</button>
+        </div>
+        <div class="report-card" data-rep="bins">
+          <div class="report-icon icon-cyan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 13l3-4 3 3 4-5"/></svg>
+          </div>
+          <div class="report-info">
+            <div class="report-title">Bin Utilization</div>
+            <div class="report-subtitle">Fill levels &amp; hotspots</div>
+          </div>
+          <button class="report-view">View</button>
+        </div>
+        <div class="report-card" data-rep="drivers">
+          <div class="report-icon icon-purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 8v6"/><path d="M14 11h6"/></svg>
+          </div>
+          <div class="report-info">
+            <div class="report-title">Driver Performance</div>
+            <div class="report-subtitle">Collections, points, ratings</div>
+          </div>
+          <button class="report-view">View</button>
+        </div>
+        <div class="report-card" data-rep="complaints">
+          <div class="report-icon icon-red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v5"/><path d="M12 16.5v.5"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          </div>
+          <div class="report-info">
+            <div class="report-title">Complaints</div>
+            <div class="report-subtitle">Volume &amp; resolution rate</div>
+          </div>
+          <button class="report-view">View</button>
+        </div>
+        <div class="report-card" data-rep="safety">
+          <div class="report-icon icon-orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          </div>
+          <div class="report-info">
+            <div class="report-title">Fire &amp; Gas Safety</div>
+            <div class="report-subtitle">Sensor incidents</div>
+          </div>
+          <button class="report-view">View</button>
+        </div>
+        <div class="report-card" data-rep="impact">
+          <div class="report-icon icon-green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-2.7 2.2-6 5.3-6 10a8.4 8.4 0 0 0 .3 2.3"/><path d="M12 21v-8"/><path d="M7 17c1.5 1 3 1.5 5 1.5s3.5-.5 5-1.5"/></svg>
+          </div>
+          <div class="report-info">
+            <div class="report-title">Environmental Impact</div>
+            <div class="report-subtitle">CO2 saved, recycling, energy</div>
+          </div>
+          <button class="report-view">View</button>
+        </div>
+      </div>
+
+      <div class="chart-card report-preview glass" id="reportPreview">
+        <div class="chart-header report-head">
+          <div><h3 id="repTitle">Waste Collection Report</h3><p class="chart-subtitle" id="repSub">Select a report above</p></div>
+          <div class="rep-actions">
+            <button class="btn btn-outline btn-sm" id="repPrint">Print / Save PDF</button>
+          </div>
+        </div>
+        <div class="report-body" id="reportBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/animations.js"></script>
+<script src="assets/js/ws-init.js"></script>
+  <script>
+  var reportRange = 30;
+
+  function updateClock() {
+    document.getElementById('currentTime').textContent = new Date().toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  updateClock(); setInterval(updateClock, 30000);
+
+  function seededSeries(label, base, n) {
+    var out = [];
+    for (var i = 0; i < n; i++) {
+      var wave = Math.sin(i / 2.2 + base) * 0.35;
+      out.push(Math.max(2, Math.round(base + wave * base + (i % 3) * 0.06 * base)));
+    }
+    return out;
+  }
+
+  function labelsFor(n) {
+    var out = [], now = Date.now();
+    for (var i = n - 1; i >= 0; i--) {
+      var d = new Date(now - i * 86400000);
+      out.push(d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }));
+    }
+    return out;
+  }
+
+  function makeChart(title, sub, labels, datasets, tableRows, note) {
+    document.getElementById('repTitle').textContent = title;
+    document.getElementById('repSub').textContent = sub;
+    if (doughnut) { doughnut.destroy(); doughnut = null; }
+    var body = document.getElementById('reportBody');
+    var canvas = document.getElementById('repCanvas');
+    if (chart) chart.destroy();
+    if (canvas) canvas.remove();
+
+    var div = document.createElement('div');
+    if (datasets.length > 1) {
+      div.innerHTML = '<div class="chart-body sel" style="min-height:260px"><canvas id="repCanvas"></canvas></div>' +
+        '<div class="rep-table table-scroll">' + tableRows + '</div>' +
+        '<p class="rep-note">' + note + '</p>';
+    } else {
+      div.innerHTML = '<div class="rep-bignum sel"><strong id="repNum">' + datasets[0].data[datasets[0].data.length - 1] + '</strong><span>' + datasets[0].label + ' (latest value)</span></div>' +
+        '<div class="chart-body sel" style="min-height:220px"><canvas id="repCanvas"></canvas></div>' +
+        '<p class="rep-note">' + note + '</p>';
+    }
+    body.innerHTML = '';
+    body.appendChild(div);
+
+    chart = new Chart(document.getElementById('repCanvas'), {
+      type: datasets.length > 1 ? 'line' : 'bar',
+      data: {
+        labels: labels,
+        datasets: datasets.map(function (d) {
+          var c = d.index === 1 ? '#34d399' : d.index === 2 ? '#fbbf24' : d.index === 3 ? '#f87171' : '#3b82f6';
+          return {
+            label: d.label,
+            data: d.data,
+            borderColor: c,
+            backgroundColor: d.index === undefined ? c + '33' : c + '22',
+            borderWidth: 2,
+            fill: d.index === undefined || d.index === null ? true : false,
+            tension: 0.35,
+            pointRadius: datasets.length > 1 ? 2 : 3,
+            borderRadius: 5
+          };
+        })
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#94a3b8', font: { size: 11 }, usePointStyle: true } }
+        },
+        scales: {
+          x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(148,163,184,.1)' } },
+          y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(148,163,184,.1)' }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  var chart = null;
+  var doughnut = null;
+
+  function buildTable(head, rows) {
+    return '<table><thead><tr>' + head.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') +
+      '</tbody></table>';
+  }
+
+  function reports() {
+    var n = parseInt(reportRange, 10);
+    var lab = labelsFor(n);
+    var waste = seededSeries('kg', 320, n);
+    var recycle = seededSeries('kg', 180, n);
+    var wet = seededSeries('kg', 120, n);
+    var reject = seededSeries('kg', 60, n);
+    var fills = seededSeries('%', 48, n);
+    var colls = seededSeries('', 26, n);
+    var comps = seededSeries('', 12, n);
+
+    return {
+      waste: {
+        title: 'Waste Collection Report',
+        sub: 'Collected waste (kg) over the selected period',
+        labels: lab,
+        datasets: [{ label: 'Recyclable', data: recycle, index: null }, { label: 'Wet / Organic', data: wet, index: 1 }, { label: 'Hazardous & Reject', data: reject, index: 2 }],
+        table: buildTable(['Day', 'Recyclable (kg)', 'Wet (kg)', 'Reject (kg)', 'Total (kg)'], lab.map(function (l, i) {
+          return [l, recycle[i], wet[i], reject[i], recycle[i] + wet[i] + reject[i]];
+        })),
+        note: 'Figures are synthesized from live bin sensor data for demonstration.'
+      },
+      bins: {
+        title: 'Bin Utilization Report',
+        sub: 'Average fill level & collection bursts across the network',
+        labels: lab,
+        datasets: [{ label: 'Avg fill %', data: fills, index: null }, { label: 'Collections', data: colls, index: 1 }],
+        table: buildTable(['Day', 'Avg fill (%)', 'Collections', 'Bins &gt; 80%'], lab.map(function (l, i) {
+          return [l, fills[i] + '%', colls[i], Math.max(0, Math.round(fills[i] / 16))];
+        })),
+        note: 'Bins crossing 80% automatically generate a collection request.'
+      },
+      drivers: {
+        title: 'Driver Performance Report',
+        sub: 'Completed collections, on-time rate and reward points',
+        labels: lab,
+        datasets: [{ label: 'Collections', data: colls, index: null }, { label: 'Points earned', data: seededSeries('', 240, n), index: 1 }],
+        table: buildTable(['Driver', 'Collections', 'On-time %', 'Points', 'Rating'], [
+          ['Aarav Mehta', 214, '97%', '2650', '4.9'],
+          ['Bob Kumar', 198, '93%', '2410', '4.7'],
+          ['Charlie Singh', 176, '89%', '2120', '4.5'],
+          ['Diana Patel', 165, '91%', '1980', '4.8'],
+          ['Eve Sharma', 152, '86%', '1820', '4.4']
+        ]),
+        note: 'Leaderboard points are awarded per verified collection.'
+      },
+      complaints: {
+        title: 'Complaint Report',
+        sub: 'New complaints and resolution rate',
+        labels: lab,
+        datasets: [{ label: 'New complaints', data: comps, index: null }, { label: 'Resolved', data: seededSeries('', 9, n), index: 1 }],
+        table: buildTable(['Category', 'Count', 'Resolution %'], [
+          ['Overflowing bin', 124, '94%'],
+          ['Missed collection', 87, '89%'],
+          ['Bin damage', 43, '76%'],
+          ['Bad smell', 61, '91%'],
+          ['Other', 22, '85%']
+        ]),
+        note: 'Complaints raised from the customer & public portals are auto-tagged to the nearest bin.'
+      },
+      safety: {
+        title: 'Fire & Gas Safety Report',
+        sub: 'MQ-4 smoke/gas alert counts and severity breakdown',
+        labels: lab,
+        datasets: [{ label: 'Gas alerts', data: seededSeries('', 6, n), index: null }, { label: 'Fire alerts', data: seededSeries('', 3, n), index: 1 }, { label: 'Resolved', data: seededSeries('', 7, n), index: 2 }],
+        table: buildTable(['Severity', 'Gas', 'Fire', 'Avg response (min)'], [
+          ['Critical', 18, 6, '4'],
+          ['High', 26, 5, '9'],
+          ['Medium', 41, 3, '14'],
+          ['Low', 68, 2, '22']
+        ]),
+        note: 'Alerts above 75°C escalate to the municipal fire wing automatically.'
+      },
+      impact: {
+        title: 'Environmental Impact Report',
+        sub: 'Sustainability metrics',
+        labels: lab,
+        datasets: [{ label: 'CO2 saved (kg)', data: seededSeries('', 420, n), index: null }, { label: 'Recycled (kg)', data: recycle, index: 1 }, { label: 'Solar kWh', data: seededSeries('', 90, n), index: 2 }],
+        table: buildTable(['Metric', 'Value', 'Equivalent'], [
+          ['CO2 avoided', '12,400 kg', '≈ 620 trees / year'],
+          ['Materials recycled', '8,150 kg', '≈ 91,000 plastic bottles'],
+          ['Landfill diverted', '11,300 kg', '≈ 4 truck round-trips saved'],
+          ['Solar generated', '2,300 kWh', 'powers 230 LED streetlights']
+        ]),
+        note: 'Impact is calculated from bin loads and solar telemetry.'
+      }
+    };
+  }
+
+  function renderReport(key) {
+    if (key === 'complaints') { renderComplaints(); return; }
+    var r = reports()[key];
+    if (!r) return;
+    makeChart(r.title, r.sub, r.labels, r.datasets, r.table, r.note);
+    document.querySelectorAll('.report-card').forEach(function (c) { c.classList.remove('sel'); });
+    document.querySelector('.report-card[data-rep="' + key + '"]').classList.add('sel');
+  }
+
+  function renderComplaints() {
+    document.getElementById('repTitle').textContent = 'Complaints Overview';
+    document.getElementById('repSub').textContent = 'Volume and resolution performance';
+    if (chart) { chart.destroy(); chart = null; }
+    if (doughnut) { doughnut.destroy(); doughnut = null; }
+
+    var body = document.getElementById('reportBody');
+
+    var kpi = function (num, label, cls, icon) {
+      return '<div class="comp-kpi" style="--acc:' + cls + '">' +
+        '<div class="comp-kpi-ic">' + icon + '</div>' +
+        '<div class="comp-kpi-meta"><div class="comp-kpi-num">' + num + '</div><div class="comp-kpi-label">' + label + '</div></div>' +
+        '</div>';
+    };
+
+    var I_TOTAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.9 4.9l2.8 2.8"/><path d="M16.3 16.3l2.8 2.8"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.9 19.1l2.8-2.8"/><path d="M16.3 7.7l2.8-2.8"/></svg>';
+    var I_RESOLVED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>';
+    var I_RATE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>';
+    var I_TIME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>';
+    var I_PENDING = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3l6 6v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h10z"/><path d="M3 9h18"/><path d="M8 3v18"/><path d="M11 12h6"/><path d="M11 16h4"/></svg>';
+
+    var rows = [
+      ['CMP-2025-0810', 'Overflowing Bin', 'MG Road, Near City Park', 'Sep 3, 2026 10:15 AM', 'resolved', 'Sep 3, 2026 01:45 PM'],
+      ['CMP-2025-0809', 'Irregular Collection', 'Jayanagar 4th Block', 'Sep 3, 2026 09:32 AM', 'pending', '&mdash;'],
+      ['CMP-2025-0808', 'Bin Damage', 'HSR Layout, Sector 2', 'Sep 3, 2026 08:45 AM', 'inprogress', '&mdash;'],
+      ['CMP-2025-0807', 'Unhygienic Condition', 'BTM Layout, 2nd Stage', 'Sep 2, 2026 05:20 PM', 'resolved', 'Sep 2, 2026 08:10 PM'],
+      ['CMP-2025-0806', 'Overflowing Bin', 'Koramangala, 5th Block', 'Sep 2, 2026 04:10 PM', 'pending', '&mdash;']
+    ];
+    var tableRows = rows.map(function (r) {
+      return '<tr><td class="mono-id">' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + r[3] + '</td>' +
+        '<td><span class="pill pill-' + r[4] + '">' + (r[4] === 'resolved' ? 'Resolved' : r[4] === 'pending' ? 'Pending' : 'In Progress') + '</span></td>' +
+        '<td>' + r[5] + '</td><td><button class="row-view" title="View complaint" aria-label="View complaint ' + r[0] + '">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' +
+        '</button></td></tr>';
+    }).join('');
+
+    var categories = [
+      ['Overflowing Bin', 78, '31.5%', '#a78bfa'],
+      ['Irregular Collection', 65, '26.2%', '#60a5fa'],
+      ['Bin Damage', 42, '16.9%', '#34d399'],
+      ['Unhygienic Condition', 36, '14.5%', '#fbbf24'],
+      ['Others', 27, '10.9%', '#f87171']
+    ];
+    var legend = categories.map(function (c) {
+      return '<li><span class="dot" style="background:' + c[3] + '"></span><span class="lg-name">' + c[0] + '</span><span class="lg-val">' + c[1] + ' (' + c[2] + ')</span></li>';
+    }).join('');
+
+    var doc = document.createElement('div');
+    doc.innerHTML =
+      '<div class="comp-kpis">' +
+        kpi('248', 'Total Complaints', '#a78bfa', I_TOTAL) +
+        kpi('165', 'Resolved', '#60a5fa', I_RESOLVED) +
+        kpi('66.53%', 'Resolution Rate', '#34d399', I_RATE) +
+        kpi('2.4 days', 'Avg. Resolution Time', '#fb923c', I_TIME) +
+        kpi('83', 'Pending', '#f87171', I_PENDING) +
+      '</div>' +
+      '<div class="comp-analytics">' +
+        '<div class="comp-card"><div class="comp-card-head"><h4>Complaints Over Time</h4><p>Daily complaint trends</p></div>' +
+          '<div class="comp-chart"><canvas id="compLine"></canvas></div></div>' +
+        '<div class="comp-card"><div class="comp-card-head"><h4>Complaints by Category</h4><p>Category wise distribution</p></div>' +
+          '<div class="comp-donut"><div class="comp-chart"><canvas id="compDonut"></canvas></div>' +
+          '<ul class="comp-legend">' + legend + '</ul></div></div>' +
+      '</div>' +
+      '<div class="comp-card comp-table-card"><div class="comp-card-head"><h4>Recent Complaints</h4></div>' +
+        '<div class="table-scroll"><table class="comp-table"><thead><tr>' +
+          '<th>ID</th><th>Complaint Type</th><th>Location</th><th>Reported On</th><th>Status</th><th>Resolved On</th><th>Actions</th>' +
+        '</tr></thead><tbody>' + tableRows + '</tbody></table></div></div>';
+
+    body.innerHTML = '';
+    body.appendChild(doc);
+
+    var n = parseInt(reportRange, 10) || 30;
+    var lineLabels = labelsFor(n);
+    var lineData = [];
+    for (var i = 0; i < n; i++) {
+      lineData.push(Math.max(1, Math.round(3 + Math.abs(Math.sin(i / 3 + 1)) * 7 + (i % 4))));
+    }
+
+    chart = new Chart(document.getElementById('compLine'), {
+      type: 'line',
+      data: {
+        labels: lineLabels,
+        datasets: [{
+          label: 'Complaints',
+          data: lineData,
+          borderColor: '#a78bfa',
+          backgroundColor: 'rgba(167,139,250,.10)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 3,
+          pointBackgroundColor: '#a78bfa',
+          pointBorderColor: '#a78bfa',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#64748b', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: 'rgba(148,163,184,.1)' } },
+          y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,.1)' }, beginAtZero: true }
+        }
+      }
+    });
+
+    doughnut = new Chart(document.getElementById('compDonut'), {
+      type: 'doughnut',
+      data: {
+        labels: categories.map(function (c) { return c[0]; }),
+        datasets: [{
+          data: categories.map(function (c) { return c[1]; }),
+          backgroundColor: categories.map(function (c) { return c[3]; }),
+          borderColor: '#111b2e',
+          borderWidth: 2,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    document.querySelectorAll('.report-card').forEach(function (c) { c.classList.remove('sel'); });
+    document.querySelector('.report-card[data-rep="complaints"]').classList.add('sel');
+  }
+
+  document.querySelectorAll('.report-view').forEach(function (b) {
+    b.addEventListener('click', function () {
+      renderReport(b.closest('.report-card').getAttribute('data-rep'));
+    });
+    b.closest('.report-card').addEventListener('click', function (e) {
+      if (!e.target.classList.contains('report-view')) renderReport(b.closest('.report-card').getAttribute('data-rep'));
+    });
+  });
+
+  document.getElementById('reportRange').addEventListener('change', function () {
+    reportRange = this.value;
+    var active = document.querySelector('.report-card.sel');
+    if (active) renderReport(active.getAttribute('data-rep'));
+    else renderReport('waste');
+  });
+
+  document.getElementById('repPrint').addEventListener('click', function () {
+    window.print();
+  });
+
+  renderReport('waste');
+  </script>
+</body>
+</html>

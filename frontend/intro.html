@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SmartBin | AI Smart Waste Management System</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #020617; color: #e2e8f0; overflow: hidden;
+      height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    #introCanvas { position: fixed; inset: 0; z-index: 0; width: 100vw; height: 100vh; }
+
+    /* ---------- scene layers ---------- */
+    .stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; z-index: 1; }
+    .pane { opacity: 0; transform: translateY(14px) scale(.98); transition: opacity .6s ease, transform .6s ease; text-align: center; position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .pane.show { opacity: 1; transform: none; }
+
+    /* ---------- status ticker ---------- */
+    #introStatus {
+      position: fixed; top: 26px; left: 0; right: 0; z-index: 5; text-align: center;
+      font-size: .78rem; letter-spacing: .22em; text-transform: uppercase;
+      color: rgba(148, 163, 184, .8); font-weight: 600;
+      opacity: 0; transition: opacity .5s ease;
+    }
+    #introStatus.show { opacity: 1; }
+    #introStatus.active { color: #22d3ee; }
+
+    /* ---------- skip ---------- */
+    #skipIntro {
+      position: fixed; top: 20px; right: 22px; z-index: 8;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(148,163,184,.3);
+      color: #94a3b8; font-size: .76rem; letter-spacing: .08em; cursor: pointer;
+      padding: 8px 16px; border-radius: 30px; transition: all .2s;
+      opacity: 0; animation: fadeIn .5s ease forwards .6s;
+    }
+    #skipIntro:hover { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.4); }
+
+    /* ---------- scene: the three bins ---------- */
+    #binsScene .bin-row { display: flex; align-items: flex-end; gap: 46px; margin-top: 70px; }
+    .bin-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .bin {
+      width: 78px; height: 104px; border-radius: 14px 14px 18px 18px; position: relative;
+      transform: translateY(18px); opacity: 0; transition: all .55s cubic-bezier(.2, .8, .2, 1);
+    }
+    .bin.show { transform: none; opacity: 1; }
+    .bin::before { /* lid */
+      content: ''; position: absolute; top: -8px; left: -7px; right: -7px; height: 16px;
+      border-radius: 8px; background: #0f172a; border: 1.5px solid rgba(148,163,184,.35);
+    }
+    .bin::after { /* fill glow */
+      content: ''; position: absolute; bottom: 10px; left: 10px; right: 10px; height: 46%;
+      border-radius: 8px; background: currentColor; opacity: .28; filter: blur(6px);
+    }
+    .bin.green  { background: linear-gradient(160deg, #16a34a, #065f46); color: #4ade80; box-shadow: 0 0 34px rgba(34,197,94,.28); }
+    .bin.blue   { background: linear-gradient(160deg, #2563eb, #1e3a8a); color: #60a5fa; box-shadow: 0 0 34px rgba(37,99,235,.28); }
+    .bin.red    { background: linear-gradient(160deg, #dc2626, #7f1d1d); color: #f87171; box-shadow: 0 0 34px rgba(239,68,68,.28); }
+    .bin-slot { width: 100%; height: 8px; background: rgba(255,255,255,.18); border-radius: 4px; margin-top: 50px; opacity: 0; transition: opacity .4s; }
+    .bin-wrap.lit .bin-slot { opacity: 1; }
+    .bin-led {
+      width: 12px; height: 12px; border-radius: 50%; margin-top: 8px;
+      background: #334155; box-shadow: none; transition: all .3s;
+    }
+    .bin-wrap.lit .bin-led { background: #22c55e; box-shadow: 0 0 16px #22c55e; animation: ledPulse 1.4s ease-in-out infinite; }
+    @keyframes ledPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .7; transform: scale(1.15); } }
+    .bin-tag { font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: #94a3b8; font-weight: 600; }
+    .bin-wrap.lit .bin-tag { color: #fff; }
+    .dispose-hint { margin-top: 34px; font-size: .95rem; letter-spacing: .18em; color: #4ade80; font-weight: 700; opacity: 0; text-transform: uppercase; transition: opacity .5s ease; }
+    .dispose-hint.show { opacity: 1; text-shadow: 0 0 20px rgba(74,222,128,.5); }
+
+    /* ---------- scene: AI scanner ---------- */
+    .camera {
+      position: relative; width: 250px; height: 168px; border-radius: 16px;
+      background: linear-gradient(160deg, rgba(15,23,42,.9), rgba(2,6,23,.95));
+      border: 1px solid rgba(34,211,238,.45); box-shadow: 0 0 60px rgba(34,211,238,.16);
+    }
+    .cam-corner { position: absolute; width: 26px; height: 26px; border: 2px solid #22d3ee; }
+    .cam-corner.tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+    .cam-corner.br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+    .cam-label { position: absolute; bottom: 8px; left: 12px; font-size: .58rem; letter-spacing: .16em; color: rgba(148,163,184,.8); text-transform: uppercase; }
+    .scanner-beam { position: absolute; left: 8px; right: 8px; height: 3px; top: 10px; background: linear-gradient(90deg, transparent, #22d3ee, transparent); box-shadow: 0 0 16px #22d3ee; animation: beamSweep 1.15s ease-in-out infinite; }
+    @keyframes beamSweep { from { top: 10px; } to { top: calc(100% - 13px); } }
+    .waste-item { width: 46px; height: 62px; margin: 22px auto 6px; opacity: 0; }
+    .waste-item.show { opacity: 1; animation: floatItem 1.6s ease-in-out infinite; }
+    @keyframes floatItem { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    #scanPhrase { margin-top: 18px; font-size: .8rem; letter-spacing: .22em; text-transform: uppercase; color: #67e8f9; font-weight: 700; min-height: 1.2em; }
+    #scanPhrase.ready { color: #4ade80; text-shadow: 0 0 18px rgba(74,222,128,.5); }
+    .beam-line {
+      position: absolute; top: 56%; left: 50%; width: 0; height: 3px; border-radius: 3px;
+      background: linear-gradient(90deg, #22d3ee, #4ade80); box-shadow: 0 0 16px rgba(34,211,238,.8);
+      transform-origin: left center; opacity: 0;
+    }
+    .beam-line.on { animation: beamLength .8s ease forwards; opacity: 1; }
+    @keyframes beamLength { from { width: 0; } to { width: 150px; } }
+
+    /* ---------- scenes: icons / energy / chain ---------- */
+    .icon-row { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+    .sys-icon { display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0; transform: translateY(10px); transition: all .5s ease; }
+    .sys-icon.show { opacity: 1; transform: none; }
+    .sys-icon svg { width: 34px; height: 34px; }
+    .sys-icon span { font-size: .6rem; letter-spacing: .12em; color: #94a3b8; text-transform: uppercase; font-weight: 600; }
+
+    .energy-flow { display: flex; align-items: center; gap: 26px; }
+    .energy-node { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: .62rem; letter-spacing: .12em; color: #94a3b8; text-transform: uppercase; font-weight: 600; }
+    .energy-node svg { width: 40px; height: 40px; }
+    .flow-tube { width: 90px; height: 2px; background: rgba(148,163,184,.25); position: relative; border-radius: 2px; }
+    .flow-tube .spark { position: absolute; top: 50%; left: 0; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: #fbbf24; box-shadow: 0 0 10px #fbbf24; animation: energyTravel 2s linear infinite; }
+    .flow-tube.t2 .spark { animation-delay: 1s; }
+    @keyframes energyTravel { 0% { left: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: calc(100% - 6px); opacity: 0; } }
+
+    .chain { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .chain-node {
+      padding: 8px 20px; border-radius: 20px; font-size: .74rem; letter-spacing: .16em;
+      font-weight: 700; text-transform: uppercase; color: #e2e8f0;
+      background: rgba(30,41,59,.7); border: 1px solid rgba(148,163,184,.25);
+      opacity: 0; transform: scale(.9); transition: all .45s ease;
+    }
+    .chain-node.show { opacity: 1; transform: none; }
+    .chain-link { width: 2px; height: 14px; background: linear-gradient(#2563eb, #22d3ee); opacity: 0; transition: opacity .4s ease; }
+    .chain-link.show { opacity: 1; }
+
+    /* ---------- title ---------- */
+    #titleScene h1 {
+      font-size: clamp(1.4rem, 4.5vw, 2.6rem); font-weight: 800; letter-spacing: .04em;
+      background: linear-gradient(120deg, #60a5fa, #22d3ee 45%, #4ade80);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      line-height: 1.2;
+    }
+    #titleScene .sub { margin-top: 10px; font-size: .8rem; letter-spacing: .3em; color: #94a3b8; text-transform: uppercase; font-weight: 600; }
+    .enter-btn {
+      margin-top: 34px; display: inline-flex; align-items: center; gap: 12px;
+      padding: 15px 42px; border-radius: 40px; border: none; cursor: pointer;
+      font-family: inherit; font-size: .92rem; font-weight: 700; letter-spacing: .1em; color: #fff;
+      background: linear-gradient(120deg, #2563eb, #0ea5e9);
+      box-shadow: 0 10px 40px rgba(37,99,235,.45); transition: all .25s ease;
+      opacity: 0; transform: translateY(10px); animation: fadeUp .6s ease forwards 1s;
+    }
+    .enter-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 16px 50px rgba(37,99,235,.6); }
+    .enter-btn svg { width: 18px; height: 18px; }
+    .intro-foot { margin-top: 14px; font-size: .64rem; color: #475569; letter-spacing: .08em; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+    body.page-leaving { opacity: 0; transform: translateY(6px); transition: opacity .26s ease, transform .26s ease; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001s !important; transition-duration: .001s !important; }
+    }
+    @media (max-width: 640px) {
+      #binsScene .bin-row { gap: 20px; margin-top: 60px; }
+      .bin { width: 58px; height: 84px; }
+      .icon-row { gap: 22px; }
+      .energy-flow { gap: 14px; }
+      .flow-tube { width: 44px; }
+    }
+  </style>
+</head>
+<body data-page="intro">
+  <canvas id="introCanvas"></canvas>
+
+  <div id="introStatus">Initialising Smart City Network...</div>
+  <button id="skipIntro">SKIP INTRO</button>
+
+  <!-- AI camera & waste detection -->
+  <div class="stage" id="scanScene" style="display:none">
+    <div class="pane" id="paneScan">
+      <div class="camera">
+        <div class="cam-corner tl"></div><div class="cam-corner br"></div>
+        <div class="waste-item" id="wasteItem">
+          <svg viewBox="0 0 46 62" fill="none"><path d="M14 8h18v8H14z" fill="#38bdf8" opacity=".35"/><rect x="8" y="16" width="30" height="40" rx="6" fill="none" stroke="#38bdf8" stroke-width="2"/><path d="M12 34h22M12 44h14" stroke="#38bdf8" stroke-width="2" opacity=".6"/><rect x="18" y="0" width="10" height="8" rx="2" fill="none" stroke="#38bdf8" stroke-width="2" opacity=".7"/></svg>
+        </div>
+        <div class="scanner-beam"></div>
+        <div class="cam-label">ESP32-CAM · AI VISION</div>
+        <div class="beam-line" id="beamLine"></div>
+      </div>
+      <p id="scanPhrase">AI ANALYZING WASTE...</p>
+      <div class="dispose-hint" id="disposeHint">PLEASE DISPOSE HERE</div>
+      <div class="bin-row" style="margin-top:40px">
+        <div class="bin-wrap" id="binGreen">
+          <div class="bin green"></div><div class="bin-slot"></div><div class="bin-led"></div>
+          <div class="bin-tag">Wet Waste</div>
+        </div>
+        <div class="bin-wrap" id="binBlue">
+          <div class="bin blue"></div><div class="bin-slot"></div><div class="bin-led"></div>
+          <div class="bin-tag">Dry Recyclable</div>
+        </div>
+        <div class="bin-wrap" id="binRed">
+          <div class="bin red"></div><div class="bin-slot"></div><div class="bin-led"></div>
+          <div class="bin-tag">Hazardous / E-Waste</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- system icons -->
+  <div class="stage" id="iconsScene" style="display:none">
+    <div class="pane" id="paneIcons">
+      <div class="icon-row">
+        <div class="sys-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span>Fill Level</span></div>
+        <div class="sys-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg><span>Fire Detection</span></div>
+        <div class="sys-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>Gas Monitoring</span></div>
+        <div class="sys-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 10-16 0c0 3 2.7 7 8 11.7z"/></svg><span>GPS Tracking</span></div>
+        <div class="sys-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fde047" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>Solar Power</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- solar energy + gps -->
+  <div class="stage" id="energyScene" style="display:none">
+    <div class="pane" id="paneEnergy">
+      <div class="energy-flow">
+        <div class="energy-node"><svg viewBox="0 0 24 24" fill="none" stroke="#fde047" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><span>Solar Panel</span></div>
+        <div class="flow-tube"><span class="spark"></span></div>
+        <div class="energy-node"><svg viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect x="3" y="8" width="18" height="10" rx="3"/><path d="M7 11v4M11 11v4M15 11v4" stroke="#22d3ee" stroke-width="2" opacity=".5"/></svg><span>Battery</span></div>
+        <div class="flow-tube t2"><span class="spark"></span></div>
+        <div class="energy-node"><svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg><span>Smart Bin</span></div>
+      </div>
+      <div class="energy-flow" style="margin-top:44px">
+        <div class="energy-node"><svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 10-16 0c0 3 2.7 7 8 11.7z"/></svg><span>GPS</span></div>
+        <div class="flow-tube"><span class="spark" style="background:#60a5fa;box-shadow:0 0 10px #60a5fa"></span></div>
+        <div class="energy-node"><svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M6 12a6 6 0 0112 0M3 12a9 9 0 0118 0" stroke="#818cf8" stroke-width="2" opacity=".6"/></svg><span>City Network</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- chain -->
+  <div class="stage" id="chainScene" style="display:none">
+    <div class="pane" id="paneChain">
+      <div class="chain">
+        <div class="chain-node" id="c1">Smart&nbsp;Bin</div>
+        <div class="chain-link" id="l1"></div>
+        <div class="chain-node" id="c2">AI&nbsp;+&nbsp;IoT</div>
+        <div class="chain-link" id="l2"></div>
+        <div class="chain-node" id="c3">Municipality</div>
+        <div class="chain-link" id="l3"></div>
+        <div class="chain-node" id="c4">Driver</div>
+        <div class="chain-link" id="l4"></div>
+        <div class="chain-node" id="c5" style="border-color:#34d399;color:#34d399">Clean&nbsp;City</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- title -->
+  <div class="stage" id="titleScene" style="display:none">
+    <div class="pane">
+      <h1>AI SMART WASTE MANAGEMENT SYSTEM</h1>
+      <p class="sub">AI &#8226; IoT &#8226; GPS &#8226; SOLAR &#8226; SMART CITY</p>
+      <button class="enter-btn" id="enterBtn">
+        ENTER SYSTEM
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <p class="intro-foot">SmartBin ASWMS &#183; BCA Final Year Project</p>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let finished = false;
+
+  /* ---------- canvas: particles, city, grid ---------- */
+  const cv = document.getElementById('introCanvas');
+  const ctx = cv.getContext('2d');
+  let W, H;
+  function size() { W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+  size();
+  const dots = [];
+  const D = window.innerWidth < 640 ? 34 : 70;
+  for (let i = 0; i < D; i++) {
+    dots.push({ x: Math.random(), y: Math.random(), vx: (Math.random() - .5) * .12, vy: (Math.random() - .5) * .12, r: Math.random() * 1.5 + .5 });
+  }
+  function drawScene() {
+    ctx.clearRect(0, 0, W, H);
+    // grid
+    ctx.strokeStyle = 'rgba(37,99,235,.07)';
+    ctx.lineWidth = 1;
+    const g = 64;
+    for (let x = 0; x <= W; x += g) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y <= H; y += g) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+    // skyline
+    ctx.fillStyle = 'rgba(30,58,138,.16)';
+    let x = 0;
+    while (x < W) {
+      const bw = 40 + Math.random() * 60;
+      const bh = (H * .1) + Math.random() * (H * .14);
+      ctx.fillRect(x, H - bh, bw, bh);
+      ctx.fillStyle = 'rgba(147,197,253,.12)';
+      for (let wy = H - bh + 8; wy < H - 8; wy += 12) {
+        for (let wx = x + 6; wx < x + bw - 6; wx += 14) { ctx.fillRect(wx, wy, 4, 6); }
+      }
+      ctx.fillStyle = 'rgba(30,58,138,.16)';
+      x += bw + 8;
+    }
+    // particles
+    for (const p of dots) {
+      p.x += p.vx / 100; p.y += p.vy / 100;
+      if (p.x < 0 || p.x > 1) p.vx *= -1;
+      if (p.y < 0 || p.y > 1) p.vy *= -1;
+      ctx.fillStyle = 'rgba(147,197,253,.4)';
+      ctx.beginPath(); ctx.arc(p.x * W, p.y * H, p.r, 0, Math.PI * 2); ctx.fill();
+    }
+    // lines between close particles
+    ctx.strokeStyle = 'rgba(37,99,235,.06)';
+    for (let i = 0; i < dots.length; i++) {
+      for (let j = i + 1; j < dots.length; j++) {
+        const dx = (dots[i].x - dots[j].x) * W, dy = (dots[i].y - dots[j].y) * H;
+        if (Math.sqrt(dx * dx + dy * dy) < 130) {
+          ctx.beginPath(); ctx.moveTo(dots[i].x * W, dots[i].y * H); ctx.lineTo(dots[j].x * W, dots[j].y * H); ctx.stroke();
+        }
+      }
+    }
+  }
+  if (!reduced) setInterval(drawScene, 50); else drawScene();
+
+  /* ---------- helpers ---------- */
+  const statusEl = document.getElementById('introStatus');
+  function phrase(t, active) {
+    statusEl.textContent = t;
+    statusEl.classList.add('show');
+    statusEl.classList.toggle('active', !!active);
+  }
+  function show(id) {
+    const el = document.getElementById(id);
+    el.style.display = 'flex';
+    requestAnimationFrame(function () { el.querySelector('.pane').classList.add('show'); });
+  }
+  function enterApp() {
+    if (finished) return; finished = true;
+    document.body.classList.add('page-leaving');
+    setTimeout(function () { window.location.href = 'login.html'; }, 300);
+  }
+  document.getElementById('enterBtn').addEventListener('click', enterApp);
+  document.getElementById('skipIntro').addEventListener('click', enterApp);
+
+  /* ---------- timeline ---------- */
+  const steps = (function () {
+    setTimeout(function () { phrase('Scanning City Network...'); }, 200);
+    setTimeout(function () { show('scanScene'); }, 500);
+    setTimeout(function () {
+      document.getElementById('binGreen').classList.add('show');
+    }, 900);
+    setTimeout(function () { document.getElementById('binBlue').classList.add('show'); }, 1150);
+    setTimeout(function () { document.getElementById('binRed').classList.add('show'); }, 1400);
+    setTimeout(function () { document.getElementById('wasteItem').classList.add('show'); }, 1650);
+    setTimeout(function () { phrase('AI ANALYZING WASTE...', true); }, 1750);
+    setTimeout(function () { phrase('PLASTIC DETECTED', true); }, 2850);
+    setTimeout(function () {
+      document.getElementById('beamLine').classList.add('on');
+      document.getElementById('binBlue').classList.add('lit');
+    }, 3100);
+    setTimeout(function () {
+      phrase('DRY RECYCLABLE BIN', true);
+      const hint = document.getElementById('disposeHint');
+      hint.textContent = 'PLEASE DISPOSE HERE';
+      hint.classList.add('show');
+    }, 3600);
+    setTimeout(function () { show('iconsScene'); phrase('Real-Time Monitoring', false); }, 4500);
+    setTimeout(function () {
+      document.querySelectorAll('#iconsScene .sys-icon').forEach(function (el, i) { setTimeout(function () { el.classList.add('show'); }, i * 110); });
+    }, 4650);
+    setTimeout(function () {
+      document.getElementById('iconsScene').style.display = 'none';
+      show('energyScene');
+      phrase('Solar Energy & GPS Link', false);
+    }, 6100);
+    setTimeout(function () { show('chainScene'); phrase('System Architecture', false); }, 7600);
+    setTimeout(function () {
+      ['c1', 'l1', 'c2', 'l2', 'c3', 'l3', 'c4', 'l4', 'c5'].forEach(function (id, i) {
+        setTimeout(function () {
+          document.getElementById(id).classList.add('show');
+        }, i * 180);
+      });
+    }, 7750);
+    setTimeout(function () {
+      document.getElementById('chainScene').style.display = 'none';
+      document.getElementById('introStatus').classList.remove('show');
+      show('titleScene');
+    }, 9700);
+  })();
+
+  /* auto-finish */
+  setTimeout(function () { if (!finished) enterApp(); }, 15000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Waste Analytics | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body data-page="analytics" data-role="municipality">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="index.html" id="nav-dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
+      <a href="drivers.html" id="nav-employees"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0113 0"/></svg>Drivers</a>
+      <a href="dustbins.html" id="nav-dustbins"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>Dustbins</a>
+      <a href="leaderboard.html" id="nav-leaderboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="6"/><path d="M9 9l2 2 4-4"/></svg>Leaderboard</a>
+      <a href="complaints.html" id="nav-complaints"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Complaints</a>
+      <a href="scan.html" id="nav-scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><path d="M20 14v3h-3M20 20h-3"/></svg>QR Scan</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">Waste Analytics</span>
+        <span class="topbar-subtitle">Municipal performance & environmental impact</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="topbar-time" id="currentTime"></div>
+        <div class="avatar">A</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="section-head"><h3>Municipal Performance Dashboard</h3><span class="section-tag live">Live</span></div>
+      <div class="municipal-grid">
+        <div class="municipal-kpi"><span class="num" data-count="94">0</span><span class="lbl">Collection Rate <span class="trend-up">&#8593; 6%</span></span></div>
+        <div class="municipal-kpi"><span class="num" data-count="78">0</span><span class="lbl">Overflow Reduction <span class="trend-up">&#8593; 12%</span></span></div>
+        <div class="municipal-kpi"><span class="num" data-count="82">0</span><span class="lbl">Complaints Resolved <span class="trend-up">&#8593; 4%</span></span></div>
+        <div class="municipal-kpi"><span class="num" data-count="96">0</span><span class="lbl">Emergency Response <span class="trend-up">&#8593; 8%</span></span></div>
+        <div class="municipal-kpi"><span class="num" data-count="4120" data-decimals="0">0</span><span class="lbl">Total Waste Collected (kg)</span></div>
+        <div class="municipal-kpi"><span class="num" data-count="5">0</span><span class="lbl">Active Collection Drivers</span></div>
+        <div class="municipal-kpi"><span class="num" id="liveBins">0</span><span class="lbl">Smart Bins Connected</span></div>
+        <div class="municipal-kpi"><span class="num" id="avgFill">0</span><span class="lbl">Average Fill Level</span></div>
+      </div>
+
+      <div class="section-head"><h3>Waste Composition Analytics</h3><span class="section-tag sim">Estimated</span></div>
+      <div class="charts-row">
+        <div class="chart-card chart-narrow">
+          <div class="chart-header"><div><h3>Waste by Category</h3><p class="chart-subtitle">Segregation breakdown</p></div></div>
+          <div class="chart-body"><canvas id="chartWasteCategory"></canvas></div>
+        </div>
+        <div class="chart-card chart-wide">
+          <div class="chart-header"><div><h3>Daily Collection Trend</h3><p class="chart-subtitle">Collected waste (kg) this week</p></div></div>
+          <div class="chart-body"><canvas id="chartWeekly"></canvas></div>
+        </div>
+      </div>
+
+      <div class="section-head"><h3>AI Fill Prediction</h3><span class="section-tag sim">Model: LSTM v2</span></div>
+      <div class="chart-card">
+        <div class="prediction-block" id="predBlock">
+          <div class="pred-gauge">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(148,163,184,.18)" stroke-width="9" stroke-linecap="round"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#a855f7" stroke-width="9" stroke-linecap="round" stroke-dasharray="0 264" id="predArc"/>
+            </svg>
+            <div class="pg-text"><span class="pg-num" id="predPct">0%</span><span class="pg-lbl">predicted</span></div>
+          </div>
+          <div class="pred-info">
+            <span class="ai-badge">&#9889; AI PREDICTION</span>
+            <div class="pred-row"><span class="pr-t">Most probable overflow</span><span class="pr-v" id="predBin">-</span></div>
+            <div class="pred-row"><span class="pr-t">Forecast full time</span><span class="pr-v" id="predTime">-</span></div>
+            <div class="pred-row"><span class="pr-t">Recommended collection before</span><span class="pr-v" id="predBefore">-</span></div>
+            <div class="pred-row"><span class="pr-t">Confidence</span><span class="pr-v" id="predConf">-</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head"><h3>Environmental Impact</h3><span class="section-tag sim">Estimated</span></div>
+      <div class="municipal-grid">
+        <div class="municipal-kpi"><span class="num" data-count="1240">0</span><span class="lbl">Waste Recycled (kg)</span></div>
+        <div class="municipal-kpi"><span class="num" data-count="850">0</span><span class="lbl">CO&#8322; Emissions Avoided (kg)</span></div>
+        <div class="municipal-kpi"><span class="num" data-count="126">0</span><span class="lbl">Solar Energy (kWh)</span></div>
+        <div class="municipal-kpi"><span class="num" data-count="320">0</span><span class="lbl">Travel Distance Saved (km)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/animations.js"></script>
+<script src="assets/js/ws-init.js"></script>
+<script>
+(function () {
+  const S = window.SmartCity;
+  const COLORS = ['#2563eb', '#22d3ee', '#16a34a', '#f59e0b', '#a855f7', '#ef4444', '#eab308', '#ec4899'];
+
+  function themeIsDark() {
+    return (localStorage.getItem('lg-theme') || 'light') === 'dark';
+  }
+  function themePalette() {
+    return themeIsDark()
+      ? { tick: '#94a3b8', grid: 'rgba(148,163,184,.1)', legend: '#94a3b8', bar: 'rgba(37,99,235,.85)' }
+      : { tick: '#64748b', grid: 'rgba(148,163,184,.14)', legend: '#475569', bar: 'rgba(37,99,235,.85)' };
+  }
+  let wasteCatChart, weeklyChart;
+
+  fetch(API_BASE + '/dustbins/')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      const list = Array.isArray(data) ? data : (data.value || data.dustbins || []);
+      document.getElementById('liveBins').textContent = list.length;
+      const avg = list.length ? list.reduce(function (s, b) { return s + b.fill_level; }, 0) / list.length : 0;
+      document.getElementById('avgFill').textContent = Math.round(avg) + '%';
+
+      /* AI prediction uses the highest fill bin */
+      const top = list.slice().sort(function (a, c) { return c.fill_level - a.fill_level; })[0];
+      if (top) {
+        const fill = top.fill_level;
+        const remaining = Math.max(6, 100 - fill);
+        const future = 18 * (fill / 100);
+        const hour = (10 + future) % 24;
+        const hh = Math.floor(hour), mm = Math.round((hour - hh) * 60);
+        const fmt = function (h, m) { var ap = h >= 12 ? 'PM' : 'AM'; var h12 = h % 12 || 12; return h12 + ':' + (m < 10 ? '0' : '') + m + ' ' + ap; };
+        const predicted = Math.min(100, Math.round(fill + 30));
+        document.getElementById('predArc').setAttribute('stroke-dasharray', (predicted / 100 * 264) + ' 264');
+        document.getElementById('predPct').textContent = predicted + '%';
+        document.getElementById('predBin').textContent = top.dustbin_id;
+        document.getElementById('predTime').textContent = fmt(hh, mm);
+        document.getElementById('predBefore').textContent = fmt(hh - 1, mm);
+        document.getElementById('predConf').textContent = '92.4%';
+      }
+    })
+    .catch(function () { document.getElementById('liveBins').textContent = '--'; });
+
+/* category doughnut */
+  wasteCatChart = new Chart(document.getElementById('chartWasteCategory'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Organic', 'Plastic', 'Paper', 'Glass', 'Metal', 'E-Waste'],
+      datasets: [{ data: [34, 21, 26, 8, 6, 5], backgroundColor: COLORS.slice(0, 6), borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '64%',
+      animation: { animateRotate: true, duration: 1400, easing: 'easeOutQuart' },
+      plugins: { legend: { position: 'bottom', labels: { color: themePalette().legend, boxWidth: 10, font: { size: 11 } } } }
+    }
+  });
+
+  /* weekly trend */
+  weeklyChart = new Chart(document.getElementById('chartWeekly'), {
+    type: 'bar',
+    data: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      datasets: [{
+        label: 'Collected (kg)',
+        data: [480, 620, 540, 705, 660, 520, 595],
+        backgroundColor: themePalette().bar, hoverBackgroundColor: themePalette().tick,
+        borderRadius: 8, maxBarThickness: 40
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 1500, easing: 'easeOutQuart' },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: themePalette().tick } },
+        y: { grid: { color: themePalette().grid }, ticks: { color: themePalette().tick } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  function recolorCharts() {
+    const p = themePalette();
+    if (wasteCatChart) {
+      wasteCatChart.options.plugins.legend.labels.color = p.legend;
+      wasteCatChart.update();
+    }
+    if (weeklyChart) {
+      weeklyChart.options.scales.x.ticks.color = p.tick;
+      weeklyChart.options.scales.y.ticks.color = p.tick;
+      weeklyChart.options.scales.y.grid.color = p.grid;
+      weeklyChart.data.datasets[0].hoverBackgroundColor = p.tick;
+      weeklyChart.update();
+    }
+  }
+  window.addEventListener('smb:theme', recolorCharts);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Runtime database (regenerate with backend/seed.py)
+*.db
+*.sqlite
+*.sqlite3
+
+# Node / opencode tooling
+node_modules/
+.opencode/
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local env & secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Scratch artifacts
+*.bak
+
+# Stray zero-byte files from malformed shell redirects
+/80
+/=

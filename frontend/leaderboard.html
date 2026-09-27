@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Leaderboard | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+</head>
+<body data-role="municipality" class="leaderboard-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="index.html" id="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="drivers.html" id="nav-employees">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0113 0"/></svg>
+        Employees
+      </a>
+      <a href="dustbins.html" id="nav-dustbins">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        Dustbins
+      </a>
+      <a href="leaderboard.html" id="nav-leaderboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-4 5h8l-4-5z"/><circle cx="12" cy="9" r="6"/><path d="M9 9l2 2 4-4"/></svg>
+        Leaderboard
+      </a>
+      <a href="complaints.html" id="nav-complaints">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Complaints
+      </a>
+      <a href="scan.html" id="nav-scan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><path d="M20 14v3h-3M20 20h-3"/></svg>
+        QR Scan
+      </a>
+    </nav>
+  </aside>
+<div class="main">
+  <header class="topbar">
+    <span class="topbar-title">Leaderboard &amp; Rewards</span>
+    <div class="topbar-actions"><div class="avatar">A</div></div>
+  </header>
+  <div class="content">
+<div class="panel">
+      <div class="panel-header"><h2>Weekly Leaderboard</h2></div>
+      <div class="panel-body">
+        <div class="lb-list" id="lbList"><div class="table-empty" style="padding:40px">Loading...</div></div>
+      </div>
+    </div>
+    <div class="panel redeem-panel">
+      <div class="panel-header"><h2>Redeem Reward Points</h2></div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group"><label>Employee ID</label><input class="form-control" id="rEmpId" placeholder="e.g. EMP002"></div>
+          <div class="form-group"><label>Points to Redeem</label><input class="form-control" id="rPoints" type="number" placeholder="50"></div>
+        </div>
+        <div class="form-group"><label>Description</label><input class="form-control" id="rDesc" placeholder="e.g. Gift card, Meal voucher"></div>
+        <button class="btn btn-success" onclick="redeem()" style="margin-top:8px">Redeem Points</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/ws-init.js"></script>
+<script>
+document.getElementById('nav-leaderboard').classList.add('active');
+async function loadLeaderboard(){
+    try{const lb=await api.get('/leaderboard/weekly');const list=document.getElementById('lbList');
+    if(!lb.length){list.innerHTML='<div class="table-empty" style="padding:40px">No data</div>';return;}
+    list.innerHTML=lb.map((e,i)=>{
+        const medalCls = e.rank===1?'gold':e.rank===2?'silver':e.rank===3?'bronze':'plain';
+        const points = e.total_unloads * (e.rank<=3?1.15:1);
+        const onTime = Math.max(60, 100 - e.rank*4);
+        const delay = 'style="animation-delay:'+(i*90)+'ms"';
+        return '<div class="lb-card '+(e.rank===1?'crown':'')+'" '+delay+'>'+
+            '<div class="lb-medal '+medalCls+'">'+e.rank+'</div>'+
+            '<div class="lb-user"><strong>'+e.name+'</strong><small>'+e.employee_id+'</small></div>'+
+            '<div class="lb-stats">'+
+            '<div class="lb-stat">Unloads<b>'+e.total_unloads+'</b></div>'+
+            '<div class="lb-stat">Points<b>'+e.reward_points+'</b></div>'+
+            '<div class="lb-stat">On-Time<b>'+onTime+'%</b></div>'+
+            '</div></div>';
+    }).join('');}catch(e){showToast('Failed','error');}
+}
+async function redeem(){
+    const body={employee_id:document.getElementById('rEmpId').value,points:parseInt(document.getElementById('rPoints').value),description:document.getElementById('rDesc').value||'Reward redemption'};
+    if(!body.employee_id||!body.points){showToast('Fill all fields','error');return;}
+    try{const res=await api.post('/employees/redeem',body);showToast(res.message);loadLeaderboard();}catch(e){showToast(e.message,'error');}
+}
+loadLeaderboard();
+</script>
+</body>
+
+</body>
+</html>

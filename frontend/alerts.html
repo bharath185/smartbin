@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" data-lg-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Alerts | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+</head>
+<body data-network data-page="alerts" data-role="municipality">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav"></nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">Fire &amp; Gas Alert Center</span>
+        <span class="topbar-subtitle">MQ-4 smoke sensors &amp; thermal monitoring across the network</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="live-badge"><i></i>Monitoring Live</span>
+        <div class="topbar-time" id="currentTime"></div>
+        <div class="avatar">M</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-info"><span class="kpi-label">Fire Alerts Today</span><span class="kpi-value" id="kFire">0</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-info"><span class="kpi-label">Gas Alerts Today</span><span class="kpi-value" id="kGas">0</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-info"><span class="kpi-label">Open &amp; Responding</span><span class="kpi-value" id="kOpen">0</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-info"><span class="kpi-label">Resolved Today</span><span class="kpi-value" id="kResolved">0</span></div>
+        </div>
+      </div>
+
+      <div class="alert-board glass">
+        <div class="alert-board-head">
+          <h3>Incident Queue</h3>
+          <div class="alert-filters">
+            <button class="af on" data-f="all">All</button>
+            <button class="af" data-f="fire">Fire</button>
+            <button class="af" data-f="gas">Gas</button>
+          </div>
+        </div>
+        <div class="incident-list" id="incidentList">
+          <div class="table-empty">Warming up sensors...</div>
+        </div>
+      </div>
+
+      <div class="bottom-grid">
+        <div class="bottom-card sensor-load">
+          <div class="bottom-card-head">
+            <h3>Sensor Load</h3>
+            <p>Active devices reporting</p>
+          </div>
+          <div class="sensor-summary">
+            <div class="sensor-chip all"><b id="sAll">0</b><span>Total sensors</span></div>
+            <div class="sensor-chip ok"><b id="sOk">0</b><span>Nominal</span></div>
+            <div class="sensor-chip warn"><b id="sWarn">0</b><span>Caution</span></div>
+            <div class="sensor-chip crit"><b id="sCrit">0</b><span>Critical</span></div>
+          </div>
+        </div>
+        <div class="bottom-card safety">
+          <div class="bottom-card-head">
+            <h3>Safety Guidelines</h3>
+            <p>Standard operating response</p>
+          </div>
+          <ol class="so-list">
+            <li><span class="so-num">01</span><span class="so-text">Verify gas reading on two consecutive samples</span></li>
+            <li><span class="so-num">02</span><span class="so-text">Dispatch nearest verified driver to the bin</span></li>
+            <li><span class="so-num">03</span><span class="so-text">If temp &gt; 75&deg;C escalate to municipal fire wing</span></li>
+            <li><span class="so-num">04</span><span class="so-text">Mark bin "Inspection" until resolved</span></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/animations.js"></script>
+  <script src="assets/js/ws-init.js"></script>
+
+  <div class="inc-modal" id="incModal" aria-hidden="true">
+    <div class="inc-modal-card" role="dialog" aria-modal="true" aria-labelledby="incModalTitle">
+      <button class="inc-modal-close" id="incModalX" aria-label="Close">&times;</button>
+      <div id="incModalTitle" class="sr-only">Incident details</div>
+      <div id="incModalBody"></div>
+    </div>
+  </div>
+  <script>
+  var INCIDENTS = (function () {
+    var bins = ['DB001','DB002','DB003','DB004','DB005','DB006','DB007','DB008'];
+    var locs = { DB001:'Main Lobby',DB002:'Cafeteria',DB003:'Parking Lot A',DB004:'Office Floor 2',DB005:'Library',DB006:'Gym',DB007:'Reception',DB008:'Workshop' };
+    var rows = [];
+    var data = [
+      { bin:'DB002',type:'gas',ppm:642,temp:41,sev:'CRITICAL',status:'ACTIVE' },
+      { bin:'DB006',type:'fire',ppm:210,temp:58,sev:'HIGH',status:'ACTIVE' },
+      { bin:'DB004',type:'gas',ppm:318,temp:34,sev:'MEDIUM',status:'ACKNOWLEDGED' },
+      { bin:'DB001',type:'gas',ppm:152,temp:29,sev:'LOW',status:'RESOLVED' },
+      { bin:'DB008',type:'fire',ppm:96,temp:22,sev:'LOW',status:'RESOLVED' }
+    ];
+    data.forEach(function (d,i) {
+      rows.push({ id:'INC-'+(202500+i),bin:d.bin,loc:locs[d.bin],type:d.type,ppm:d.ppm,temp:d.temp,sev:d.sev,status:d.status,time:'09:'+String(4+i*7).padStart(2,'0')+' AM' });
+    });
+    return rows;
+  })();
+
+  function updateClock(){document.getElementById('currentTime').textContent=new Date().toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+  updateClock();setInterval(updateClock,30000);
+
+  function animateNumber(id,target){var el=document.getElementById(id);var start=parseInt(el.textContent)||0;if(start===target){el.textContent=target;return;}var diff=target-start,steps=18,step=0;var iv=setInterval(function(){step++;el.textContent=Math.round(start+diff*(step/steps));if(step>=steps){el.textContent=target;clearInterval(iv);}},22);}
+
+  var ICON_FIRE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>';
+  var ICON_GAS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 17H7"/><path d="M17 21H9"/></svg>';
+
+  var DRIVERS = { DB001:'A.James', DB002:'S.Patel', DB003:'R.Lee', DB004:'M.Okafor', DB005:'D.Chen', DB006:'T.Wilson', DB007:'N.Rivera', DB008:'P.Khan' };
+
+  function sevLabel(sev){return sev==='CRITICAL'?'Critical':sev==='HIGH'?'High':sev==='MEDIUM'?'Medium':'Low';}
+
+  function renderIncidents(filter) {
+    var host = document.getElementById('incidentList');
+    var list = filter === 'all' ? INCIDENTS : INCIDENTS.filter(function(x){return x.type===filter;});
+    host.innerHTML = list.map(function(inc) {
+      var sevCls = inc.sev==='CRITICAL'?'sev-critical':inc.sev==='HIGH'?'sev-high':inc.sev==='MEDIUM'?'sev-medium':'sev-low';
+      var stCls = inc.status==='ACTIVE'?'st-active':inc.status==='ACKNOWLEDGED'?'st-ack':'st-resolved';
+      return '<div class="incident '+(inc.type==='fire'?'fire':'gas')+'" data-id="'+inc.id+'" role="button" tabindex="0" aria-label="View details for '+inc.id+'">'
+        + '<div class="inc-identity">'
+        + '  <div class="inc-icon">'+(inc.type==='fire'?ICON_FIRE:ICON_GAS)+'</div>'
+        + '  <div class="inc-main">'
+        + '    <div class="inc-top"><strong>'+inc.id+' &middot; '+inc.bin+'</strong></div>'
+        + '    <div class="inc-loc">'+inc.loc+' &middot; '+inc.time+'</div>'
+        + '    <div class="inc-reads"><span>MQ-4: <b>'+inc.ppm+'</b> ppm</span><span>Temp: <b>'+inc.temp+'&deg;C</b></span></div>'
+        + '  </div>'
+        + '</div>'
+        + '<div class="inc-severity">'
+        + '  <span class="sev '+sevCls+'">'+inc.sev+'</span>'
+        + '  <span class="inc-status '+stCls+'">'+inc.status+'</span>'
+        + '</div>'
+        + '<div class="inc-actions">'
+        + (inc.status!=='RESOLVED'
+          ? '<button class="btn btn-danger btn-sm inc-ack" data-id="'+inc.id+'">'+(inc.status==='ACTIVE'?'Acknowledge':'Resolve')+'</button>'
+          : '<button class="btn btn-outline btn-sm inc-handled" disabled>&#10003; Handled</button>')
+        + '</div></div>';
+    }).join('');
+    if (!list.length) host.innerHTML = '<div class="table-empty">No incidents for this filter.</div>';
+
+    host.querySelectorAll('.inc-ack').forEach(function(b) {
+      b.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var id = b.getAttribute('data-id');
+        INCIDENTS.forEach(function(x){if(x.id===id&&x.status==='ACTIVE')x.status='ACKNOWLEDGED';else if(x.id===id&&x.status==='ACKNOWLEDGED')x.status='RESOLVED';});
+        refreshCounts();
+        renderIncidents(host.dataset.filter||'all');
+        showToast(id+(INCIDENTS.filter(function(x){return x.id===id;})[0].status==='RESOLVED'?' resolved.':' acknowledged.'),'success');
+      });
+    });
+
+    host.querySelectorAll('.incident[data-id]').forEach(function(row){
+      function open(){ openIncident(row.getAttribute('data-id')); }
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); } });
+    });
+  }
+
+  function findIncident(id){ for(var i=0;i<INCIDENTS.length;i++){ if(INCIDENTS[i].id===id) return INCIDENTS[i]; } return null; }
+
+  function openIncident(id) {
+    var inc = findIncident(id); if(!inc) return;
+    var stCls = inc.status==='ACTIVE'?'st-active':inc.status==='ACKNOWLEDGED'?'st-ack':'st-resolved';
+    var sevCls = inc.sev==='CRITICAL'?'sev-critical':inc.sev==='HIGH'?'sev-high':inc.sev==='MEDIUM'?'sev-medium':'sev-low';
+    var resolution = inc.status==='RESOLVED'
+      ? '<div class="dl-note ok">Resolved by '+DRIVERS[inc.bin]+'</div>'
+      : '<div class="dl-note">Pending action &middot; assigned to '+DRIVERS[inc.bin]+'</div>';
+    document.getElementById('incModalBody').innerHTML =
+      '<div class="dl-head"><div class="inc-icon '+(inc.type==='fire'?'fire':'gas')+'">'+(inc.type==='fire'?ICON_FIRE:ICON_GAS)+'</div>'
+      + '<div><h4>'+inc.id+'</h4><p>'+inc.loc+'</p></div>'
+      + '<span class="sev '+sevCls+'">'+inc.sev+'</span></div>'
+      + '<div class="dl-grid">'
+      + '<div class="dl-field"><span>Bin ID</span><strong>'+inc.bin+'</strong></div>'
+      + '<div class="dl-field"><span>Location</span><strong>'+inc.loc+'</strong></div>'
+      + '<div class="dl-field"><span>MQ-4 Reading</span><strong>'+inc.ppm+' ppm</strong></div>'
+      + '<div class="dl-field"><span>Temperature</span><strong>'+inc.temp+'&deg;C</strong></div>'
+      + '<div class="dl-field"><span>Detected At</span><strong>'+inc.time+'</strong></div>'
+      + '<div class="dl-field"><span>Current Status</span><strong><span class="inc-status '+stCls+'">'+inc.status+'</span></strong></div>'
+      + '<div class="dl-field"><span>Assigned Driver</span><strong>'+DRIVERS[inc.bin]+'</strong></div>'
+      + '<div class="dl-field"><span>Incident Type</span><strong>'+(inc.type==='fire'?'Fire / Thermal':'Gas / Smoke')+'</strong></div>'
+      + '</div>'
+      + resolution
+      + '<div class="dl-actions">'
+      + (inc.status!=='RESOLVED'
+        ? '<button class="btn btn-danger btn-sm inc-ack-modal" data-id="'+inc.id+'">'+(inc.status==='ACTIVE'?'Acknowledge':'Resolve incident')+'</button>'
+        : '')
+      + '<button class="btn btn-outline btn-sm dl-close">Close</button>'
+      + '</div>';
+    document.getElementById('incModal').classList.add('open');
+    document.body.classList.add('inc-modal-open');
+
+    document.querySelector('.inc-ack-modal').addEventListener('click', function(){
+      var iid = this.getAttribute('data-id');
+      INCIDENTS.forEach(function(x){if(x.id===iid&&x.status==='ACTIVE')x.status='ACKNOWLEDGED';else if(x.id===iid&&x.status==='ACKNOWLEDGED')x.status='RESOLVED';});
+      refreshCounts();
+      renderIncidents(activeFilter);
+      closeIncident();
+      showToast(iid+(INCIDENTS.filter(function(x){return x.id===iid;})[0].status==='RESOLVED'?' resolved.':' acknowledged.'),'success');
+    });
+    document.querySelector('.dl-close').addEventListener('click', closeIncident);
+  }
+
+  function closeIncident(){
+    document.getElementById('incModal').classList.remove('open');
+    document.body.classList.remove('inc-modal-open');
+  }
+
+  function refreshCounts() {
+    var fire=INCIDENTS.filter(function(x){return x.type==='fire';}).length;
+    var gas=INCIDENTS.filter(function(x){return x.type==='gas';}).length;
+    var open=INCIDENTS.filter(function(x){return x.status!=='RESOLVED';}).length;
+    var resolved=INCIDENTS.filter(function(x){return x.status==='RESOLVED';}).length;
+    animateNumber('kFire',fire);animateNumber('kGas',gas);animateNumber('kOpen',open);animateNumber('kResolved',resolved);
+    document.getElementById('sAll').textContent=INCIDENTS.length;
+    document.getElementById('sOk').textContent=INCIDENTS.filter(function(x){return x.sev==='LOW';}).length;
+    document.getElementById('sWarn').textContent=INCIDENTS.filter(function(x){return x.sev==='MEDIUM'||x.sev==='HIGH';}).length;
+    document.getElementById('sCrit').textContent=INCIDENTS.filter(function(x){return x.sev==='CRITICAL';}).length;
+  }
+
+  var activeFilter='all';
+  document.querySelectorAll('.af').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.af').forEach(function(x){x.classList.remove('on');});
+      b.classList.add('on');
+      activeFilter=b.getAttribute('data-f');
+      renderIncidents(activeFilter);
+    });
+  });
+
+  renderIncidents(activeFilter);
+  refreshCounts();
+
+  document.getElementById('incModalX').addEventListener('click', closeIncident);
+  document.getElementById('incModal').addEventListener('click', function(e){ if(e.target===this) closeIncident(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeIncident(); });
+  </script>
+</body>
+</html>

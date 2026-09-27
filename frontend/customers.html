@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Customers | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+  <style>
+    :root {
+      --cm-bg: #07111f;
+      --cm-card: #0e1a2b;
+      --cm-card-2: #0b1524;
+      --cm-border: #1c2b40;
+      --cm-border-2: #22334b;
+      --cm-ink: #f1f5f9;
+      --cm-muted: #93a3b8;
+      --cm-dim: #64748b;
+      --cm-green: #16a34a;
+      --cm-green-hi: #22c55e;
+      --cm-teal: #2dd4bf;
+      --cm-blue: #3b82f6;
+      --cm-purple: #a855f7;
+      --cm-amber: #f59e0b;
+      --cm-red: #ef4444;
+    }
+
+    body[data-page="customers"] { background: var(--cm-bg) !important; color: var(--cm-ink); overflow-x: hidden; }
+    body[data-page="customers"] .sidebar { width: 210px; background: #0a1424 !important; border-right: 1px solid var(--cm-border) !important; }
+    body[data-page="customers"] .sidebar-brand { color: var(--cm-ink) !important; border-bottom-color: var(--cm-border) !important; }
+    body[data-page="customers"] .sidebar-nav a { color: var(--cm-muted) !important; }
+    body[data-page="customers"] .sidebar-nav a:hover:not(.active) { background: rgba(22,163,74,.12); color: var(--cm-ink) !important; }
+    body[data-page="customers"] .sidebar-nav a.active { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+    body[data-page="customers"] .main { margin-left: 210px; }
+    body[data-page="customers"] .topbar { background: rgba(7,17,31,.85) !important; border-bottom: 1px solid var(--cm-border) !important; backdrop-filter: blur(10px); }
+    body[data-page="customers"] .topbar-title { color: var(--cm-ink) !important; font-size: 1.3rem; }
+    body[data-page="customers"] .topbar-subtitle { color: var(--cm-muted) !important; }
+    body[data-page="customers"] .avatar { background: #1e293b !important; color: var(--cm-ink) !important; }
+    body[data-page="customers"] .content { padding: 24px 24px 56px !important; max-width: 1500px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    body[data-page="customers"] .topbar-left { flex-direction: column; align-items: flex-start; }
+    body[data-page="customers"] .cust-meta { font-size: .74rem; color: var(--cm-dim); }
+
+    /* KPI row */
+    body[data-page="customers"] .cm-kpis { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; margin-bottom: 20px; }
+    body[data-page="customers"] .cm-kpi {
+      display: flex; align-items: center; gap: 16px; background: var(--cm-card); border: 1px solid var(--cm-border); border-radius: 13px;
+      padding: 18px; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .16s ease, border-color .16s ease; min-height: 96px; box-sizing: border-box; cursor: pointer;
+    }
+    body[data-page="customers"] .cm-kpi:hover { transform: translateY(-2px); border-color: var(--cm-border-2); }
+    body[data-page="customers"] .cm-kpi.kpi-active { border-color: var(--cm-green); box-shadow: 0 0 0 1px var(--cm-green); }
+    body[data-page="customers"] .cm-kpi .cm-ki { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    body[data-page="customers"] .cm-kpi .cm-ki svg { width: 22px; height: 22px; }
+    body[data-page="customers"] .cm-kpi .cm-ki.tot { background: rgba(59,130,246,.14); color: #60a5fa; }
+    body[data-page="customers"] .cm-kpi .cm-ki.act { background: rgba(34,197,94,.14); color: #4ade80; }
+    body[data-page="customers"] .cm-kpi .cm-ki.sus { background: rgba(245,158,11,.14); color: #fbbf24; }
+    body[data-page="customers"] .cm-kpi .cm-ki.pen { background: rgba(168,85,247,.14); color: #c084fc; }
+    body[data-page="customers"] .cm-kpi .cm-kb { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    body[data-page="customers"] .cm-kpi .cm-lb { font-size: .7rem; font-weight: 600; letter-spacing: .06em; color: var(--cm-dim); text-transform: uppercase; }
+    body[data-page="customers"] .cm-kpi .cm-val { font-size: 1.7rem; font-weight: 800; color: var(--cm-ink); line-height: 1.05; }
+    body[data-page="customers"] .cm-kpi .cm-sub { font-size: .76rem; color: var(--cm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Panel */
+    body[data-page="customers"] .cm-panel { background: var(--cm-card); border: 1px solid var(--cm-border); border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.3); overflow: hidden; }
+    body[data-page="customers"] .cm-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 16px 18px; border-bottom: 1px solid var(--cm-border); background: var(--cm-card-2); }
+    body[data-page="customers"] .cm-panel-head h3 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--cm-ink); }
+    body[data-page="customers"] .cm-panel-head p { margin: 2px 0 0; font-size: .78rem; color: var(--cm-muted); }
+    body[data-page="customers"] .cm-tools { display: flex; gap: 10px; align-items: center; }
+    body[data-page="customers"] .cm-search { display: flex; align-items: center; gap: 8px; background: #0a1424; border: 1px solid var(--cm-border-2); border-radius: 9px; padding: 0 12px; height: 38px; box-sizing: border-box; width: 260px; color: var(--cm-ink); }
+    body[data-page="customers"] .cm-search svg { width: 16px; height: 16px; color: var(--cm-dim); flex-shrink: 0; }
+    body[data-page="customers"] .cm-search input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--cm-ink); font-size: .85rem; }
+    body[data-page="customers"] .cm-search input::placeholder { color: var(--cm-dim); }
+    body[data-page="customers"] .cm-filter-btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 13px; border-radius: 9px; background: #0a1424; border: 1px solid var(--cm-border-2); color: var(--cm-muted); font-size: .84rem; font-weight: 600; cursor: pointer; transition: background .15s, border-color .15s; }
+    body[data-page="customers"] .cm-filter-btn:hover { background: rgba(59,130,246,.12); border-color: var(--cm-blue); color: var(--cm-ink); }
+    body[data-page="customers"] .cm-filter-btn svg { width: 15px; height: 15px; }
+    body[data-page="customers"] .cm-showing { font-size: .78rem; color: var(--cm-dim); margin-left: 8px; white-space: nowrap; }
+
+    body[data-page="customers"] .cm-tabs { display: flex; gap: 8px; padding: 12px 18px; border-bottom: 1px solid var(--cm-border); flex-wrap: wrap; align-items: center; }
+    body[data-page="customers"] .cm-tab { padding: 6px 16px; border-radius: 8px; font-size: .82rem; font-weight: 600; background: rgba(255,255,255,.04); border: 1px solid var(--cm-border-2); color: var(--cm-muted); cursor: pointer; transition: background .15s, color .15s; }
+    body[data-page="customers"] .cm-tab:hover { color: var(--cm-ink); background: rgba(255,255,255,.08); }
+    body[data-page="customers"] .cm-tab.active { background: var(--cm-green); border-color: var(--cm-green); color: #fff !important; }
+
+    /* Table */
+    body[data-page="customers"] .cm-table-scroll { width: 100%; overflow-x: auto; }
+    body[data-page="customers"] .cm-table { width: 100%; min-width: 880px; border-collapse: collapse; table-layout: fixed; font-size: .84rem; color: var(--cm-muted); }
+    body[data-page="customers"] .cm-table th { text-align: left; padding: 12px 14px; font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--cm-dim); background: var(--cm-card-2); border-bottom: 1px solid var(--cm-border); white-space: nowrap; }
+    body[data-page="customers"] .cm-table td { padding: 12px 14px; vertical-align: middle; border-bottom: 1px solid rgba(28,43,64,.6); color: var(--cm-muted); box-sizing: border-box; overflow-wrap: break-word; }
+    body[data-page="customers"] .cm-table tbody tr { cursor: pointer; transition: background .14s ease; }
+    body[data-page="customers"] .cm-table tbody tr:hover { background: rgba(22,163,74,.05); }
+    body[data-page="customers"] .cm-table tbody tr.cm-sel { background: rgba(20,184,166,.10); box-shadow: inset 3px 0 0 var(--cm-teal); }
+    body[data-page="customers"] .cm-table th:nth-child(1) { width: 22%; }
+    body[data-page="customers"] .cm-table th:nth-child(2) { width: 24%; }
+    body[data-page="customers"] .cm-table th:nth-child(3) { width: 14%; }
+    body[data-page="customers"] .cm-table th:nth-child(4) { width: 13%; }
+    body[data-page="customers"] .cm-table th:nth-child(5) { width: 12%; }
+    body[data-page="customers"] .cm-table th:nth-child(6) { width: 15%; }
+
+    /* Cell styles */
+    body[data-page="customers"] .ccell { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    body[data-page="customers"] .ccell .cav { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .82rem; color: #fff; background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+    body[data-page="customers"] .ccell .cmeta { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    body[data-page="customers"] .ccell .cname { font-weight: 700; color: var(--cm-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body[data-page="customers"] .ccell .crole { font-size: .75rem; color: var(--cm-dim); }
+    body[data-page="customers"] .ccontact { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    body[data-page="customers"] .cline { display: flex; align-items: center; gap: 7px; color: var(--cm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body[data-page="customers"] .cline svg { width: 13px; height: 13px; color: var(--cm-dim); flex-shrink: 0; }
+    body[data-page="customers"] .cline .val { overflow: hidden; text-overflow: ellipsis; }
+    body[data-page="customers"] .cloc { display: inline-flex; align-items: center; gap: 7px; color: var(--cm-muted); }
+    body[data-page="customers"] .cloc svg { width: 14px; height: 14px; color: var(--cm-dim); flex-shrink: 0; }
+
+    /* Status pill */
+    body[data-page="customers"] .cpill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: .76rem; font-weight: 600; line-height: 1.2; white-space: nowrap; background: rgba(34,197,94,.14); color: #4ade80; }
+    body[data-page="customers"] .cpill .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
+    body[data-page="customers"] .cpill.suspended { background: rgba(245,158,11,.14); color: #fbbf24; }
+    body[data-page="customers"] .cpill.suspended .dot { background: #fbbf24; }
+    body[data-page="customers"] .cpill.pending { background: rgba(168,85,247,.14); color: #c084fc; }
+    body[data-page="customers"] .cpill.pending .dot { background: #c084fc; }
+    body[data-page="customers"] .cjoin { display: inline-flex; align-items: center; gap: 7px; color: var(--cm-muted); white-space: nowrap; }
+    body[data-page="customers"] .cjoin svg { width: 14px; height: 14px; color: var(--cm-dim); flex-shrink: 0; }
+
+    /* Actions + three-dot */
+    body[data-page="customers"] .cacts { display: flex; align-items: center; gap: 8px; position: relative; }
+    body[data-page="customers"] .cview { padding: 6px 13px; border-radius: 8px; font-size: .8rem; font-weight: 600; cursor: pointer; background: rgba(22,163,74,.16); border: 1px solid rgba(22,163,74,.4); color: #4ade80; transition: background .15s; }
+    body[data-page="customers"] .cview:hover { background: var(--cm-green); color: #fff; }
+    body[data-page="customers"] .cdot { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid var(--cm-border-2); color: var(--cm-muted); cursor: pointer; transition: background .15s; }
+    body[data-page="customers"] .cdot:hover { background: rgba(255,255,255,.06); color: var(--cm-ink); }
+    body[data-page="customers"] .cdot svg { width: 16px; height: 16px; }
+
+    /* Dropdown menu */
+    body[data-page="customers"] .cm-dropdown {
+      position: absolute; top: 100%; right: 0; margin-top: 4px; z-index: 200; min-width: 190px;
+      background: var(--cm-card); border: 1px solid var(--cm-border-2); border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.5); padding: 4px 0; display: none; animation: cmFadeIn .15s ease;
+    }
+    body[data-page="customers"] .cm-dropdown.open { display: block; }
+    @keyframes cmFadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    body[data-page="customers"] .cm-dd-item {
+      display: flex; align-items: center; gap: 10px; padding: 8px 14px; font-size: .82rem; color: var(--cm-muted);
+      cursor: pointer; transition: background .12s; border: none; background: none; width: 100%; text-align: left; font-family: inherit;
+    }
+    body[data-page="customers"] .cm-dd-item:hover { background: rgba(255,255,255,.06); color: var(--cm-ink); }
+    body[data-page="customers"] .cm-dd-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+    body[data-page="customers"] .cm-dd-sep { height: 1px; background: var(--cm-border); margin: 4px 0; }
+    body[data-page="customers"] .cm-dd-item.danger { color: #f87171; }
+    body[data-page="customers"] .cm-dd-item.danger:hover { background: rgba(239,68,68,.12); color: #f87171; }
+
+    /* Layout: table + drawer */
+    body[data-page="customers"] .cm-body-wrap { display: flex; align-items: flex-start; gap: 0; }
+    body[data-page="customers"] .cm-table-col { flex: 1 1 auto; min-width: 0; }
+
+    /* Drawer — fixed overlay so it never affects table height */
+    body[data-page="customers"] .cm-drawer {
+      width: 320px; background: var(--cm-card-2); border-left: 1px solid var(--cm-border);
+      padding: 18px; box-sizing: border-box; overflow-y: auto;
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 180;
+      transition: transform .28s cubic-bezier(.4,0,.2,1), opacity .2s ease; animation: drawerSlideIn .28s ease;
+      box-shadow: -4px 0 20px rgba(0,0,0,.4);
+    }
+    body[data-page="customers"] .cm-drawer.cm-hidden { display: none; transform: translateX(20px); opacity: 0; }
+    @keyframes drawerSlideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    body[data-page="customers"] .cm-drawer .d-top { display: flex; justify-content: flex-end; }
+    body[data-page="customers"] .cm-drawer .d-close { width: 30px; height: 30px; border-radius: 8px; background: transparent; border: 1px solid var(--cm-border-2); color: var(--cm-muted); font-size: 1.1rem; line-height: 1; cursor: pointer; transition: background .15s; }
+    body[data-page="customers"] .cm-drawer .d-close:hover { background: rgba(239,68,68,.15); color: #f87171; }
+    body[data-page="customers"] .cm-drawer .d-avatar { width: 68px; height: 68px; border-radius: 50%; margin: 8px auto 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+    body[data-page="customers"] .cm-drawer .d-name { text-align: center; font-size: 1.12rem; font-weight: 800; color: var(--cm-ink); }
+    body[data-page="customers"] .cm-drawer .d-state { text-align: center; margin: 4px 0 2px; }
+    body[data-page="customers"] .cm-drawer .d-state .cpill { margin: 0 auto; }
+    body[data-page="customers"] .cm-drawer .d-role { text-align: center; font-size: .78rem; color: var(--cm-dim); margin-bottom: 6px; }
+    body[data-page="customers"] .cm-drawer .d-sec { margin-top: 16px; }
+    body[data-page="customers"] .cm-drawer .d-sec-h { font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--cm-dim); margin-bottom: 8px; }
+    body[data-page="customers"] .cm-drawer .d-row { display: flex; align-items: center; gap: 9px; font-size: .84rem; color: var(--cm-muted); padding: 3px 0; }
+    body[data-page="customers"] .cm-drawer .d-row svg { width: 14px; height: 14px; color: var(--cm-dim); flex-shrink: 0; }
+    body[data-page="customers"] .cm-drawer .d-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    body[data-page="customers"] .cm-drawer .d-field { background: var(--cm-card); border: 1px solid var(--cm-border); border-radius: 9px; padding: 8px 10px; }
+    body[data-page="customers"] .cm-drawer .d-field .k { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--cm-dim); }
+    body[data-page="customers"] .cm-drawer .d-field .v { font-size: .84rem; font-weight: 600; color: var(--cm-ink); margin-top: 2px; }
+    body[data-page="customers"] .cm-drawer .d-hr { border: none; border-top: 1px solid var(--cm-border); margin: 14px 0; }
+
+    /* Complaints overview */
+    body[data-page="customers"] .d-comp { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    body[data-page="customers"] .d-compcard { border-radius: 11px; padding: 10px; box-sizing: border-box; }
+    body[data-page="customers"] .d-compcard.total { background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.35); }
+    body[data-page="customers"] .d-compcard.open { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.4); }
+    body[data-page="customers"] .d-compcard.resolved { background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.35); }
+    body[data-page="customers"] .d-compcard .n { font-size: 1.3rem; font-weight: 800; }
+    body[data-page="customers"] .d-compcard.total .n { color: #60a5fa; }
+    body[data-page="customers"] .d-compcard.open .n { color: #f87171; }
+    body[data-page="customers"] .d-compcard.resolved .n { color: #4ade80; }
+    body[data-page="customers"] .d-compcard .l { font-size: .65rem; text-transform: uppercase; letter-spacing: .04em; color: var(--cm-dim); margin: 2px 0 4px; }
+    body[data-page="customers"] .d-compcard a { font-size: .72rem; font-weight: 600; color: var(--cm-teal); cursor: pointer; text-decoration: none; }
+
+    /* Timeline */
+    body[data-page="customers"] .d-timeline { display: flex; flex-direction: column; }
+    body[data-page="customers"] .tl-item { display: flex; gap: 10px; position: relative; padding-bottom: 12px; }
+    body[data-page="customers"] .tl-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+    body[data-page="customers"] .tl-dot.green { background: #4ade80; }
+    body[data-page="customers"] .tl-dot.blue { background: #60a5fa; }
+    body[data-page="customers"] .tl-dot.red { background: #f87171; }
+    body[data-page="customers"] .tl-dot.amber { background: #fbbf24; }
+    body[data-page="customers"] .tl-body { font-size: .8rem; color: var(--cm-muted); line-height: 1.35; }
+    body[data-page="customers"] .tl-body b { color: var(--cm-ink); font-weight: 600; }
+    body[data-page="customers"] .tl-date { font-size: .72rem; color: var(--cm-dim); margin-top: 1px; }
+
+    /* Drawer footer */
+    body[data-page="customers"] .d-actions { display: flex; gap: 10px; margin-top: 16px; }
+    body[data-page="customers"] .d-actions button { flex: 1; height: 38px; border-radius: 9px; font-size: .84rem; font-weight: 600; cursor: pointer; transition: background .15s; }
+    body[data-page="customers"] .d-close-btn { background: transparent; border: 1px solid var(--cm-border-2); color: var(--cm-muted); }
+    body[data-page="customers"] .d-close-btn:hover { border-color: var(--cm-dim); color: var(--cm-ink); }
+    body[data-page="customers"] .d-complaints-btn { background: var(--cm-blue); border: 1px solid var(--cm-blue); color: #fff; }
+    body[data-page="customers"] .d-complaints-btn:hover { background: #2563eb; }
+
+    /* Bottom cards */
+    body[data-page="customers"] .cm-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; align-items: start; }
+    body[data-page="customers"] .cm-bcard { background: var(--cm-card); border: 1px solid var(--cm-border); border-radius: 14px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.3); box-sizing: border-box; }
+    body[data-page="customers"] .cm-bhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    body[data-page="customers"] .cm-bhead h3 { margin: 0; font-size: .98rem; font-weight: 700; color: var(--cm-ink); }
+    body[data-page="customers"] .cm-bhead a { font-size: .78rem; font-weight: 600; color: var(--cm-teal); cursor: pointer; text-decoration: none; }
+    body[data-page="customers"] .cm-activity-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(28,43,64,.5); transition: background .12s; }
+    body[data-page="customers"] .cm-activity-item:last-child { border-bottom: none; }
+    body[data-page="customers"] .cm-activity-item .cm-avat { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .78rem; color: #fff; background: linear-gradient(135deg, #0f766e, #2dd4bf); }
+    body[data-page="customers"] .cm-activity-item .cm-abody { min-width: 0; }
+    body[data-page="customers"] .cm-activity-item .cm-aname { font-weight: 700; color: var(--cm-ink); font-size: .86rem; }
+    body[data-page="customers"] .cm-activity-item .cm-adesc { font-size: .8rem; color: var(--cm-muted); }
+    body[data-page="customers"] .cm-activity-item .cm-adate { font-size: .72rem; color: var(--cm-dim); margin-top: 2px; }
+    body[data-page="customers"] .cm-bempty { color: var(--cm-dim); font-size: .82rem; padding: 10px 0; text-align: center; }
+
+    /* Statistics */
+    body[data-page="customers"] .cm-stats-body { display: flex; align-items: center; gap: 20px; }
+    body[data-page="customers"] .cm-donut { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+    body[data-page="customers"] .cm-donut svg { width: 140px; height: 140px; transform: rotate(-90deg); }
+    body[data-page="customers"] .cm-donut .cm-dcenter { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    body[data-page="customers"] .cm-donut .cm-dcenter b { font-size: 1.3rem; font-weight: 800; color: var(--cm-ink); }
+    body[data-page="customers"] .cm-donut .cm-dcenter span { font-size: .65rem; color: var(--cm-dim); text-transform: uppercase; letter-spacing: .04em; }
+    body[data-page="customers"] .cm-stlist { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+    body[data-page="customers"] .cm-strow { display: flex; align-items: center; gap: 10px; font-size: .84rem; padding: 6px 10px; border-radius: 8px; transition: background .12s; cursor: default; }
+    body[data-page="customers"] .cm-strow:hover { background: rgba(255,255,255,.04); }
+    body[data-page="customers"] .cm-strow .sq { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    body[data-page="customers"] .cm-strow .lab { color: var(--cm-muted); flex: 1; }
+    body[data-page="customers"] .cm-strow .pct { font-weight: 700; color: var(--cm-ink); min-width: 24px; text-align: right; }
+
+    /* Empty state */
+    body[data-page="customers"] .cm-empty { text-align: center; padding: 40px 20px; }
+    body[data-page="customers"] .cm-empty svg { width: 48px; height: 48px; color: var(--cm-dim); margin-bottom: 12px; }
+    body[data-page="customers"] .cm-empty h4 { margin: 0 0 6px; color: var(--cm-muted); font-size: .92rem; }
+    body[data-page="customers"] .cm-empty p { margin: 0 0 14px; color: var(--cm-dim); font-size: .82rem; }
+    body[data-page="customers"] .cm-empty button { padding: 6px 16px; border-radius: 8px; font-size: .82rem; font-weight: 600; background: rgba(22,163,74,.16); border: 1px solid rgba(22,163,74,.4); color: #4ade80; cursor: pointer; }
+
+    /* Confirmation modal */
+    body[data-page="customers"] .cm-confirm { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); animation: cmFadeIn .2s ease; }
+    body[data-page="customers"] .cm-confirm.cm-hidden { display: none; }
+    body[data-page="customers"] .cm-confirm-box { background: var(--cm-card); border: 1px solid var(--cm-border-2); border-radius: 14px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 16px 48px rgba(0,0,0,.5); }
+    body[data-page="customers"] .cm-confirm-box h3 { margin: 0 0 8px; color: var(--cm-ink); font-size: 1.05rem; }
+    body[data-page="customers"] .cm-confirm-box p { margin: 0 0 20px; color: var(--cm-muted); font-size: .86rem; line-height: 1.5; }
+    body[data-page="customers"] .cm-confirm-box .cm-cbtns { display: flex; gap: 10px; justify-content: flex-end; }
+    body[data-page="customers"] .cm-confirm-box .cm-cbtns button { padding: 8px 18px; border-radius: 9px; font-size: .84rem; font-weight: 600; cursor: pointer; transition: background .15s; }
+    body[data-page="customers"] .cm-c-cancel { background: transparent; border: 1px solid var(--cm-border-2); color: var(--cm-muted); }
+    body[data-page="customers"] .cm-c-cancel:hover { border-color: var(--cm-dim); color: var(--cm-ink); }
+    body[data-page="customers"] .cm-c-danger { background: #dc2626; border: 1px solid #dc2626; color: #fff; }
+    body[data-page="customers"] .cm-c-danger:hover { background: #b91c1c; }
+    body[data-page="customers"] .cm-c-success { background: var(--cm-green); border: 1px solid var(--cm-green); color: #fff; }
+    body[data-page="customers"] .cm-c-success:hover { background: #15803d; }
+
+    /* Filter dropdown panel */
+    body[data-page="customers"] .cm-filter-panel {
+      position: absolute; top: 100%; right: 0; margin-top: 6px; z-index: 190; width: 280px;
+      background: var(--cm-card); border: 1px solid var(--cm-border-2); border-radius: 12px;
+      box-shadow: 0 12px 36px rgba(0,0,0,.5); padding: 16px; display: none; animation: cmFadeIn .18s ease;
+    }
+    body[data-page="customers"] .cm-filter-panel.open { display: block; }
+    body[data-page="customers"] .cm-fp-group { margin-bottom: 14px; }
+    body[data-page="customers"] .cm-fp-group:last-of-type { margin-bottom: 16px; }
+    body[data-page="customers"] .cm-fp-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--cm-dim); margin-bottom: 8px; }
+    body[data-page="customers"] .cm-fp-opts { display: flex; flex-direction: column; gap: 4px; }
+    body[data-page="customers"] .cm-fp-opt { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 7px; font-size: .82rem; color: var(--cm-muted); cursor: pointer; transition: background .12s; }
+    body[data-page="customers"] .cm-fp-opt:hover { background: rgba(255,255,255,.06); }
+    body[data-page="customers"] .cm-fp-opt.selected { background: rgba(22,163,74,.14); color: #4ade80; }
+    body[data-page="customers"] .cm-fp-opt .cm-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--cm-border-2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    body[data-page="customers"] .cm-fp-opt.selected .cm-dot { border-color: var(--cm-green); }
+    body[data-page="customers"] .cm-fp-opt.selected .cm-dot::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--cm-green); }
+    body[data-page="customers"] .cm-fp-select { width: 100%; padding: 8px 10px; border-radius: 8px; background: #0a1424; border: 1px solid var(--cm-border-2); color: var(--cm-ink); font-size: .82rem; }
+    body[data-page="customers"] .cm-fp-btns { display: flex; gap: 8px; }
+    body[data-page="customers"] .cm-fp-btns button { flex: 1; padding: 8px; border-radius: 8px; font-size: .82rem; font-weight: 600; cursor: pointer; }
+    body[data-page="customers"] .cm-fp-reset { background: transparent; border: 1px solid var(--cm-border-2); color: var(--cm-muted); }
+    body[data-page="customers"] .cm-fp-apply { background: var(--cm-green); border: 1px solid var(--cm-green); color: #fff; }
+    body[data-page="customers"] .cm-fp-apply:hover { background: #15803d; }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      body[data-page="customers"] .cm-body-wrap { flex-direction: column; }
+      body[data-page="customers"] .cm-drawer { width: 100%; border-left: none; border-top: 1px solid var(--cm-border); }
+      body[data-page="customers"] .cm-bottom { grid-template-columns: 1fr; }
+      body[data-page="customers"] .cm-kpis { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 860px) {
+      body[data-page="customers"] .cm-stats-body { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 640px) {
+      body[data-page="customers"] .cm-kpis { grid-template-columns: 1fr; }
+      body[data-page="customers"] .main { margin-left: 0; }
+    }
+  </style>
+</head>
+<body data-network data-page="customers" data-role="municipality">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav"></nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">Customer Management</span>
+        <span class="topbar-subtitle">Manage registered citizen accounts</span>
+        <span class="cust-meta" id="custMeta">0 customer accounts</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="live-badge"><i></i>Accounts Live</span>
+        <button class="btn btn-primary btn-sm" id="newCustBtn" type="button">+ New Customer</button>
+        <div class="topbar-time" id="currentTime"></div>
+        <div class="avatar">M</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- KPI row -->
+      <div class="cm-kpis">
+        <div class="cm-kpi" data-kpi="all">
+          <div class="cm-ki tot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 19a6.5 6.5 0 0113 0"/><path d="M16 6a3 3 0 010 5M17.5 12.5a6.5 6.5 0 012 5.5"/></svg></div>
+          <div class="cm-kb"><span class="cm-lb">Total Customers</span><span class="cm-val" id="kTotal">&ndash;</span><span class="cm-sub">All registered customers</span></div>
+        </div>
+        <div class="cm-kpi" data-kpi="active">
+          <div class="cm-ki act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 19a6.5 6.5 0 0113 0"/><path d="M17 12l2 2 3.5-3.5"/></svg></div>
+          <div class="cm-kb"><span class="cm-lb">Active</span><span class="cm-val" id="kActive">&ndash;</span><span class="cm-sub">Currently active accounts</span></div>
+        </div>
+        <div class="cm-kpi" data-kpi="suspended">
+          <div class="cm-ki sus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 19a6.5 6.5 0 0113 0"/><path d="M17 13l4 4M21 13l-4 4"/></svg></div>
+          <div class="cm-kb"><span class="cm-lb">Suspended</span><span class="cm-val" id="kSusp">&ndash;</span><span class="cm-sub">Temporarily suspended</span></div>
+        </div>
+        <div class="cm-kpi" data-kpi="pending">
+          <div class="cm-ki pen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+          <div class="cm-kb"><span class="cm-lb">Pending Reviews</span><span class="cm-val" id="kPending">&ndash;</span><span class="cm-sub">Awaiting verification</span></div>
+        </div>
+      </div>
+      <input type="hidden" id="kDone" value="0">
+
+      <!-- Customer Accounts panel -->
+      <div class="cm-panel" id="cmPanel">
+        <div class="cm-panel-head">
+          <div>
+            <h3>Customer Accounts</h3>
+            <p>All registered customers in the system</p>
+          </div>
+          <div class="cm-tools">
+            <div class="cm-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input id="custSearch" placeholder="Search by name, email or mobile..." />
+            </div>
+            <div style="position:relative">
+              <button class="cm-filter-btn" id="cmFilterBtn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+                Filter
+              </button>
+              <!-- Filter dropdown panel -->
+              <div class="cm-filter-panel" id="cmFilterPanel">
+                <div class="cm-fp-group">
+                  <div class="cm-fp-label">Status</div>
+                  <div class="cm-fp-opts" id="cmFpStatus">
+                    <div class="cm-fp-opt selected" data-v="all"><span class="cm-dot"></span>All</div>
+                    <div class="cm-fp-opt" data-v="active"><span class="cm-dot"></span>Active</div>
+                    <div class="cm-fp-opt" data-v="suspended"><span class="cm-dot"></span>Suspended</div>
+                    <div class="cm-fp-opt" data-v="pending"><span class="cm-dot"></span>Pending</div>
+                  </div>
+                </div>
+                <div class="cm-fp-group">
+                  <div class="cm-fp-label">Location</div>
+                  <select class="cm-fp-select" id="cmFpLocation"><option value="">All locations</option></select>
+                </div>
+                <div class="cm-fp-group">
+                  <div class="cm-fp-label">Date Joined</div>
+                  <select class="cm-fp-select" id="cmFpDate">
+                    <option value="">All dates</option>
+                    <option value="today">Today</option>
+                    <option value="week">This week</option>
+                    <option value="month">This month</option>
+                  </select>
+                </div>
+                <div class="cm-fp-btns">
+                  <button class="cm-fp-reset" id="cmFpReset" type="button">Reset</button>
+                  <button class="cm-fp-apply" id="cmFpApply" type="button">Apply Filters</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cm-tabs" id="cmTabs">
+          <button class="cm-tab active" data-f="all">All</button>
+          <button class="cm-tab" data-f="active">Active</button>
+          <button class="cm-tab" data-f="suspended">Suspended</button>
+          <span class="cm-showing" id="cmShowing"></span>
+        </div>
+
+        <div class="cm-body-wrap">
+          <div class="cm-table-col">
+            <div class="cm-table-scroll">
+              <table class="cm-table">
+                <colgroup><col><col><col><col><col><col></colgroup>
+                <thead><tr>
+                  <th>Customer</th><th>Contact</th><th>Location</th><th>Status</th><th>Joined</th><th>Actions</th>
+                </tr></thead>
+                <tbody id="custTable"><tr><td colspan="6" class="cm-bempty">Loading accounts...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right Customer Details drawer -->
+          <aside class="cm-drawer cm-hidden" id="cmDrawer">
+            <div class="d-top"><button class="d-close" id="cmDrawerClose" aria-label="Close">&times;</button></div>
+            <div class="d-avatar" id="dAvatar">&ndash;</div>
+            <div class="d-name" id="dName">Customer</div>
+            <div class="d-state" id="dState"></div>
+            <div class="d-role" id="dRole">Customer</div>
+
+            <div class="d-sec">
+              <div class="d-sec-h">Contact Information</div>
+              <div class="d-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span id="dEmail">&mdash;</span></div>
+              <div class="d-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h4l1.5 4.5L9.5 9a11 11 0 005 5l1.5-2 4.5 1.5v4a2 2 0 01-2 2A16 16 0 014 5a2 2 0 012-2z"/></svg><span id="dMobile">&mdash;</span></div>
+            </div>
+
+            <div class="d-sec">
+              <div class="d-sec-h">Location</div>
+              <div class="d-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg><span id="dLocation">&mdash;</span></div>
+            </div>
+
+            <div class="d-sec">
+              <div class="d-sec-h">Account Information</div>
+              <div class="d-grid">
+                <div class="d-field"><div class="k">Joined On</div><div class="v" id="dJoined">&mdash;</div></div>
+                <div class="d-field"><div class="k">Account Type</div><div class="v" id="dType">Customer</div></div>
+              </div>
+            </div>
+
+            <hr class="d-hr">
+            <div class="d-sec-h">Complaints Overview</div>
+            <div class="d-comp">
+              <div class="d-compcard total"><div class="n" id="dCompTotal">0</div><div class="l">Total</div><a id="dCompView">View all</a></div>
+              <div class="d-compcard open"><div class="n" id="dCompOpen">0</div><div class="l">Open</div><a id="dCompOpenLink">View all</a></div>
+              <div class="d-compcard resolved"><div class="n" id="dCompResolved">0</div><div class="l">Resolved</div><a id="dCompResolvedLink">View all</a></div>
+            </div>
+
+            <div class="d-sec">
+              <div class="d-sec-h">Recent Activity</div>
+              <div class="d-timeline" id="dTimeline"></div>
+            </div>
+
+            <hr class="d-hr">
+            <div class="d-actions">
+              <button class="d-close-btn" id="dCloseBtn" type="button">Close</button>
+              <button class="d-complaints-btn" id="dComplaints" type="button">View Complaints</button>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- Bottom: Recent Activity + Customer Statistics -->
+      <div class="cm-bottom">
+        <div class="cm-bcard">
+          <div class="cm-bhead">
+            <h3>Recent Activity</h3>
+            <a id="cmActViewAll">View All</a>
+          </div>
+          <div id="cmActivityList"><div class="cm-bempty">Loading...</div></div>
+        </div>
+        <div class="cm-bcard">
+          <div class="cm-bhead"><h3>Customer Statistics</h3></div>
+          <div class="cm-stats-body">
+            <div class="cm-donut">
+              <svg viewBox="0 0 120 120" id="cmDonutSvg">
+                <circle cx="60" cy="60" r="48" fill="none" stroke="#1c2b40" stroke-width="14"/>
+                <circle id="cmDonutFill" cx="60" cy="60" r="48" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round" stroke-dasharray="301.6 99999"/>
+              </svg>
+              <div class="cm-dcenter"><b id="cmDonutPct">0%</b><span>Active</span></div>
+            </div>
+            <div class="cm-stlist">
+              <div class="cm-strow"><span class="sq" style="background:#60a5fa"></span><span class="lab">Total Customers</span><span class="pct" id="stTotal">0</span></div>
+              <div class="cm-strow"><span class="sq" style="background:#4ade80"></span><span class="lab">Active Customers</span><span class="pct" id="stActive">0</span></div>
+              <div class="cm-strow"><span class="sq" style="background:#fbbf24"></span><span class="lab">Suspended Customers</span><span class="pct" id="stSusp">0</span></div>
+              <div class="cm-strow"><span class="sq" style="background:#c084fc"></span><span class="lab">New This Month</span><span class="pct" id="stNew">0</span></div>
+              <div class="cm-strow"><span class="sq" style="background:#94a3b8"></span><span class="lab">Pending Reviews</span><span class="pct" id="stPending">0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complaints modal -->
+  <div class="modal-overlay" id="compModal">
+    <div class="modal" style="max-width:680px">
+      <div class="modal-header"><h3 id="compModalTitle">Complaints</h3><button class="modal-close" data-cmclose>&times;</button></div>
+      <div class="modal-body" id="compModalBody"></div>
+    </div>
+  </div>
+
+  <!-- Registration modal -->
+  <div class="modal-overlay" id="regModal">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-header"><h3>New Customer Account</h3><button class="modal-close" id="regClose">&times;</button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Full Name</label><input class="form-control" id="regName" placeholder="Customer's full name" spellcheck="false"></div>
+        <div class="form-group"><label>Mobile</label><input class="form-control" id="regMobile" placeholder="10-digit mobile number" spellcheck="false"></div>
+        <div class="form-group"><label>Email</label><input class="form-control" id="regEmail" placeholder="name@example.com" spellcheck="false"></div>
+        <div class="form-group"><label>Address / Area</label><input class="form-control" id="regArea" placeholder="e.g. Sector 12, Green City" spellcheck="false"></div>
+        <div class="form-group"><label>Password</label><input class="form-control" id="regPw" type="password" placeholder="At least 8 characters" autocomplete="new-password"></div>
+        <div class="form-group"><label>Confirm Password</label><input class="form-control" id="regPw2" type="password" placeholder="Repeat password" autocomplete="new-password"></div>
+        <div class="modal-err" id="regErr"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="regCancel" type="button">Cancel</button>
+        <button class="btn btn-primary" id="regSave" type="button">Create Customer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation modal (reusable) -->
+  <div class="cm-confirm cm-hidden" id="cmConfirm">
+    <div class="cm-confirm-box">
+      <h3 id="cmConfirmTitle">Confirm</h3>
+      <p id="cmConfirmMsg">Are you sure?</p>
+      <div class="cm-cbtns">
+        <button class="cm-c-cancel" id="cmConfirmCancel" type="button">Cancel</button>
+        <button class="cm-c-danger" id="cmConfirmOk" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/animations.js"></script>
+  <script src="assets/js/ws-init.js"></script>
+  <script>
+  var customers = [];
+  var activeFilter = 'all';
+  var filterState = { status: 'all', location: '', date: '' };
+
+  function updateClock() {
+    document.getElementById('currentTime').textContent = new Date().toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  updateClock(); setInterval(updateClock, 30000);
+
+  function IC_MAIL(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>';}
+  function IC_PHONE(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h4l1.5 4.5L9.5 9a11 11 0 005 5l1.5-2 4.5 1.5v4a2 2 0 01-2 2A16 16 0 014 5a2 2 0 012-2z"/></svg>';}
+  function IC_PIN(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>';}
+  function IC_CAL(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>';}
+  function IC_DOT(){return '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';}
+  function IC_EYE(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';}
+  function IC_COMP(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';}
+  function IC_SUSP(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l14.14 14.14"/></svg>';}
+  function IC_ACT(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';}
+  function IC_DEL(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>';}
+
+  function initials(name) {
+    return (name || '?').split(' ').map(function (x) { return x ? x[0] : ''; }).join('').slice(0, 2).toUpperCase();
+  }
+  function statusPill(status) {
+    var s = String(status || '').toLowerCase();
+    var lbl = status || 'Unknown';
+    var cls = s === 'active' ? '' : s === 'suspended' ? ' suspended' : ' pending';
+    return '<span class="cpill' + cls + '"><span class="dot"></span>' + escapeHtml(lbl) + '</span>';
+  }
+  function fmtDate(d) {
+    return new Date(d || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  function currentCustomerKey() {
+    var r = document.getElementById('custTable').querySelector('tr.cm-sel');
+    return r ? r.getAttribute('data-key') : null;
+  }
+
+  function matchDateFilter(createdAt, filter) {
+    if (!filter) return true;
+    var d = new Date(createdAt || 0);
+    var now = new Date();
+    if (filter === 'today') return d.toDateString() === now.toDateString();
+    if (filter === 'week') { var wk = new Date(now); wk.setDate(wk.getDate() - 7); return d >= wk; }
+    if (filter === 'month') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    return true;
+  }
+
+  function renderTable(search) {
+    var host = document.getElementById('custTable');
+    var q = (search || '').toLowerCase().trim();
+    var list = customers.filter(function (c) {
+      var okQ = !q ||
+        (c.full_name || '').toLowerCase().indexOf(q) > -1 ||
+        (c.email || '').toLowerCase().indexOf(q) > -1 ||
+        (c.mobile || '').toLowerCase().indexOf(q) > -1 ||
+        (c.city_or_area || '').toLowerCase().indexOf(q) > -1;
+      var st = activeFilter !== 'all' ? activeFilter : filterState.status;
+      var okF = st === 'all' || String(c.status || '').toLowerCase() === st;
+      var okL = !filterState.location || (c.city_or_area || '').toLowerCase() === filterState.location.toLowerCase();
+      var okD = matchDateFilter(c.created_at, filterState.date);
+      return okQ && okF && okL && okD;
+    });
+
+    var totalAll = customers.length;
+    var totalShowing = list.length;
+    var showingEl = document.getElementById('cmShowing');
+    if (q || activeFilter !== 'all' || filterState.status !== 'all' || filterState.location || filterState.date) {
+      showingEl.textContent = 'Showing ' + totalShowing + ' of ' + totalAll;
+    } else {
+      showingEl.textContent = '';
+    }
+
+    if (!customers.length) {
+      host.innerHTML = '<tr><td colspan="6"><div class="cm-empty">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 19a6.5 6.5 0 0113 0"/><path d="M16 6a3 3 0 010 5"/></svg>' +
+        '<h4>No customer accounts yet</h4><p>New sign-ups will appear here.</p></div></td></tr>';
+      refreshCounts(); renderCounts(); renderStats(); renderActivityFeed(); return;
+    }
+
+    if (!list.length) {
+      host.innerHTML = '<tr><td colspan="6"><div class="cm-empty">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>' +
+        '<h4>No customers found</h4><p>Try changing your search or filters.</p>' +
+        '<button onclick="resetAllFilters()">Clear Filters</button></div></td></tr>';
+      refreshCounts(); renderCounts(); renderStats(); renderActivityFeed(); return;
+    }
+
+    host.innerHTML = list.map(function (c) {
+      return '<tr data-key="' + c._key + '"' + (currentCustomerKey() === c._key ? ' class="cm-sel"' : '') + '>' +
+        '<td><div class="ccell"><div class="cav">' + initials(c.full_name) + '</div>' +
+        '<div class="cmeta"><span class="cname">' + escapeHtml(c.full_name || 'Unnamed') + '</span>' +
+        '<span class="crole">Customer</span></div></div></td>' +
+        '<td><div class="ccontact">' +
+        '<span class="cline">' + IC_MAIL() + '<span class="val">' + escapeHtml(c.email || '&mdash;') + '</span></span>' +
+        '<span class="cline">' + IC_PHONE() + '<span class="val">' + escapeHtml(c.mobile || '&mdash;') + '</span></span>' +
+        '</div></td>' +
+        '<td><span class="cloc">' + IC_PIN() + escapeHtml(c.city_or_area || '&mdash;') + '</span></td>' +
+        '<td>' + statusPill(c.status || 'Active') + '</td>' +
+        '<td><span class="cjoin">' + IC_CAL() + fmtDate(c.created_at || Date.now()) + '</span></td>' +
+        '<td><div class="cacts">' +
+        '<button class="cview" data-view="' + c._key + '" type="button">View</button>' +
+        '<button class="cdot" data-dot="' + c._key + '" type="button">' + IC_DOT() + '</button>' +
+        '<div class="cm-dropdown" id="dd-' + c._key + '">' +
+        '<button class="cm-dd-item" data-act="view" data-key="' + c._key + '">' + IC_EYE() + 'View Customer</button>' +
+        '<button class="cm-dd-item" data-act="complaints" data-key="' + c._key + '">' + IC_COMP() + 'View Complaints</button>' +
+        '<div class="cm-dd-sep"></div>' +
+        (String(c.status || '').toLowerCase() === 'suspended'
+          ? '<button class="cm-dd-item" data-act="activate" data-key="' + c._key + '">' + IC_ACT() + 'Activate Account</button>'
+          : '<button class="cm-dd-item" data-act="suspend" data-key="' + c._key + '">' + IC_SUSP() + 'Suspend Account</button>') +
+        '<div class="cm-dd-sep"></div>' +
+        '<button class="cm-dd-item danger" data-act="delete" data-key="' + c._key + '">' + IC_DEL() + 'Delete Customer</button>' +
+        '</div></div></td></tr>';
+    }).join('');
+
+    host.querySelectorAll('.cview').forEach(function (b) {
+      b.addEventListener('click', function (e) { e.stopPropagation(); selectCustomer(b.getAttribute('data-view')); });
+    });
+
+    host.querySelectorAll('.cdot').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var key = b.getAttribute('data-dot');
+        closeAllDropdowns();
+        var dd = document.getElementById('dd-' + key);
+        if (dd) dd.classList.toggle('open');
+      });
+    });
+
+    host.querySelectorAll('.cm-dd-item').forEach(function (item) {
+      item.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var act = item.getAttribute('data-act');
+        var key = item.getAttribute('data-key');
+        var cust = customers.filter(function (x) { return x._key === key; })[0];
+        if (!cust) return;
+        closeAllDropdowns();
+        if (act === 'view') selectCustomer(key);
+        else if (act === 'complaints') openComplaints(key);
+        else if (act === 'suspend') showConfirm('Suspend Customer?', 'Are you sure you want to suspend <b>' + escapeHtml(cust.full_name) + '</b>?<br><br>They will no longer be able to use their customer account.', 'Suspend Account', function () { changeStatus(cust, 'suspended'); });
+        else if (act === 'activate') showConfirm('Activate Customer?', 'Are you sure you want to activate <b>' + escapeHtml(cust.full_name) + '</b>?', 'Activate Account', function () { changeStatus(cust, 'active'); }, 'cm-c-success');
+        else if (act === 'delete') showConfirm('Delete Customer?', 'This action cannot be undone. <b>' + escapeHtml(cust.full_name) + '</b> will be permanently removed.', 'Delete', function () { deleteCustomer(cust); });
+      });
+    });
+
+    host.querySelectorAll('tr[data-key]').forEach(function (tr) {
+      tr.addEventListener('click', function () { selectCustomer(tr.getAttribute('data-key')); });
+    });
+
+    refreshCounts(); renderStats(); renderActivityFeed();
+  }
+
+  function closeAllDropdowns() {
+    document.querySelectorAll('.cm-dropdown.open').forEach(function (d) { d.classList.remove('open'); });
+  }
+
+  function changeStatus(cust, next) {
+    api.post('/auth/admin/status', { user_id: cust.id, status: next }).then(function () {
+      customers = customers.map(function (c) { return c.id === cust.id ? Object.assign({}, c, { status: next }) : c; });
+      renderTable(document.getElementById('custSearch').value);
+      refreshCounts(); renderCounts(); renderStats(); renderActivityFeed();
+      if (currentCustomerKey() === cust._key) selectCustomer(cust._key);
+      showToast('Customer ' + next + '.', 'success');
+    }).catch(function (e) { showToast(e && e.detail ? e.detail : 'Update failed.', 'error'); });
+  }
+
+  function deleteCustomer(cust) {
+    showToast('Customer deletion is not supported by the API.', 'error');
+  }
+
+  function resetAllFilters() {
+    activeFilter = 'all'; filterState = { status: 'all', location: '', date: '' };
+    document.getElementById('custSearch').value = '';
+    document.getElementById('cmTabs').querySelectorAll('.cm-tab').forEach(function (t) { t.classList.toggle('active', t.getAttribute('data-f') === 'all'); });
+    updateFilterPanelUI();
+    renderTable('');
+  }
+
+  function updateFilterPanelUI() {
+    var st = filterState.status;
+    document.querySelectorAll('#cmFpStatus .cm-fp-opt').forEach(function (o) { o.classList.toggle('selected', o.getAttribute('data-v') === st); });
+    document.getElementById('cmFpLocation').value = filterState.location;
+    document.getElementById('cmFpDate').value = filterState.date;
+  }
+
+  /* Confirmation modal */
+  function showConfirm(title, msg, btnText, onConfirm, btnClass) {
+    document.getElementById('cmConfirmTitle').textContent = title;
+    document.getElementById('cmConfirmMsg').innerHTML = msg;
+    var okBtn = document.getElementById('cmConfirmOk');
+    okBtn.textContent = btnText;
+    okBtn.className = btnClass || 'cm-c-danger';
+    document.getElementById('cmConfirm').classList.remove('cm-hidden');
+    document.getElementById('cmConfirm')._onConfirm = onConfirm;
+  }
+  document.getElementById('cmConfirmOk').addEventListener('click', function () {
+    var fn = document.getElementById('cmConfirm')._onConfirm;
+    document.getElementById('cmConfirm').classList.add('cm-hidden');
+    if (fn) fn();
+  });
+  document.getElementById('cmConfirmCancel').addEventListener('click', function () {
+    document.getElementById('cmConfirm').classList.add('cm-hidden');
+  });
+  document.getElementById('cmConfirm').addEventListener('click', function (e) {
+    if (e.target === this) this.classList.add('cm-hidden');
+  });
+
+  /* KPI cards */
+  document.querySelectorAll('.cm-kpi').forEach(function (kpi) {
+    kpi.addEventListener('click', function () {
+      var v = kpi.getAttribute('data-kpi');
+      activeFilter = v;
+      filterState.status = v;
+      document.getElementById('cmTabs').querySelectorAll('.cm-tab').forEach(function (t) { t.classList.toggle('active', t.getAttribute('data-f') === v); });
+      document.querySelectorAll('.cm-kpi').forEach(function (k) { k.classList.toggle('kpi-active', k.getAttribute('data-kpi') === v); });
+      updateFilterPanelUI();
+      renderTable(document.getElementById('custSearch').value);
+    });
+  });
+
+  /* Tabs */
+  document.getElementById('cmTabs').addEventListener('click', function (e) {
+    var tab = e.target.closest('.cm-tab');
+    if (!tab) return;
+    this.querySelectorAll('.cm-tab').forEach(function (t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    activeFilter = tab.getAttribute('data-f');
+    filterState.status = activeFilter;
+    document.querySelectorAll('.cm-kpi').forEach(function (k) { k.classList.toggle('kpi-active', k.getAttribute('data-kpi') === activeFilter); });
+    updateFilterPanelUI();
+    renderTable(document.getElementById('custSearch').value);
+  });
+
+  /* Filter panel toggle */
+  document.getElementById('cmFilterBtn').addEventListener('click', function (e) {
+    e.stopPropagation();
+    var panel = document.getElementById('cmFilterPanel');
+    panel.classList.toggle('open');
+  });
+
+  document.querySelectorAll('#cmFpStatus .cm-fp-opt').forEach(function (opt) {
+    opt.addEventListener('click', function () {
+      document.querySelectorAll('#cmFpStatus .cm-fp-opt').forEach(function (o) { o.classList.remove('selected'); });
+      opt.classList.add('selected');
+    });
+  });
+
+  document.getElementById('cmFpReset').addEventListener('click', function () {
+    filterState = { status: 'all', location: '', date: '' };
+    activeFilter = 'all';
+    updateFilterPanelUI();
+    document.getElementById('cmTabs').querySelectorAll('.cm-tab').forEach(function (t) { t.classList.toggle('active', t.getAttribute('data-f') === 'all'); });
+    document.querySelectorAll('.cm-kpi').forEach(function (k) { k.classList.remove('kpi-active'); });
+    document.getElementById('cmFilterPanel').classList.remove('open');
+    renderTable(document.getElementById('custSearch').value);
+  });
+
+  document.getElementById('cmFpApply').addEventListener('click', function () {
+    var sel = document.querySelector('#cmFpStatus .cm-fp-opt.selected');
+    filterState.status = sel ? sel.getAttribute('data-v') : 'all';
+    activeFilter = filterState.status;
+    filterState.location = document.getElementById('cmFpLocation').value;
+    filterState.date = document.getElementById('cmFpDate').value;
+    document.getElementById('cmTabs').querySelectorAll('.cm-tab').forEach(function (t) { t.classList.toggle('active', t.getAttribute('data-f') === activeFilter); });
+    document.querySelectorAll('.cm-kpi').forEach(function (k) { k.classList.toggle('kpi-active', k.getAttribute('data-kpi') === activeFilter); });
+    document.getElementById('cmFilterPanel').classList.remove('open');
+    renderTable(document.getElementById('custSearch').value);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#cmFilterPanel') && !e.target.closest('#cmFilterBtn')) {
+      document.getElementById('cmFilterPanel').classList.remove('open');
+    }
+    if (!e.target.closest('.cm-dropdown') && !e.target.closest('.cdot')) {
+      closeAllDropdowns();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { closeAllDropdowns(); document.getElementById('cmFilterPanel').classList.remove('open'); document.getElementById('cmConfirm').classList.add('cm-hidden'); }
+  });
+
+  /* View All activity — proper toggle */
+  var showAllActivities = false;
+  function renderActivityFeedExpanded() {
+    var host = document.getElementById('cmActivityList');
+    var items = customers.slice().sort(function (a, b) { return new Date(b.created_at || 0) - new Date(a.created_at || 0); });
+    host.innerHTML = items.map(function (c) {
+      var susp = String(c.status || '').toLowerCase() === 'suspended';
+      return '<div class="cm-activity-item"><div class="cm-avat">' + initials(c.full_name) + '</div>' +
+        '<div class="cm-abody"><div class="cm-aname">' + escapeHtml(c.full_name || 'Customer') + '</div>' +
+        '<div class="cm-adesc">' + (susp ? 'Account suspended' : 'Account created &amp; active') + '</div>' +
+        '<div class="cm-adate">' + fmtDate(c.created_at || Date.now()) + '</div></div></div>';
+    }).join('');
+  }
+  document.getElementById('cmActViewAll').addEventListener('click', function (e) {
+    e.preventDefault();
+    if (!customers.length) return;
+    showAllActivities = !showAllActivities;
+    if (showAllActivities) {
+      renderActivityFeedExpanded();
+      this.textContent = 'Show Less';
+    } else {
+      renderActivityFeed();
+      this.textContent = 'View All';
+    }
+  });
+
+  /* Refresh KPI + stats */
+  function refreshCounts() {
+    var totals = { total: customers.length, active: 0, susp: 0, pending: 0 };
+    customers.forEach(function (c) {
+      var s = String(c.status || '').toLowerCase();
+      if (s === 'active') totals.active++;
+      else if (s === 'suspended') totals.susp++;
+      else totals.pending++;
+    });
+    document.getElementById('kTotal').textContent = totals.total;
+    document.getElementById('kActive').textContent = totals.active;
+    document.getElementById('kSusp').textContent = totals.susp;
+    document.getElementById('kPending').textContent = totals.pending;
+    var kDone = document.getElementById('kDone');
+    if (kDone) kDone.textContent = resolvedComplaintsCount();
+  }
+
+  function resolvedComplaintsCount() {
+    var n = 0;
+    customers.forEach(function (c) {
+      var name = String(c.full_name || '').toLowerCase().trim();
+      COMPLAINT_POOL.forEach(function (cc) {
+        if (String(cc.reporter_name || '').toLowerCase().trim() === name && String(cc.status).toUpperCase() === 'RESOLVED') n++;
+      });
+    });
+    return n;
+  }
+
+  function renderCounts() {
+    var el = document.getElementById('custMeta');
+    if (el) el.textContent = customers.length + ' customer account' + (customers.length === 1 ? '' : 's');
+  }
+
+  function renderStats() {
+    var total = customers.length;
+    var active = customers.filter(function (c) { return String(c.status || '').toLowerCase() === 'active'; }).length;
+    var susp = customers.filter(function (c) { return String(c.status || '').toLowerCase() === 'suspended'; }).length;
+    var pending = Math.max(0, total - active - susp);
+    var now = new Date();
+    var newMonth = customers.filter(function (c) {
+      var d = new Date(c.created_at || 0);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }).length;
+    document.getElementById('stTotal').textContent = total;
+    document.getElementById('stActive').textContent = active;
+    document.getElementById('stSusp').textContent = susp;
+    document.getElementById('stPending').textContent = pending;
+    document.getElementById('stNew').textContent = newMonth;
+    var pct = total ? Math.round((active / total) * 100) : 0;
+    document.getElementById('cmDonutPct').textContent = pct + '%';
+    var circ = 2 * Math.PI * 48;
+    var fill = total ? (active / total) * circ : 0;
+    document.getElementById('cmDonutFill').setAttribute('stroke-dasharray', fill.toFixed(1) + ' ' + (circ - fill).toFixed(1));
+  }
+
+  function renderActivityFeed() {
+    var host = document.getElementById('cmActivityList');
+    showAllActivities = false;
+    var btn = document.getElementById('cmActViewAll');
+    if (btn) btn.textContent = 'View All';
+    if (!customers.length) { host.innerHTML = '<div class="cm-bempty">No activity yet.</div>'; if (btn) btn.style.display = 'none'; return; }
+    var sorted = customers.slice().sort(function (a, b) { return new Date(b.created_at || 0) - new Date(a.created_at || 0); });
+    var items = sorted.slice(0, 5);
+    if (btn) btn.style.display = sorted.length <= 5 ? 'none' : '';
+    host.innerHTML = items.map(function (c) {
+      var susp = String(c.status || '').toLowerCase() === 'suspended';
+      return '<div class="cm-activity-item"><div class="cm-avat">' + initials(c.full_name) + '</div>' +
+        '<div class="cm-abody"><div class="cm-aname">' + escapeHtml(c.full_name || 'Customer') + '</div>' +
+        '<div class="cm-adesc">' + (susp ? 'Account suspended' : 'Account created &amp; active') + '</div>' +
+        '<div class="cm-adate">' + fmtDate(c.created_at || Date.now()) + '</div></div></div>';
+    }).join('');
+  }
+
+  function renderRoleStat(role, hostId, label) {
+    var host = document.getElementById(hostId);
+    if (typeof roleData === 'undefined' || !roleData[role]) {
+      host.innerHTML = '<div class="mini-stat"><div class="mini-icon mini-blue"><strong style="font-size:1rem">&ndash;</strong></div><div class="mini-info"><span class="mini-label">' + label + '</span><span class="mini-value">loading</span></div></div>';
+      return;
+    }
+    var list = roleData[role];
+    var active = list.filter(function (u) { return String(u.status).toLowerCase() === 'active'; }).length;
+    var pending = list.filter(function (u) { return String(u.status).toLowerCase() === 'pending'; }).length;
+    host.innerHTML = [
+      ['blue', 'Total ' + label, list.length],
+      ['green', label + ' active', active],
+      ['red', label + ' pending', pending]
+    ].map(function (r) {
+      return '<div class="mini-stat"><div class="mini-icon mini-' + r[0] + '"><strong style="font-size:1rem">' + r[2] + '</strong></div><div class="mini-info"><span class="mini-label">' + r[1] + '</span></div></div>';
+    }).join('');
+  }
+
+  var roleData = {};
+  var COMPLAINT_POOL = [];
+
+  function complaintsFor(customer) {
+    var name = String(customer.full_name || '').toLowerCase().trim();
+    return COMPLAINT_POOL.filter(function (c) {
+      return String(c.reporter_name || '').toLowerCase().trim() === name;
+    }).map(function (c) {
+      return {
+        ref: 100 + c.id,
+        title: (c.description.match(/^\[(.*?)\]/) ? c.description.match(/^\[(.*?)\]/)[1] : 'Complaint'),
+        desc: c.description.replace(/^\[.*?\]\s*/, ''),
+        bin: c.dustbin_code || '',
+        addr: c.location_address || '',
+        status: c.status || 'OPEN',
+        feedback: c.feedback || null,
+        created: c.created_at,
+        images: (Array.isArray(c.images) && c.images.length) ? c.images : null
+      };
+    });
+  }
+
+  function openComplaints(key) {
+    var cust = null;
+    customers.forEach(function (c) { if (c._key === key) cust = c; });
+    if (!cust) return;
+    var list = complaintsFor(cust);
+    document.getElementById('compModalTitle').textContent = 'Complaints \u00b7 ' + (cust.full_name || 'Customer');
+    var host = document.getElementById('compModalBody');
+    if (!list.length) {
+      host.innerHTML = '<div class="table-empty">No complaints reported by this customer yet.</div>';
+    } else {
+      host.innerHTML = list.map(function (c) {
+        var statuses = { OPEN: 'Under Review', ASSIGNED: 'Driver Assigned', IN_PROGRESS: 'In Progress', RESOLVED: 'Resolved', CLOSED: 'Resolved' };
+        var thumbs = c.images && c.images.length
+          ? '<div class="cc-thumbs">' + c.images.map(function (src, i) {
+              return '<img src="' + src + '" alt="photo ' + (i + 1) + '" title="Open photo">';
+            }).join('') + '</div>' : '';
+        var fb = c.feedback ? '<div class="cc-fb"><b>Feedback</b><p>' + escapeHtml(c.feedback) + '</p></div>' : '';
+        return '<div class="cc-card">' +
+          '<div class="cc-head"><strong>#' + c.ref + ' \u00b7 ' + escapeHtml(c.title) + '</strong>' +
+          '<span class="inc-status ' + (c.status === 'RESOLVED' ? 'st-resolved' : 'st-active') + '">' + (statuses[c.status] || c.status) + '</span></div>' +
+          '<p class="cc-desc">' + escapeHtml(c.desc || '') + '</p>' +
+          '<div class="cc-meta"><span>' + escapeHtml(c.bin || '') + '</span><span>' + escapeHtml(c.addr || '') + '</span>' +
+          '<span>' + new Date(c.created || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + '</span></div>' +
+          fb + thumbs + '</div>';
+      }).join('');
+      host.querySelectorAll('.cc-thumbs img').forEach(function (img) {
+        img.addEventListener('click', function () { window.open(img.getAttribute('src'), '_blank'); });
+      });
+    }
+    document.getElementById('compModal').classList.add('show');
+  }
+
+  function closeComplaints() { document.getElementById('compModal').classList.remove('show'); }
+
+  /* Drawer */
+  var currentCustKey = null;
+
+  function selectedCustomerByKey(key) {
+    for (var i = 0; i < customers.length; i++) if (customers[i]._key === key) return customers[i];
+    return null;
+  }
+
+  function buildDrawerTimeline(cust) {
+    var items = [];
+    items.push({ txt: 'Account created', date: '', dot: 'green', when: cust.created_at });
+    complaintsFor(cust).forEach(function (cc) {
+      var resolved = String(cc.status).toUpperCase() === 'RESOLVED';
+      items.push({ txt: resolved ? 'Complaint resolved' : 'Complaint submitted', date: '#' + cc.ref, dot: resolved ? 'blue' : 'red', when: cc.created });
+    });
+    items.sort(function (a, b) { return new Date(b.when || 0) - new Date(a.when || 0); });
+    var tl = document.getElementById('dTimeline');
+    if (!items.length) { tl.innerHTML = '<div class="cm-bempty">No activity yet.</div>'; return; }
+    tl.innerHTML = items.slice(0, 5).map(function (it) {
+      return '<div class="tl-item"><span class="tl-dot ' + it.dot + '"></span>' +
+        '<div class="tl-body"><b>' + escapeHtml(it.txt) + '</b>' +
+        '<div class="tl-date">' + (it.date ? it.date + ' \u00b7 ' : '') + fmtDate(it.when) + '</div></div></div>';
+    }).join('');
+  }
+
+  function selectCustomer(key) {
+    var cust = selectedCustomerByKey(key);
+    if (!cust) return;
+    currentCustKey = key;
+    var drawer = document.getElementById('cmDrawer');
+    drawer.classList.remove('cm-hidden');
+    drawer.style.animation = 'none'; drawer.offsetHeight; drawer.style.animation = '';
+    document.getElementById('dAvatar').textContent = initials(cust.full_name);
+    document.getElementById('dName').textContent = cust.full_name || 'Customer';
+    var sus = String(cust.status || '').toLowerCase() === 'suspended';
+    document.getElementById('dState').innerHTML = statusPill(sus ? 'Suspended' : 'Active');
+    document.getElementById('dRole').textContent = 'Active Customer';
+    document.getElementById('dEmail').textContent = cust.email || '\u2014';
+    document.getElementById('dMobile').textContent = cust.mobile || '\u2014';
+    document.getElementById('dLocation').textContent = cust.city_or_area || '\u2014';
+    document.getElementById('dJoined').textContent = fmtDate(cust.created_at || Date.now());
+    document.getElementById('dType').textContent = 'Customer';
+
+    var comps = complaintsFor(cust);
+    var openCount = comps.filter(function (c) { return String(c.status).toUpperCase() === 'OPEN' || String(c.status).toUpperCase() === 'IN_PROGRESS' || String(c.status).toUpperCase() === 'ASSIGNED'; }).length;
+    var resolvedCount = comps.filter(function (c) { return String(c.status).toUpperCase() === 'RESOLVED' || String(c.status).toUpperCase() === 'CLOSED'; }).length;
+    document.getElementById('dCompTotal').textContent = comps.length;
+    document.getElementById('dCompOpen').textContent = openCount;
+    document.getElementById('dCompResolved').textContent = resolvedCount;
+    buildDrawerTimeline(cust);
+
+    document.getElementById('dCloseBtn').onclick = function () { drawer.classList.add('cm-hidden'); var rows = document.getElementById('custTable').querySelectorAll('tr.cm-sel'); for (var i = 0; i < rows.length; i++) rows[i].classList.remove('cm-sel'); };
+    document.getElementById('dComplaints').onclick = function () { openComplaints(key); };
+    document.getElementById('dCompView').onclick = function () { openComplaints(key); };
+    document.getElementById('dCompOpenLink').onclick = function () { openComplaints(key); };
+    document.getElementById('dCompResolvedLink').onclick = function () { openComplaints(key); };
+
+    var rows = document.getElementById('custTable').querySelectorAll('tr[data-key]');
+    for (var i = 0; i < rows.length; i++) rows[i].classList.remove('cm-sel');
+    var sel = document.querySelector('#custTable tr[data-key="' + key + '"]');
+    if (sel) sel.classList.add('cm-sel');
+  }
+
+  document.getElementById('cmDrawerClose').addEventListener('click', function () {
+    document.getElementById('cmDrawer').classList.add('cm-hidden');
+    var rows = document.getElementById('custTable').querySelectorAll('tr.cm-sel');
+    for (var i = 0; i < rows.length; i++) rows[i].classList.remove('cm-sel');
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-cmclose]').forEach(function (b) { b.addEventListener('click', closeComplaints); });
+    var ov = document.getElementById('compModal');
+    if (ov) ov.addEventListener('click', function (e) { if (e.target === ov) closeComplaints(); });
+  });
+
+  /* New customer */
+  var regModal = document.getElementById('regModal');
+  var regErr = document.getElementById('regErr');
+  function openReg() { regErr.textContent = ''; regModal.classList.add('show'); }
+  function closeReg() { regModal.classList.remove('show'); }
+  function regShowErr(msg) { regErr.textContent = msg || ''; }
+
+  document.getElementById('newCustBtn').addEventListener('click', openReg);
+  document.getElementById('regClose').addEventListener('click', closeReg);
+  document.getElementById('regCancel').addEventListener('click', closeReg);
+  regModal.addEventListener('click', function (e) { if (e.target === regModal) closeReg(); });
+
+  async function refreshCustomers() {
+    try {
+      var resp = await api.get('/auth/accounts?role=customer');
+      var live = Array.isArray(resp) ? resp : (resp.value || []);
+      live.forEach(function (c) { c._key = 'live-' + c.id; });
+      customers = live;
+      renderTable(document.getElementById('custSearch').value);
+      refreshCounts(); renderCounts(); renderStats(); renderActivityFeed();
+    } catch (e) {
+      showToast('Could not refresh customer accounts.', 'error');
+    }
+  }
+
+  document.getElementById('regSave').addEventListener('click', async function () {
+    var name = document.getElementById('regName').value.trim();
+    var mobile = document.getElementById('regMobile').value.trim();
+    var email = document.getElementById('regEmail').value.trim();
+    var area = document.getElementById('regArea').value.trim();
+    var pw = document.getElementById('regPw').value;
+    var pw2 = document.getElementById('regPw2').value;
+
+    if (!name) return regShowErr('Enter the customer\'s full name.');
+    if (!email) return regShowErr('Enter an email address.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return regShowErr('Enter a valid email address.');
+    if (mobile && !/^[0-9]{10,12}$/.test(mobile)) return regShowErr('Mobile must be a 10-digit number.');
+    if (!area) return regShowErr('Enter the customer\'s address / area.');
+    if (pw.length < 8) return regShowErr('Password must be at least 8 characters.');
+    if (!/[0-9]/.test(pw) || !/[a-zA-Z]/.test(pw)) return regShowErr('Password must include letters and numbers.');
+    if (pw !== pw2) return regShowErr('Passwords do not match.');
+
+    var btn = this;
+    btn.disabled = true;
+    regShowErr('');
+    try {
+      await window.Auth.register({
+        role: 'customer', full_name: name, mobile: mobile || null,
+        email: email, password: pw, confirm_password: pw2, city_or_area: area
+      });
+      closeReg();
+      showToast('Customer created successfully.', 'success');
+      refreshCustomers();
+      ['regName', 'regMobile', 'regEmail', 'regArea', 'regPw', 'regPw2'].forEach(function (id) { document.getElementById(id).value = ''; });
+    } catch (e) {
+      regShowErr(e.message || 'Could not create customer.');
+    }
+    btn.disabled = false;
+  });
+
+  document.getElementById('custSearch').addEventListener('input', function () {
+    renderTable(this.value);
+  });
+
+  /* Initial load */
+  (async function load() {
+    renderTable('');
+    refreshCounts(); renderCounts(); renderStats(); renderActivityFeed();
+    try {
+      var resp = await api.get('/auth/accounts?role=customer');
+      var live = Array.isArray(resp) ? resp : (resp.value || []);
+      var seen = {};
+      customers.forEach(function (c) { seen[c.id] = true; });
+      live.forEach(function (c) { c._key = 'live-' + c.id; if (!seen[c.id]) customers.push(c); });
+    } catch (e) {
+      showToast('Live API unavailable \u2014 could not load customer accounts.', 'error');
+    }
+    try {
+      var cp = await api.get('/complaints/');
+      COMPLAINT_POOL = Array.isArray(cp) ? cp : (cp.value || []);
+    } catch (e) { }
+    renderTable('');
+    refreshCounts(); renderCounts(); renderStats(); renderActivityFeed();
+
+    /* populate location filter */
+    var locs = {};
+    customers.forEach(function (c) { var l = c.city_or_area; if (l) locs[l] = true; });
+    var locSel = document.getElementById('cmFpLocation');
+    Object.keys(locs).sort().forEach(function (l) {
+      var opt = document.createElement('option');
+      opt.value = l; opt.textContent = l;
+      locSel.appendChild(opt);
+    });
+
+    try {
+      roleData.driver = await api.get('/auth/accounts?role=driver');
+      renderRoleStat('driver', 'driverStat', 'Drivers');
+      roleData.municipality = await api.get('/auth/accounts?role=municipality');
+      renderRoleStat('municipality', 'muniStat', 'Municipalities');
+    } catch (e) { }
+  })();
+  </script>
+</body>
+</html>

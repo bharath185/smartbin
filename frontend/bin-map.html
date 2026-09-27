@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Smart Bin Map</title>
+<link rel="stylesheet" href="assets/css/customer.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  html, body { height: 100%; }
+  body { display: flex; flex-direction: column; overflow: hidden; }
+  .bm-top {
+    display: flex; align-items: center; gap: 12px; padding: 12px 18px; flex: 0 0 auto;
+    border-bottom: 1px solid var(--line); background: rgba(7,17,31,.85);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 500;
+  }
+  .bm-back {
+    width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: 0 0 36px;
+    transition: border-color .18s, background .18s;
+  }
+  .bm-back:hover { border-color: var(--cyan); background: var(--panel2); }
+  .bm-back svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .bm-title { min-width: 0; }
+  .bm-title b { font-size: 1.02rem; font-weight: 800; display: block; }
+  .bm-title small { color: var(--muted); font-size: .76rem; display: block; margin-top: 2px; }
+  .bm-wrap { flex: 1; position: relative; min-height: 0; }
+  #bmMap { position: absolute; inset: 0; background: #060D1A; }
+
+  .leaflet-container { font-family: inherit; background: #060D1A; }
+  .leaflet-tile-pane { filter: invert(1) hue-rotate(190deg) saturate(.45) brightness(.9) contrast(1.05); }
+  .leaflet-bar a { background: rgba(17,31,51,.94) !important; color: var(--ink) !important; border-color: var(--line) !important; }
+  .leaflet-bar a:hover { background: rgba(22,131,255,.3) !important; }
+  .leaflet-control-attribution { background: rgba(6,13,26,.72) !important; color: rgba(255,255,255,.4) !important; font-size: 10px; }
+  .leaflet-control-attribution a { color: rgba(255,255,255,.5) !important; }
+
+  .bm-bin-marker { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+  .bm-bin-marker .bm-pin {
+    width: 30px; height: 30px; border-radius: 50% 50% 50% 4px; transform: rotate(-45deg);
+    display: grid; place-items: center; box-shadow: 0 4px 12px rgba(0,0,0,.5);
+    border: 2px solid rgba(255,255,255,.9);
+  }
+  .bm-bin-marker .bm-pin svg { width: 16px; height: 16px; transform: rotate(45deg); fill: none; stroke: #0a1424; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .bm-bin-marker .bm-tag {
+    margin-top: 2px; background: rgba(7,17,31,.92); color: #fff; font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.4); white-space: nowrap;
+  }
+  .bm-user-marker { position: relative; width: 18px; height: 18px; }
+  .bm-user-marker .dot {
+    position: absolute; inset: 0; border-radius: 50%; background: #2F80ED; border: 2px solid #fff;
+    box-shadow: 0 0 0 4px rgba(47,128,237,.35); z-index: 2;
+  }
+  .bm-user-marker .ring {
+    position: absolute; inset: -7px; border-radius: 50%; border: 2px solid rgba(47,128,237,.6);
+    animation: bmRing 2.2s ease-out infinite;
+  }
+  @keyframes bmRing { 0% { transform: scale(.5); opacity: .8; } 100% { transform: scale(1.5); opacity: 0; } }
+  .bm-user-tag {
+    position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); margin-bottom: 4px;
+    background: rgba(7,17,31,.92); color: #7fb6ff; font-size: 10px; font-weight: 600; padding: 1px 7px;
+    border-radius: 6px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,.4);
+  }
+
+  .bm-sheet {
+    position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 400;
+    background: linear-gradient(180deg, #12213a 0%, #101C30 100%);
+    border: 1px solid rgba(120,170,220,.16); border-radius: 16px; padding: 16px 18px;
+    box-shadow: 0 18px 40px -12px rgba(0,0,0,.6); max-width: 480px; margin: 0 auto;
+  }
+  .bm-sheet-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .bm-sheet-ico {
+    width: 40px; height: 40px; border-radius: 12px; flex: 0 0 40px; display: grid; place-items: center;
+    background: rgba(47,128,237,.16); color: #5DA5FF;
+  }
+  .bm-sheet-ico svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .bm-sheet-t { flex: 1; min-width: 0; }
+  .bm-sheet-t b { font-size: 1rem; font-weight: 800; display: block; }
+  .bm-sheet-t small { color: var(--muted); font-size: .76rem; }
+  .bm-pill { font-size: .66rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+  .bm-pill.ok { background: rgba(25,195,125,.14); color: #19C37D; }
+  .bm-pill.almost { background: rgba(245,184,46,.14); color: #F5B82E; }
+  .bm-pill.full { background: rgba(255,77,90,.14); color: #FF4D5A; box-shadow: 0 0 12px rgba(255,77,90,.22); }
+  .bm-fill { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .bm-bar { flex: 1; height: 9px; background: rgba(143,163,186,.16); border-radius: 6px; overflow: hidden; }
+  .bm-bar span { display: block; height: 100%; border-radius: 6px; transition: width .6s ease; }
+  .bm-bar span.ok { background: linear-gradient(90deg,#19C37D,#4ade80); }
+  .bm-bar span.almost { background: linear-gradient(90deg,#d97706,#F5B82E); }
+  .bm-bar span.full { background: linear-gradient(90deg,#dc2626,#FF4D5A); box-shadow: 0 0 10px rgba(255,77,90,.55); }
+  .bm-fill small { color: var(--muted); font-size: .76rem; font-weight: 700; width: 34px; text-align: right; }
+  .bm-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-bottom: 13px; }
+  .bm-row small { display: block; color: var(--dim); font-size: .66rem; text-transform: uppercase; letter-spacing: .04em; }
+  .bm-row strong { font-size: .82rem; font-weight: 650; color: var(--ink); display: block; margin-top: 2px; }
+  .bm-row strong.em { color: #18C8E8; }
+  .bm-actions { display: flex; gap: 10px; }
+  .bm-btn {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 12px; border-radius: 11px; font-size: .8rem; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: transform .18s, border-color .18s, background .18s, box-shadow .18s;
+  }
+  .bm-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .bm-btn.primary { border: 1px solid rgba(24,200,232,.35); background: #0E2742; color: #fff; text-decoration: none; }
+  .bm-btn.primary:hover { transform: translateY(-2px); border-color: #18C8E8; background: #12365e; box-shadow: 0 6px 16px -6px rgba(24,200,232,.4); }
+  .bm-btn.ghost { border: 1px solid rgba(120,170,220,.2); background: rgba(143,163,186,.06); color: var(--muted); }
+  .bm-btn.ghost:hover { border-color: var(--line-strong); color: #fff; }
+  @media (max-width: 560px) {
+    .bm-rows { grid-template-columns: 1fr; }
+    .bm-sheet { left: 10px; right: 10px; bottom: 10px; padding: 14px 14px; }
+  }
+</style>
+</head>
+<body>
+  <div class="bm-top">
+    <button class="bm-back" id="bmBack" title="Back to Nearby Bins"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="bm-title">
+      <b id="bmTitle">Smart Bin</b>
+      <small id="bmSub">Locating your position…</small>
+    </div>
+  </div>
+  <div class="bm-wrap">
+    <div id="bmMap"></div>
+    <div class="bm-sheet" id="bmSheet" style="display:none;"></div>
+  </div>
+
+<script src="assets/js/api.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  var CITY = { lat: 18.5204, lng: 73.8567 };
+  var BINS = [];
+  var map = null;
+  var userPos = null;
+  var userMarker = null;
+  var routeLine = null;
+  var binMarker = null;
+  var _binId = null;
+
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function num(v) { return (v == null || isNaN(Number(v))) ? 0 : Number(v); }
+  function seedHash(s) { var h=2166136261; s=String(s); for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return (h>>>0)/4294967295; }
+  function distTo(lat1,lng1,lat2,lng2){ var R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180; var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2); return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
+  function formatDist(km){ return km < 1 ? Math.round(km*1000) + ' m' : km.toFixed(1) + ' km'; }
+  function cleanBins(list){
+    var bad = /(?:SEFES|SEFER|ESP_|TEMP_|test|demo|db\d{4})/i;
+    return (list||[]).filter(function(b){
+      var id=String(b.dustbin_id||''), loc=String(b.location||'');
+      if (bad.test(id)||bad.test(loc)) return false;
+      if (id && !/^DB\d{2,3}$/i.test(id.trim())) return false;
+      return true;
+    });
+  }
+  function binPos(b){
+    var lat=b.latitude, lng=b.longitude;
+    if (lat==null||lng==null||isNaN(lat)) {
+      var a=seedHash('lat'+b.dustbin_id)*360, r=3+seedHash(b.dustbin_id)*5;
+      lat=CITY.lat+(r/111)*Math.cos(a*Math.PI/180);
+      lng=CITY.lng+(r/(111*Math.cos(CITY.lat*Math.PI/180)))*Math.sin(a*Math.PI/180);
+    }
+    return { lat:lat, lng:lng };
+  }
+  function binState(b){ var f=num(b.fill_level); if(f>=85) return {cls:'full',label:'Full',color:'#FF4D5A'}; if(f>=60) return {cls:'almost',label:'Almost Full',color:'#F5B82E'}; return {cls:'ok',label:'Not Full',color:'#19C37D'}; }
+  function fillCls(f){ return f>=85?'full':f>=60?'almost':'ok'; }
+  function timeAgo(dt){ if(!dt) return 'just now'; var diff=(Date.now()-new Date(dt).getTime())/1000; if(diff<60) return 'just now'; if(diff<3600) return Math.floor(diff/60)+' min ago'; if(diff<86400) return Math.floor(diff/3600)+' hr ago'; return Math.floor(diff/86400)+' d ago'; }
+
+  var GridFallback = L.GridLayer.extend({
+    createTile: function (coords) {
+      var sz=this.getTileSize(); var tile=document.createElement('canvas');
+      tile.width=sz.x; tile.height=sz.y; var ctx=tile.getContext('2d');
+      ctx.fillStyle='#081120'; ctx.fillRect(0,0,sz.x,sz.y);
+      var step=64; for(var x=0;x<sz.x;x+=step){ ctx.strokeStyle='rgba(76,118,168,.12)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x+0.5,0); ctx.lineTo(x+0.5,sz.y); ctx.stroke(); }
+      for(var y=0;y<sz.y;y+=step){ ctx.strokeStyle='rgba(76,118,168,.12)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(0,y+0.5); ctx.lineTo(sz.x,y+0.5); ctx.stroke(); }
+      return tile;
+    }
+  });
+
+  function binIconHtml(b, color){
+    return '<div class="bm-bin-marker"><span class="bm-pin" style="background:'+color+'">' +
+      '<svg viewBox="0 0 24 24"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></span>' +
+      '<span class="bm-tag">'+esc(b.dustbin_id)+'</span></div>';
+  }
+
+  function renderBin(b){
+    var p=binPos(b); var f=Math.round(num(b.fill_level)); var st=binState(b);
+    var color=st.color; var cls=st.cls;
+
+    if (binMarker) { binMarker.remove(); binMarker=null; }
+    binMarker = L.marker([p.lat,p.lng], {
+      icon: L.divIcon({ className:'', html: binIconHtml(b,color), iconSize:[36,48], iconAnchor:[18,44] }),
+      zIndexOffset: 1000
+    }).addTo(map);
+
+    var fillTxt = esc(b.location||'No location')+'<br>'+f+'% full · Updated '+timeAgo(b.last_update);
+    binMarker.bindPopup(
+      '<div style="font-family:inherit;color:#0c1a2e;min-width:190px">' +
+      '<b style="font-size:.92rem">Smart Bin '+esc(b.dustbin_id)+'</b><br>' +
+      '<span style="font-size:.78rem;color:#334155">'+esc(b.location||'No location')+'</span>' +
+      '<div style="margin-top:8px;height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden">' +
+      '<div style="height:100%;width:'+f+'%;background:'+color+';border-radius:4px"></div></div>' +
+      '<div style="display:flex;justify-content:space-between;margin-top:5px;font-size:.76rem">' +
+      '<span><b>'+f+'%</b> full</span><span style="color:#475569">Updated '+timeAgo(b.last_update)+'</span></div>' +
+      '</div>', { offset:[0,-42] }
+    ).openPopup();
+
+    fillSheet(b, f, st);
+
+    var center = [p.lat, p.lng];
+    if (userPos) center = L.latLngBounds([userPos, [p.lat,p.lng]]).pad(0.25).getCenter();
+    map.flyTo(center, Math.max(map.getZoom(), 15), { duration: .8 });
+    map.once('moveend', function(){ binMarker.openPopup(); });
+    drawRoute(b, p);
+  }
+
+  function fillSheet(b, f, st){
+    var d = userPos ? formatDist(distTo(userPos.lat,userPos.lng,binPos(b).lat,binPos(b).lng)) : '--';
+    var mapsUrl = userPos
+      ? 'https://www.google.com/maps/dir/'+userPos.lat+','+userPos.lng+'/'+binPos(b).lat+','+binPos(b).lng
+      : 'https://www.google.com/maps/search/?api=1&query='+binPos(b).lat+','+binPos(b).lng;
+    var upd = timeAgo(b.last_update);
+    document.getElementById('bmSheet').innerHTML =
+      '<div class="bm-sheet-head">' +
+      '  <span class="bm-sheet-ico"><svg viewBox="0 0 24 24"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></span>' +
+      '  <div class="bm-sheet-t"><b>Smart Bin '+esc(b.dustbin_id)+'</b><small>'+esc(b.location||'No location')+'</small></div>' +
+      '  <span class="bm-pill '+st.cls+'">'+st.label+'</span>' +
+      '</div>' +
+      '<div class="bm-fill"><div class="bm-bar"><span class="'+st.cls+'" style="width:'+f+'%"></span></div><small>'+f+'%</small></div>' +
+      '<div class="bm-rows">' +
+      '  <div class="bm-row"><small>Distance from you</small><strong class="em">'+d+'</strong></div>' +
+      '  <div class="bm-row"><small>Fill level</small><strong>'+f+'%</strong></div>' +
+      '  <div class="bm-row"><small>Status</small><strong style="color:'+st.color+'">'+st.label+'</strong></div>' +
+      '  <div class="bm-row"><small>Last updated</small><strong>'+upd+'</strong></div>' +
+      '</div>' +
+      '<div class="bm-actions">' +
+      '  <a class="bm-btn primary" target="_blank" rel="noopener" href="'+mapsUrl+'"><svg viewBox="0 0 24 24"><path d="M12 21s-7-5.3-7-11a7 7 0 0114 0c0 5.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>Directions</a>' +
+      '  <button class="bm-btn ghost" id="bmDone"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Back to Bins</button>' +
+      '</div>';
+    document.getElementById('bmSheet').style.display = 'block';
+    document.getElementById('bmDone').addEventListener('click', function(){ goBack(); });
+  }
+
+  function drawRoute(b, p){
+    if (!userPos) return;
+    if (routeLine) { routeLine.remove(); routeLine=null; }
+    routeLine = L.polyline([ [userPos.lat,userPos.lng], [p.lat,p.lng] ], {
+      color:'#18C8E8', weight:2, dashArray:'5 6', opacity:.7
+    }).addTo(map);
+  }
+
+  function setUserMarker(lat,lng){
+    userPos = { lat:lat, lng:lng };
+    if (userMarker) { userMarker.remove(); userMarker=null; }
+    userMarker = L.marker([lat,lng], {
+      icon: L.divIcon({ className:'', html:
+        '<div class="bm-user-marker"><span class="ring"></span><span class="dot"></span>'+
+        '<span class="bm-user-tag">You</span></div>', iconSize:[22,34], iconAnchor:[11,30] }),
+      zIndexOffset: 900
+    }).addTo(map);
+    var b = BINS.find(function(x){ return String(x.dustbin_id)==_binId; });
+    if (b) { renderBin(b); }
+  }
+
+  function locateUser(){
+    if (!navigator.geolocation) {
+      document.getElementById('bmSub').textContent = 'Location unavailable — showing bin only';
+      var d = BINS.find(function(x){ return String(x.dustbin_id)==_binId; });
+      if (d) renderBin(d);
+      return;
+    }
+    document.getElementById('bmSub').textContent = 'Locating your position…';
+    navigator.geolocation.getCurrentPosition(
+      function(pos){ setUserMarker(pos.coords.latitude, pos.coords.longitude); },
+      function(){ document.getElementById('bmSub').textContent = 'Location unavailable — showing bin only'; var d=BINS.find(function(x){ return String(x.dustbin_id)==_binId; }); if(d) renderBin(d); },
+      { enableHighAccuracy:true, timeout:8000, maximumAge:30000 }
+    );
+  }
+
+  function init(){
+    var q = new URLSearchParams(window.location.search);
+    _binId = q.get('bin');
+    document.getElementById('bmBack').addEventListener('click', goBack);
+
+    map = L.map('bmMap', { center:[CITY.lat,CITY.lng], zoom:13, zoomControl:true, attributionControl:false });
+    new GridFallback({ tileSize:256 }).addTo(map);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
+
+    if (!_binId) { document.getElementById('bmSub').textContent='No bin selected — please go back.'; return; }
+    document.getElementById('bmTitle').innerHTML = 'Smart Bin '+esc(_binId);
+
+    api.get('/dustbins/').then(function(b){
+      BINS = cleanBins(Array.isArray(b)?b:(b.value||[]));
+      var target = BINS.find(function(x){ return String(x.dustbin_id)==_binId; });
+      if (!target) {
+        document.getElementById('bmSub').textContent='Bin not found — please go back.';
+        return;
+      }
+      document.getElementById('bmSub').textContent=esc(target.location||'');
+      locateUser();
+    }).catch(function(){ document.getElementById('bmSub').textContent='Could not load bins.'; });
+  }
+
+  function goBack(){
+    if (document.referrer && document.referrer.indexOf('customer.html') !== -1) { history.back(); }
+    else { window.location.href = 'customer.html'; }
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>

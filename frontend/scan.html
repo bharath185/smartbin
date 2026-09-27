@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>QR Scan | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+</head>
+<body data-role="municipality">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="index.html" id="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="drivers.html" id="nav-employees">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0113 0"/></svg>
+        Employees
+      </a>
+      <a href="dustbins.html" id="nav-dustbins">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M5 6v14a2 2 0 002 2h10a2 2 0 002-2V6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        Dustbins
+      </a>
+      <a href="leaderboard.html" id="nav-leaderboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15l-4 5h8l-4-5z"/><circle cx="12" cy="9" r="6"/><path d="M9 9l2 2 4-4"/></svg>
+        Leaderboard
+      </a>
+      <a href="complaints.html" id="nav-complaints">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Complaints
+      </a>
+      <a href="scan.html" id="nav-scan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><path d="M20 14v3h-3M20 20h-3"/></svg>
+        QR Scan
+      </a>
+    </nav>
+  </aside>
+<div class="main">
+  <header class="topbar">
+    <span class="topbar-title">Scan Dustbin QR Code</span>
+    <div class="topbar-actions"><div class="avatar">A</div></div>
+  </header>
+  <div class="content">
+    <div class="panel">
+      <div class="panel-header"><h2>Scan &amp; Unload</h2></div>
+      <div class="modal-body">
+        <p style="margin-bottom:20px;color:var(--gray-500)">Scan a dustbin QR code or manually enter the IDs below to record an unload.</p>
+        <div class="form-row">
+          <div class="form-group"><label>Dustbin ID</label><input class="form-control" id="sDustbin" placeholder="e.g. DB002"></div>
+          <div class="form-group"><label>Your Employee ID</label><input class="form-control" id="sEmployee" placeholder="e.g. EMP003"></div>
+        </div>
+        <button class="btn btn-primary" onclick="unload()" style="margin-top:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+          Record Unload
+        </button>
+        <div class="scan-result" id="scanResult" style="margin-top:20px;padding:20px;background:var(--success-light);border-radius:var(--radius-sm);display:none"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/ws-init.js"></script>
+<script>
+var navScan = document.getElementById('nav-scan'); if (navScan) navScan.classList.add('active');
+async function unload(){
+    const body={dustbin_id:document.getElementById('sDustbin').value,employee_id:document.getElementById('sEmployee').value};
+    if(!body.dustbin_id||!body.employee_id){showToast('Fill both fields','error');return;}
+    // Run the AI detection scan, then record the unload
+    await SmartCity.aiScan();
+    try{const res=await api.post('/employees/unload',body);const el=document.getElementById('scanResult');el.style.display='block';el.innerHTML='<strong style="color:var(--success)">'+res.message+'</strong><br>Total Points: <strong>'+res.total_points+'</strong>';showToast(res.message);}catch(e){showToast(e.message,'error');}
+}
+</script>
+</body>
+</html>

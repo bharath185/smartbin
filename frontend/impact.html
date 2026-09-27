@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Environmental Impact | SmartBin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/animations.css">
+  <link rel="stylesheet" href="assets/css/ws.css">
+  <link rel="stylesheet" href="assets/css/saas.css">
+</head>
+<body data-network data-page="impact" data-role="municipality">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#2563eb"/><path d="M8 12h16v2H8zm2 4h12v8H10z" fill="#fff"/><path d="M12 10h8v2h-8z" fill="#fff" opacity=".6"/></svg>
+      <span>SmartBin</span>
+    </div>
+    <nav class="sidebar-nav"></nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">Environmental Impact</span>
+        <span class="topbar-subtitle">Sustainability metrics of the SmartBin network</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="live-badge"><i></i>Live Telemetry</span>
+        <div class="topbar-time" id="currentTime"></div>
+        <div class="avatar">M</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="impact-hero glass">
+        <div class="impact-hero-score">
+          <div class="eco-ring" id="ecoRing"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-val" id="ringVal" cx="60" cy="60" r="52"/></svg><div class="eco-ring-label"><strong id="ecoPct">0</strong><span>Eco Score</span></div></div>
+        </div>
+        <div class="impact-hero-copy">
+          <h2>City Eco Score</h2>
+          <p>SmartBin collection &amp; recycling offsets help this area perform above the regional average of 62. Raising the segregation rate and solar yield pushes your score higher</p>
+          <div class="eco-tags"><span>+6 vs last month</span><span>Above regional avg</span></div>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-info"><span class="kpi-label">CO₂ Saved</span><span class="kpi-value" id="kCo2">12.4<span class="unit">k kg</span></span></div></div>
+        <div class="kpi-card"><div class="kpi-info"><span class="kpi-label">Recycled</span><span class="kpi-value" id="kRecycle">8.1<span class="unit">k kg</span></span></div></div>
+        <div class="kpi-card"><div class="kpi-info"><span class="kpi-label">Solar Generated</span><span class="kpi-value" id="kSolar">2.3<span class="unit"> MWh</span></span></div></div>
+        <div class="kpi-card"><div class="kpi-info"><span class="kpi-label">Landfill Diverted</span><span class="kpi-value" id="kLandfill">11.3<span class="unit">k kg</span></span></div></div>
+      </div>
+
+      <div class="alerts-bottom">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><h3>Waste Composition</h3><p class="chart-subtitle">Where collected waste goes</p></div>
+          </div>
+          <div class="comp-list" id="compList"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><h3>Impact Equivalents</h3><p class="chart-subtitle">What the network equates to</p></div>
+          </div>
+          <div class="equiv-grid" id="equivGrid"></div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><h3>Monthly Trend</h3><p class="chart-subtitle">CO₂ avoided (kg)</p></div>
+          </div>
+          <div class="trend-bars" id="trendBars"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div><h3>Community Driver Sessions</h3><p class="chart-subtitle">Segregation awareness drives</p></div>
+          </div>
+          <ul class="so-list"><li><b>1.</b> 240 students taught sorting basics</li><li><b>2.</b> 12 apartment societies onboarded</li><li><b>3.</b> 9 recycling camps this quarter</li><li><b>4.</b> 5k+ citizens using the QR guide</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/animations.js"></script>
+<script src="assets/js/ws-init.js"></script>
+  <script>
+  var COMP = [
+    { name: 'Recyclable', pct: 46, color: '#34d399' },
+    { name: 'Wet / Organic', pct: 31, color: '#60a5fa' },
+    { name: 'Hazardous', pct: 9, color: '#f87171' },
+    { name: 'Reject / Other', pct: 14, color: '#94a3b8' }
+  ];
+  var EQUIV = [
+    { emoji: '🌳', label: 'Trees planted equivalent', value: '620' },
+    { emoji: '🍶', label: 'Plastic bottles recycled', value: '91k' },
+    { emoji: '🚛', label: 'Collection truck trips saved', value: '240' },
+    { emoji: '💡', label: 'LED streetlights powered', value: '230' }
+  ];
+  var TREND = [410, 455, 438, 502, 486, 540, 524, 561, 590, 574, 621, 640];
+
+  function updateClock() {
+    document.getElementById('currentTime').textContent = new Date().toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  updateClock(); setInterval(updateClock, 30000);
+
+  function animateNumber(id, target, suffix) {
+    var el = document.getElementById(id);
+    var start = 0;
+    var iv = setInterval(function () {
+      start += Math.max(1, Math.ceil((target - start) / 8));
+      el.innerHTML = start.toFixed(1) + '<span class="unit">' + suffix + '</span>';
+      if (start >= target) { el.innerHTML = target.toFixed(1) + '<span class="unit">' + suffix + '</span>'; clearInterval(iv); }
+    }, 22);
+  }
+
+  function renderComp() {
+    document.getElementById('compList').innerHTML = COMP.map(function (c) {
+      return '<div class="comp-row"><span class="comp-name"><i style="background:' + c.color + '"></i>' + c.name + '</span>' +
+        '<div class="fill-cell"><div class="fill-bar-bg" style="width:160px"><div class="fill-bar" style="width:' + c.pct + '%;background:' + c.color + '"></div></div>' +
+        '<span class="fill-pct" style="color:' + c.color + '">' + c.pct + '%</span></div></div>';
+    }).join('');
+  }
+
+  function renderEquiv() {
+    document.getElementById('equivGrid').innerHTML = EQUIV.map(function (e) {
+      return '<div class="equiv-card"><span class="equiv-emoji">' + e.emoji + '</span><strong>' + e.value + '</strong><small>' + e.label + '</small></div>';
+    }).join('');
+  }
+
+  function renderTrend() {
+    var max = Math.max.apply(null, TREND);
+    var labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    document.getElementById('trendBars').innerHTML = TREND.map(function (v, i) {
+      return '<div class="t-bar"><div class="t-fill" data-h="' + v + '" style="height:' + Math.max(v / max * 100, 5) + '%"></div><span>' + labels[i] + '</span></div>';
+    }).join('');
+    setTimeout(function () {
+      document.querySelectorAll('.t-fill').forEach(function (el, i) {
+        el.style.animation = 'none';
+        void el.offsetWidth;
+        el.style.animation = 'heightFrom .6s ease forwards';
+      });
+    }, 200);
+  }
+
+  function runEcoRing(target) {
+    var val = document.getElementById('ringVal');
+    var len = val.getAttribute('stroke-dasharray');
+    val.style.strokeDashoffset = len;
+    setTimeout(function () {
+      var start = +new Date(), dur = 1400;
+      var iv = setInterval(function () {
+        var t = Math.min((+new Date() - start) / dur, 1);
+        var eased = 1 - Math.pow(1 - t, 3);
+        val.style.strokeDashoffset = len - len * (target / 100) * eased;
+        document.getElementById('ecoPct').textContent = Math.round(target * eased);
+        if (t >= 1) clearInterval(iv);
+      }, 16);
+    }, 300);
+  }
+
+  animateNumber('kCo2', 12.4, 'k kg');
+  animateNumber('kRecycle', 8.1, 'k kg');
+  animateNumber('kSolar', 2.3, ' MWh');
+  animateNumber('kLandfill', 11.3, 'k kg');
+  renderComp();
+  renderEquiv();
+  renderTrend();
+  runEcoRing(81);
+  </script>
+</body>
+</html>
