@@ -65,10 +65,11 @@ const api = {
             return await resp.json();
         } catch (e) {
             // Check for mock fallback in demo mode
-            const baseKey = path.split('?')[0];
-            if (MOCK_STORAGE[baseKey] !== undefined) {
-                return JSON.parse(JSON.stringify(MOCK_STORAGE[baseKey]));
-            }
+            const clean = path.split('?')[0];
+            const key1 = clean.endsWith('/') && clean.length > 1 ? clean.slice(0, -1) : clean;
+            const key2 = clean.endsWith('/') ? clean : clean + '/';
+            if (MOCK_STORAGE[key1] !== undefined) return JSON.parse(JSON.stringify(MOCK_STORAGE[key1]));
+            if (MOCK_STORAGE[key2] !== undefined) return JSON.parse(JSON.stringify(MOCK_STORAGE[key2]));
             throw e;
         }
     },

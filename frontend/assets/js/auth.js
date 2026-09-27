@@ -59,7 +59,11 @@
             if (timer) clearTimeout(timer);
         }
         const data = await resp.json().catch(function () { return {}; });
-        if (!resp.ok) throw new Error(data.detail || 'Request failed');
+        if (!resp.ok) {
+            const err = new Error(data.detail || (resp.status === 404 ? 'API route not found (404)' : 'Request failed'));
+            err.status = resp.status;
+            throw err;
+        }
         return data;
     }
 
@@ -115,13 +119,13 @@
             save(session, persist);
             return session;
         } catch (err) {
-            const isNetErr = !err.status && (
+            const isOffline = !err.status || err.status === 404 || err.status === 502 || err.status === 503 ||
                 (err.message || '').indexOf('fetch') !== -1 ||
                 (err.message || '').indexOf('Failed') !== -1 ||
                 (err.message || '').indexOf('NetworkError') !== -1 ||
-                (err.message || '').indexOf('timed out') !== -1
-            );
-            if (isNetErr) {
+                (err.message || '').indexOf('timed out') !== -1 ||
+                (err.message || '').indexOf('not found') !== -1;
+            if (isOffline) {
                 const idNorm = (identifier || '').trim().toLowerCase();
                 const demoUsers = {
                     'alice@smartbin.com': { role: 'municipality', name: 'Alice Johnson (Admin)', panel: 'municipality', pw: 'password123' },
@@ -136,15 +140,15 @@
                         role: demo.role,
                         name: demo.name,
                         email: idNorm,
-                        status: 'active',
+                        status: demo.role === 'municipality' ? 'approved' : 'active',
                         panel: demo.panel,
                         isDemo: true,
                     };
                     save(session, persist);
-                    toast('Backend offline — signed in via Demo Mode', 'info');
+                    toast('Signed in via Demo Mode (Cloud Preview)', 'info');
                     return session;
                 }
-                throw new Error('Backend server is offline (' + (window.API_BASE || 'port 8000') + '). For cloud preview, please use the Demo Login credentials.');
+                throw new Error('Cloud preview is in Demo Mode. Please use Demo Login: alice@smartbin.com / password123');
             }
             throw err;
         }
@@ -174,10 +178,18 @@
     }
 
     async function me(token) {
-        return fetchJson('/auth/me', {
-            method: 'GET',
-            headers: { 'Authorization': 'Bearer ' + token },
-        });
+        try {
+            return await fetchJson('/auth/me', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer ' + token },
+            });
+        } catch (e) {
+            const s = read();
+            if (s && (s.isDemo || s.token)) {
+                return { email: s.email, role: s.role, full_name: s.name, status: s.status, panel: s.panel };
+            }
+            throw e;
+        }
     }
 
     function logout() {
